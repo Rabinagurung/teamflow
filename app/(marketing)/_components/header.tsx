@@ -100,7 +100,7 @@ export const HeroHeader = () => {
                   {data?.user ? (
                     <>
                       <Link
-                        href="/workspace"
+                        href="/no-workspace"
                         className={buttonVariants({ size: "sm" })}
                       >
                         <span>Dashboard</span>

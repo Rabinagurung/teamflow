@@ -1,13 +1,46 @@
-import { KindeOrganization, KindeUser } from "@kinde-oss/kinde-auth-nextjs"
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { z } from "zod"
 import { base } from "../middlewares/base"
 import { requiredAuthMiddleware } from "../middlewares/auth"
-import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
+import {
+  getWorkspaceForSession,
+  requiredWorkspaceMiddleware,
+} from "../middlewares/workspace"
 import { workspaceSchema } from "../schemas/workspace"
-import { Organizations, init } from "@kinde/management-api-js"
 import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
+import prisma from "@/lib/db"
+import { auth } from "@/lib/auth"
+
+const currentWorkspaceSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  logo: z.string().nullable(),
+  metadata: z.string().nullable(),
+  createdAt: z.date(),
+  orgCode: z.string(),
+  orgName: z.string(),
+})
+
+const appUserSchema = z.object({
+  id: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  email: z.string(),
+  emailVerified: z.boolean(),
+  name: z.string(),
+  image: z.string().nullable(),
+  family_name: z.string().nullable(),
+  given_name: z.string().nullable(),
+  picture: z.string().nullable(),
+})
+
+const toWorkspaceSlug = (name: string) =>
+  `${name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")}-${crypto.randomUUID().slice(0, 8)}`
 
 //This file defines what happens when the route is called
 //This file will stores all procedures for workspace category.
@@ -26,7 +59,6 @@ import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
 // chain .handler: destructure params , get input and log the input and make the fun async
 export const listWorkspaces = base
   .use(requiredAuthMiddleware)
-  .use(requiredWorkspaceMiddleware)
   .route({
     //This binds the procedure to HTTP, GET /workspace (under the prefix /rpc → /rpc/workspace)
     method: "GET",
@@ -44,27 +76,40 @@ export const listWorkspaces = base
           avatar: z.string(),
         }),
       ),
-      user: z.custom<KindeUser<Record<string, unknown>>>(),
-      currentWorkspace: z.custom<KindeOrganization<unknown>>(),
+      user: appUserSchema,
+      currentWorkspace: currentWorkspaceSchema.nullable(),
     }),
   )
-  .handler(async ({ context, errors }) => {
-    const { getUserOrganizations } = getKindeServerSession()
+  .handler(async ({ context }) => {
+    const [memberships, session] = await Promise.all([
+      prisma.member.findMany({
+        where: {
+          userId: context.user.id,
+        },
+        include: {
+          organization: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      }),
+      auth.api.getSession({
+        headers: new Headers(context.request.headers as HeadersInit),
+      }),
+    ])
 
-    const organizations = await getUserOrganizations()
-
-    if (!organizations) {
-      throw errors.FORBIDDEN()
-    }
+    const currentWorkspace = session
+      ? await getWorkspaceForSession(session)
+      : null
 
     return {
-      workspaces: organizations?.orgs.map((org) => ({
-        id: org.code,
-        name: org.name ?? "My Workspace",
-        avatar: org.name?.charAt(0) ?? "M",
+      workspaces: memberships.map(({ organization }) => ({
+        id: organization.id,
+        name: organization.name,
+        avatar: organization.name.charAt(0) || "M",
       })),
       user: context.user,
-      currentWorkspace: context.workspace,
+      currentWorkspace,
     }
   })
 
@@ -80,7 +125,6 @@ export const listWorkspaces = base
  */
 export const createWorkspace = base
   .use(requiredAuthMiddleware)
-  .use(requiredWorkspaceMiddleware)
   .use(standardSecurityMiddleware)
   .use(heavyWriteSecurityMiddleware)
   .route({
@@ -97,55 +141,22 @@ export const createWorkspace = base
     }),
   )
   .handler(async ({ context, errors, input }) => {
-    init()
-
-    //Creating org
-    let data
-
     try {
-      data = await Organizations.createOrganization({
-        requestBody: {
+      const organization = await auth.api.createOrganization({
+        headers: new Headers(context.request.headers as HeadersInit),
+        body: {
           name: input.name,
+          slug: toWorkspaceSlug(input.name),
+          userId: context.user.id,
         },
       })
-    } catch {
-      throw errors.FORBIDDEN()
-    }
 
-    //adding user to org who created it and is gonna be admin of org
-    if (!data.organization?.code) {
-      throw errors.FORBIDDEN({
-        message: "Org code is not defined",
-      })
-    }
-
-    try {
-      await Organizations.addOrganizationUsers({
-        orgCode: data.organization.code,
-        requestBody: {
-          users: [
-            {
-              id: context.user.id,
-              roles: ["admin"],
-            },
-          ],
-        },
-      })
-    } catch {
-      throw errors.FORBIDDEN()
-    }
-
-    //refresh the accesss token
-    //refresh the accesss token
-    const { refreshTokens } = getKindeServerSession()
-    try {
-      await refreshTokens()
+      return {
+        orgCode: organization.id,
+        workspaceName: organization.name,
+      }
     } catch (error) {
-      console.error("Failed to refresh tokens:", error)
-    }
-
-    return {
-      orgCode: data.organization.code,
-      workspaceName: input.name,
+      console.error("Failed to create workspace:", error)
+      throw errors.FORBIDDEN()
     }
   })

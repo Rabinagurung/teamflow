@@ -1,16 +1,38 @@
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
 import { base } from "./base"
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
+
+type AuthSession = Awaited<ReturnType<typeof auth.api.getSession>>
+type AuthUser = NonNullable<AuthSession>["user"]
+
+export type AppUser = Omit<
+  AuthUser,
+  "image" | "family_name" | "given_name" | "picture"
+> & {
+  image: string | null
+  family_name: string | null
+  given_name: string | null
+  picture: string | null
+}
+
+const toAppUser = (user: AuthUser): AppUser => ({
+  ...user,
+  image: user.image ?? null,
+  family_name: user.family_name ?? null,
+  given_name: user.given_name ?? null,
+  picture:
+    (user as AuthUser & { picture?: string | null }).picture ??
+    user.image ??
+    null,
+})
 
 /**
  * Authentication middleware built on top of the shared base procedure configuration.
  *
  * This middleware ensures that a user is authenticated before a procedure
- * continues execution. It integrates with Kinde for session retrieval and
- * injects the authenticated user into the execution context.
+ * continues execution. It retrieves the Better Auth session and injects
+ * the authenticated user into the execution context.
  *
  * Notes:
  * - This is oRPC middleware, not Next.js middleware.
@@ -25,7 +47,7 @@ import { headers } from "next/headers"
  * - The initial context may include an optional `session` object
  *   with an optional `user`.
  * - If no session is present, the middleware fetches the user
- *   from the Kinde server session.
+ *   from Better Auth.
  *
  * Execution behavior:
  * - If no authenticated user is found, the request is redirected
@@ -35,7 +57,7 @@ import { headers } from "next/headers"
  */
 export const requiredAuthMiddleware = base
   .$context<{
-    session?: { user?: KindeUser<Record<string, unknown>> }
+    session?: AuthSession
   }>()
   .middleware(async ({ context, next }) => {
     const session =
@@ -50,22 +72,7 @@ export const requiredAuthMiddleware = base
 
     return next({
       context: {
-        user: session.user,
+        user: toAppUser(session.user),
       },
     })
   })
-
-/**
- * Retrieves the authenticated user from the Kinde server session.
- *
- * This function is used as a fallback when the incoming context
- * does not already contain a session.
- */
-const getSession = async () => {
-  const { getUser } = getKindeServerSession()
-  const user = await getUser()
-
-  return {
-    user,
-  }
-}

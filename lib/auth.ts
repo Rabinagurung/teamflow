@@ -1,8 +1,8 @@
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import prisma from "@/lib/db"
-import { polar, checkout, portal } from "@polar-sh/better-auth"
-import { polarClient } from "./polar"
+// import { polar, checkout, portal } from "@polar-sh/better-auth"
+// import { polarClient } from "./polar"
 import { organization } from "better-auth/plugins"
 
 export const auth = betterAuth({
@@ -11,16 +11,15 @@ export const auth = betterAuth({
   }),
 
   user: {
+    fields: {
+      image: "picture",
+    },
     additionalFields: {
       family_name: {
         type: "string",
         required: false,
       },
       given_name: {
-        type: "string",
-        required: false,
-      },
-      picture: {
         type: "string",
         required: false,
       },
@@ -43,23 +42,23 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    polar({
-      client: polarClient,
-      createCustomerOnSignUp: true,
-      use: [
-        checkout({
-          products: [
-            {
-              productId: "dc317ca4-c483-41f3-b2b9-9a2733ea0a42", // ID of Product from Polar Dashboard
-              slug: "pro", // Custom slug for easy reference in Checkout URL, e.g. /checkout/pro
-            },
-          ],
-          successUrl: process.env.POLAR_SUCCESS_URL,
-          authenticatedUsersOnly: true, //only authenticated better auth users can initiate checkouts
-        }),
-        portal(),
-      ],
-    }),
+    // polar({
+    //   client: polarClient,
+    //   createCustomerOnSignUp: true,
+    //   use: [
+    //     checkout({
+    //       products: [
+    //         {
+    //           productId: "dc317ca4-c483-41f3-b2b9-9a2733ea0a42", // ID of Product from Polar Dashboard
+    //           slug: "pro", // Custom slug for easy reference in Checkout URL, e.g. /checkout/pro
+    //         },
+    //       ],
+    //       successUrl: process.env.POLAR_SUCCESS_URL,
+    //       authenticatedUsersOnly: true, //only authenticated better auth users can initiate checkouts
+    //     }),
+    //     portal(),
+    //   ],
+    // }),
 
     organization(),
   ],
@@ -91,19 +90,13 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          const currentUser = await prisma.user.findFirst({
-            where: {
-              id: user.id,
-            },
-          })
-          console.log("Current user: ", currentUser)
-
+          const [given_name, family_name] = user.name.split(" ")
           return {
             data: {
               ...user,
-              family_name: currentUser?.name ?? "",
-              given_name: currentUser?.name ?? "",
-              picture: currentUser?.image ?? "",
+              family_name,
+              given_name,
+              picture: user?.image ?? "",
             },
           }
         },

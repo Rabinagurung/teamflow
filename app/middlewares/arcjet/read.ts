@@ -1,7 +1,7 @@
 import arcjet, { slidingWindow } from "@/lib/arcjet"
 import { base } from "../base"
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
 import { ArcjetNextRequest } from "@arcjet/next"
+import { AppUser } from "../auth"
 
 const buildStandardAj = () =>
   arcjet.withRule(
@@ -16,7 +16,7 @@ const buildStandardAj = () =>
 export const readSecurityMiddleware = base
   .$context<{
     request: Request | ArcjetNextRequest
-    user: KindeUser<Record<string, unknown>>
+    user: AppUser
   }>()
   .middleware(async ({ context, next, errors }) => {
     const decision = await buildStandardAj().protect(context.request, {

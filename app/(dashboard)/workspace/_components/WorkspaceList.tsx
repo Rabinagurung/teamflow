@@ -42,7 +42,7 @@ const WorkspaceList = () => {
     <TooltipProvider>
       <div className="flex flex-col gap-2">
         {workspaces.map((workspace) => {
-          const isActive = currentWorkspace.orgCode === workspace.id
+          const isActive = currentWorkspace?.orgCode === workspace.id
 
           return (
             <Tooltip key={workspace.id}>
