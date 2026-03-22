@@ -1,0 +1,50 @@
+{
+  /**
+   * Worker script name (how it appears in your Cloudflare dashboard/account).
+   * Must be unique within your account.
+   */
+  "name": "teamflow-chat-realtime",
+
+  /**
+   * Worker entry point bundled by Wrangler.
+   * This file should export a default object with a fetch() handler.
+   */
+  "main": "realtime/index.ts",
+
+  /**
+   * Locks the Worker runtime compatibility behavior to this date.
+   */
+  "compatibility_date": "2026-01-13",
+
+  /**
+   * Durable Object bindings.
+   *
+   * - "class_name" must match the exported class in your code: `export class Chat ...`
+   * - "name" is the binding name available on env (e.g., env.Chat) in raw Workers code.
+   *
+   * PartyServer's routePartykitRequest will use env bindings internally to route requests.
+   */
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "Chat",
+        "class_name": "Chat"
+      }
+    ]
+  },
+
+  /**
+   * Migrations tell Cloudflare how to initialize/upgrade Durable Object classes.
+   * Each migration "tag" is a step; you add new steps over time.
+   *
+   * new_sqlite_classes:
+   * - declares that instances of this DO class use the newer SQLite-backed storage engine.
+   * - required when first enabling SQLite DO storage for a class.
+   */
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Chat"]
+    }
+  ]
+}
