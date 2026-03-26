@@ -1,18 +1,15 @@
+import { auth } from "@/lib/auth"
+import { getAvatar } from "@/lib/get-avatar"
+import { init, Users } from "@kinde/management-api-js"
 import z from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
+import { readSecurityMiddleware } from "../middlewares/arcjet/read"
 import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
 import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
 import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
 import { InviteMemberSchema } from "../schemas/member"
-import {
-  init,
-  organization_user,
-  Organizations,
-  Users,
-} from "@kinde/management-api-js"
-import { getAvatar } from "@/lib/get-avatar"
-import { readSecurityMiddleware } from "../middlewares/arcjet/read"
+import { organization_user } from "../schemas/organization-user"
 
 export const inviteMember = base
   .use(requiredAuthMiddleware)
@@ -33,7 +30,7 @@ export const inviteMember = base
 
       await Users.createUser({
         requestBody: {
-          organization_code: context.workspace.orgCode,
+          organization_code: context.workspace.id,
           profile: {
             given_name: input.name,
             picture: getAvatar(null, input.email!),
@@ -72,16 +69,20 @@ export const listMembers = base
     try {
       init()
 
-      const data = await Organizations.getOrganizationUsers({
-        orgCode: context.workspace.orgCode,
-        sort: "name_asc",
+      const membersData = await auth.api.listMembers({
+        query: {
+          organizationId: context.workspace.id,
+          sortBy: "createdAt",
+          sortDirection: "desc",
+        },
+        headers: new Headers(context.request.headers as HeadersInit),
       })
 
-      if (!data.organization_users) {
+      if (!membersData.members) {
         throw errors.NOT_FOUND()
       }
 
-      return data.organization_users
+      return membersData.members
     } catch {
       throw errors.INTERNAL_SERVER_ERROR()
     }

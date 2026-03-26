@@ -6,7 +6,7 @@ export const useSubscription = () => {
     queryKey: ["subscription"],
     queryFn: async () => {
       const { data } = await authClient.customer.state()
-      console.log("Customer polar state: ", { data })
+      // console.log("Customer polar state: ", { data })
       return data
     },
   })

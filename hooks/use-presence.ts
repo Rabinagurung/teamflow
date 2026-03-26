@@ -70,7 +70,7 @@ export function usePresence({ room, currentUser }: usePresenceProps) {
      * We register the current user by sending an "add-user" message to the server.
      */
     onOpen() {
-      console.log("Connected to presence room: ", room)
+      // console.log("Connected to presence room: ", room)
 
       if (currentUser) {
         // Build a protocol message that matches PresenceMessageSchema.
@@ -102,7 +102,7 @@ export function usePresence({ room, currentUser }: usePresenceProps) {
           setOnlineUsers(result.data.payload.users)
         }
       } catch (error) {
-        console.log("Failed to parse message", error)
+        console.error("Failed to parse message", error)
       }
     },
 

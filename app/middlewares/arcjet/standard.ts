@@ -1,10 +1,10 @@
 //This standard arcjet middleware will house standard things like: bot detection, shield
 
 import arcjet, { detectBot, shield } from "@/lib/arcjet"
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
 
-import { base } from "../base"
 import { ArcjetNextRequest } from "@arcjet/next"
+import { AppUser } from "../auth"
+import { base } from "../base"
 
 const buildStandardAj = () =>
   arcjet
@@ -27,7 +27,7 @@ const buildStandardAj = () =>
 export const standardSecurityMiddleware = base
   .$context<{
     request: Request | ArcjetNextRequest
-    user: KindeUser<Record<string, unknown>>
+    user: AppUser
   }>()
   .middleware(async ({ context, next, errors }) => {
     const decision = await buildStandardAj().protect(context.request, {

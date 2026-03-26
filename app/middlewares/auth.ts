@@ -1,9 +1,29 @@
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
-import { base } from "./base"
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
-import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
+import { ArcjetNextRequest } from "@arcjet/next"
+import { redirect } from "next/navigation"
+import { base } from "./base"
+
+type AuthSession = Awaited<ReturnType<typeof auth.api.getSession>>
+type AuthUser = NonNullable<AuthSession>["user"]
+
+export type AppUser = Omit<
+  AuthUser,
+  "image" | "family_name" | "given_name" | "picture"
+> & {
+  image: string | null
+  family_name: string | null
+  given_name: string | null
+  picture: string | null
+}
+
+const toAppUser = (user: AuthUser): AppUser => ({
+  ...user,
+  image: user.image ?? null,
+  family_name: user.family_name ?? null,
+  given_name: user.given_name ?? null,
+  picture:
+    (user as AuthUser & { picture?: string }).picture ?? user.image ?? null,
+})
 
 /**
  * Authentication middleware built on top of the shared base procedure configuration.
@@ -16,9 +36,6 @@ import { headers } from "next/headers"
  * - This is oRPC middleware, not Next.js middleware.
  * - It does not run automatically; procedures must explicitly apply it.
  * - Redirection behavior is handled using Next.js navigation utilities.
- */
-
-/**
  * Authentication-required middleware.
  *
  * Context behavior:
@@ -35,37 +52,23 @@ import { headers } from "next/headers"
  */
 export const requiredAuthMiddleware = base
   .$context<{
-    session?: { user?: KindeUser<Record<string, unknown>> }
+    request: Request | ArcjetNextRequest
+    session?: AuthSession
   }>()
   .middleware(async ({ context, next }) => {
     const session =
       context.session ??
       (await auth.api.getSession({
-        headers: await headers(),
+        headers: new Headers(context.request.headers as HeadersInit),
       }))
 
-    if (!session) {
+    if (!session?.user) {
       return redirect("/login")
     }
 
     return next({
       context: {
-        user: session.user,
+        user: toAppUser(session.user),
       },
     })
   })
-
-/**
- * Retrieves the authenticated user from the Kinde server session.
- *
- * This function is used as a fallback when the incoming context
- * does not already contain a session.
- */
-const getSession = async () => {
-  const { getUser } = getKindeServerSession()
-  const user = await getUser()
-
-  return {
-    user,
-  }
-}

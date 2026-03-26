@@ -3,14 +3,20 @@
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
+  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-  TooltipContent,
 } from "@/components/ui/tooltip"
+import { authClient } from "@/lib/auth-client"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
-import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+import { startTransition } from "react"
 
 const colorCombinations = [
   "bg-blue-500 hover:bg-blue-600 text-white",
@@ -34,33 +40,75 @@ const getWorkspaceColor = (id: string) => {
 }
 
 const WorkspaceList = () => {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
+  const workspaceListQuery = orpc.workspace.list.queryOptions()
   const {
     data: { workspaces, currentWorkspace },
-  } = useSuspenseQuery(orpc.workspace.list.queryOptions())
+  } = useSuspenseQuery(workspaceListQuery)
+
+  const switchWorkspace = useMutation({
+    mutationFn: async (workspaceId: string) => {
+      const { error } = await authClient.organization.setActive({
+        organizationId: workspaceId,
+      })
+
+      if (error) {
+        throw new Error(error.message || "Failed to switch workspace")
+      }
+
+      return workspaceId
+    },
+
+    onSuccess: async (workspaceId) => {
+      await queryClient.invalidateQueries({
+        queryKey: workspaceListQuery.queryKey,
+      })
+
+      startTransition(() => {
+        router.push(`/workspace/${workspaceId}`)
+        router.refresh()
+      })
+    },
+  })
 
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-2">
         {workspaces.map((workspace) => {
-          const isActive = currentWorkspace.orgCode === workspace.id
+          const isActive = currentWorkspace?.id === workspace.id
+          const isSwitching =
+            switchWorkspace.isPending &&
+            switchWorkspace.variables === workspace.id
 
           return (
             <Tooltip key={workspace.id}>
               <TooltipTrigger asChild>
-                <LoginLink orgCode={workspace.id}>
-                  <Button
-                    size="icon"
-                    className={cn(
-                      "size-12 transition-all duration-200",
-                      getWorkspaceColor(workspace.id),
-                      isActive ? "rounded-lg" : "rounded-xl hover:rounded-lg",
-                    )}
-                  >
-                    <span className="text-sm font-semibold">
-                      {workspace.avatar}
-                    </span>
-                  </Button>
-                </LoginLink>
+                <Button
+                  size="icon"
+                  type="button"
+                  disabled={isSwitching}
+                  aria-pressed={isActive}
+                  aria-label={`Switch to ${workspace.name}`}
+                  onClick={() => {
+                    if (isActive) {
+                      router.push(`/workspace/${workspace.id}`)
+                      return
+                    }
+                    switchWorkspace.mutate(workspace.id)
+                  }}
+                  className={cn(
+                    "size-12 transition-all duration-200",
+                    getWorkspaceColor(workspace.id),
+                    isActive ? "rounded-lg" : "rounded-xl hover:rounded-lg",
+                    isSwitching && "opacity-80",
+                  )}
+                >
+                  <span className="text-sm font-semibold">
+                    {workspace.avatar}
+                  </span>
+                </Button>
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>

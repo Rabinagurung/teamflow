@@ -21,7 +21,6 @@ import { authClient } from "@/lib/auth-client"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -34,8 +33,6 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 const LoginForm = () => {
-  const router = useRouter()
-
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -48,11 +45,10 @@ const LoginForm = () => {
     await authClient.signIn.social(
       {
         provider: "github",
+        callbackURL: "/complete",
       },
       {
-        onSuccess: () => {
-          router.push("/")
-        },
+        onSuccess: () => {},
         onError: () => {
           toast.error("Something went wrong")
         },
@@ -64,11 +60,10 @@ const LoginForm = () => {
     await authClient.signIn.social(
       {
         provider: "google",
+        callbackURL: "/complete",
       },
       {
-        onSuccess: () => {
-          router.push("/")
-        },
+        onSuccess: () => {},
         onError: () => {
           toast.error("Something went wrong")
         },
@@ -81,12 +76,10 @@ const LoginForm = () => {
       {
         email: values.email,
         password: values.password,
-        callbackURL: "/",
+        callbackURL: "/complete",
       },
       {
-        onSuccess: () => {
-          router.push("/")
-        },
+        onSuccess: () => {},
         onError: (ctx) => {
           toast.error(ctx.error.message)
         },

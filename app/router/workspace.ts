@@ -1,16 +1,22 @@
-import { KindeOrganization, KindeUser } from "@kinde-oss/kinde-auth-nextjs"
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
+import { auth } from "@/lib/auth"
 import { z } from "zod"
-import { base } from "../middlewares/base"
-import { requiredAuthMiddleware } from "../middlewares/auth"
-import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
-import { workspaceSchema } from "../schemas/workspace"
-import { Organizations, init } from "@kinde/management-api-js"
-import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
+import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
+import { requiredAuthMiddleware } from "../middlewares/auth"
+import { base } from "../middlewares/base"
+import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
+import { appUserSchema } from "../schemas/user"
+import { appWorkspaceSchema, workspaceSchema } from "../schemas/workspace"
 
 //This file defines what happens when the route is called
 //This file will stores all procedures for workspace category.
+
+const toWorkspaceSlug = (name: string) =>
+  `${name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")}-${crypto.randomUUID().slice(0, 8)}`
 
 //Procedures are like actions like: getWorkspaces, createWorkspace are two procedures
 
@@ -44,24 +50,24 @@ export const listWorkspaces = base
           avatar: z.string(),
         }),
       ),
-      user: z.custom<KindeUser<Record<string, unknown>>>(),
-      currentWorkspace: z.custom<KindeOrganization<unknown>>(),
+      user: appUserSchema,
+      currentWorkspace: appWorkspaceSchema.nullable(),
     }),
   )
   .handler(async ({ context, errors }) => {
-    const { getUserOrganizations } = getKindeServerSession()
-
-    const organizations = await getUserOrganizations()
+    const organizations = await auth.api.listOrganizations({
+      headers: new Headers(context.request.headers as HeadersInit),
+    })
 
     if (!organizations) {
       throw errors.FORBIDDEN()
     }
 
     return {
-      workspaces: organizations?.orgs.map((org) => ({
-        id: org.code,
-        name: org.name ?? "My Workspace",
-        avatar: org.name?.charAt(0) ?? "M",
+      workspaces: organizations.map((org) => ({
+        id: org.id,
+        name: org.name ?? "My workspace",
+        avatar: org.name?.charAt(0)?.toUpperCase() ?? "M",
       })),
       user: context.user,
       currentWorkspace: context.workspace,
@@ -80,7 +86,6 @@ export const listWorkspaces = base
  */
 export const createWorkspace = base
   .use(requiredAuthMiddleware)
-  .use(requiredWorkspaceMiddleware)
   .use(standardSecurityMiddleware)
   .use(heavyWriteSecurityMiddleware)
   .route({
@@ -97,55 +102,37 @@ export const createWorkspace = base
     }),
   )
   .handler(async ({ context, errors, input }) => {
-    init()
-
-    //Creating org
-    let data
-
     try {
-      data = await Organizations.createOrganization({
-        requestBody: {
+      const organization = await auth.api.createOrganization({
+        body: {
           name: input.name,
+          slug: toWorkspaceSlug(input.name),
+          userId: context.user.id,
         },
+        headers: new Headers(context.request.headers as HeadersInit),
       })
-    } catch {
-      throw errors.FORBIDDEN()
-    }
 
-    //adding user to org who created it and is gonna be admin of org
-    if (!data.organization?.code) {
-      throw errors.FORBIDDEN({
-        message: "Org code is not defined",
-      })
-    }
+      if (!organization?.id) {
+        throw errors.INTERNAL_SERVER_ERROR({
+          message: "Organization id is not defined",
+        })
+      }
 
-    try {
-      await Organizations.addOrganizationUsers({
-        orgCode: data.organization.code,
-        requestBody: {
-          users: [
-            {
-              id: context.user.id,
-              roles: ["admin"],
-            },
-          ],
+      await auth.api.setActiveOrganization({
+        body: {
+          organizationId: organization.id,
         },
+        headers: new Headers(context.request.headers as HeadersInit),
       })
-    } catch {
-      throw errors.FORBIDDEN()
-    }
 
-    //refresh the accesss token
-    //refresh the accesss token
-    const { refreshTokens } = getKindeServerSession()
-    try {
-      await refreshTokens()
+      return {
+        orgCode: organization.id,
+        workspaceName: organization.name,
+      }
     } catch (error) {
-      console.error("Failed to refresh tokens:", error)
-    }
-
-    return {
-      orgCode: data.organization.code,
-      workspaceName: input.name,
+      console.error("Failed to create organizaiton: ", error)
+      throw errors.FORBIDDEN({
+        message: "Unable to create workspace",
+      })
     }
   })

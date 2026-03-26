@@ -9,7 +9,6 @@ import { requireAuth } from "@/lib/auth-utils"
 const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
   await requireAuth()
 
-  console.log("here")
   const queryClient = getQueryClient()
   await queryClient.prefetchQuery(orpc.workspace.list.queryOptions())
 

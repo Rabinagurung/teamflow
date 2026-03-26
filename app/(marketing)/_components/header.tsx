@@ -20,7 +20,6 @@ export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false)
   const [isScrolled, setIsScrolled] = React.useState(false)
   const { data, isPending } = authClient.useSession()
-  console.log(data)
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -100,7 +99,7 @@ export const HeroHeader = () => {
                   {data?.user ? (
                     <>
                       <Link
-                        href="/workspace"
+                        href="/complete"
                         className={buttonVariants({ size: "sm" })}
                       >
                         <span>Dashboard</span>

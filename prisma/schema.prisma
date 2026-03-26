@@ -74,7 +74,7 @@ model MessageReaction {
 }
 
 model User {
-  id            String    @id
+  id            String    @id @default(uuid())
   name          String
   email         String
   emailVerified Boolean   @default(false)
@@ -94,17 +94,16 @@ model User {
   @@map("user")
 }
 
-
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  expiresAt   DateTime
+  token       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ipAddress   String?
+  userAgent   String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   activeOrganizationId String?
 
@@ -114,7 +113,7 @@ model Session {
 }
 
 model Account {
-  id                    String    @id
+  id                    String    @id @default(uuid())
   accountId             String
   providerId            String
   userId                String
@@ -134,56 +133,57 @@ model Account {
 }
 
 model Verification {
-  id         String   @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String   @id @default(uuid())
+  identifier    String
+  value         String
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([identifier])
   @@map("verification")
 }
 
 model Organization {
-  id          String       @id
-  name        String
-  slug        String
-  logo        String?
-  createdAt   DateTime
-  metadata    String?
-  members     Member[]
-  invitations Invitation[]
+  id            String       @id @default(uuid())
+  name          String
+  slug          String
+  logo          String?
+  createdAt     DateTime @default(now())
+  metadata      String?
+  members       Member[]
+  invitations   Invitation[]
 
   @@unique([slug])
   @@map("organization")
 }
 
 model Member {
-  id             String       @id
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           String       @default("member")
-  createdAt      DateTime
+  id                  String       @id @default(uuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                String       @default("member")
+  createdAt           DateTime @default(now())
 
+  @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
   @@map("member")
 }
 
 model Invitation {
-  id             String       @id
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  email          String
-  role           String?
-  status         String       @default("pending")
-  expiresAt      DateTime
-  createdAt      DateTime     @default(now())
-  inviterId      String
-  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  id                String       @id @default(uuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email             String
+  role              String?
+  status            String       @default("pending")
+  expiresAt         DateTime
+  createdAt         DateTime     @default(now())
+  inviterId         String
+  user              User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([email])

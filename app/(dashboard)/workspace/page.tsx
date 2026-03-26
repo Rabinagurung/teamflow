@@ -1,7 +1,5 @@
-import React from "react"
-
-const WorkspacePage = () => {
-  return <div>Page</div>
+const WorkspacePage = async () => {
+  return <div></div>
 }
 
 export default WorkspacePage

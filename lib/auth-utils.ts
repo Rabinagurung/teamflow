@@ -23,6 +23,6 @@ export const requireUnauth = async () => {
   })
 
   if (session) {
-    redirect("/")
+    redirect("/workspace")
   }
 }

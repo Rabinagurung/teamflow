@@ -1,7 +1,8 @@
 import React from "react"
+import CreateWorkspace from "../workspace/_components/CreateWorkspace"
 
 const NoWorksapce = () => {
-  return <div>NoWorksapce</div>
+  return <CreateWorkspace alwaysOpen />
 }
 
 export default NoWorksapce

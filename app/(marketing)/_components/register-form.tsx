@@ -55,11 +55,10 @@ const RegisterForm = () => {
     await authClient.signIn.social(
       {
         provider: "github",
+        callbackURL: "/complete",
       },
       {
-        onSuccess: () => {
-          router.push("/")
-        },
+        onSuccess: () => {},
         onError: () => {
           toast.error("Something went wrong")
         },
@@ -71,11 +70,10 @@ const RegisterForm = () => {
     await authClient.signIn.social(
       {
         provider: "google",
+        callbackURL: "/complete",
       },
       {
-        onSuccess: () => {
-          router.push("/")
-        },
+        onSuccess: () => {},
         onError: () => {
           toast.error("Something went wrong")
         },
@@ -84,13 +82,12 @@ const RegisterForm = () => {
   }
 
   const onSubmit = async (values: RegisterFormValues) => {
-    console.log({ values })
     await authClient.signUp.email(
       {
         name: values.email,
         email: values.email,
         password: values.password,
-        callbackURL: "/",
+        callbackURL: "/complete",
       },
       {
         //fetchOptions

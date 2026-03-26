@@ -43,23 +43,23 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    polar({
-      client: polarClient,
-      createCustomerOnSignUp: true,
-      use: [
-        checkout({
-          products: [
-            {
-              productId: "dc317ca4-c483-41f3-b2b9-9a2733ea0a42", // ID of Product from Polar Dashboard
-              slug: "pro", // Custom slug for easy reference in Checkout URL, e.g. /checkout/pro
-            },
-          ],
-          successUrl: process.env.POLAR_SUCCESS_URL,
-          authenticatedUsersOnly: true, //only authenticated better auth users can initiate checkouts
-        }),
-        portal(),
-      ],
-    }),
+    // polar({
+    //   client: polarClient,
+    //   createCustomerOnSignUp: true,
+    //   use: [
+    //     checkout({
+    //       products: [
+    //         {
+    //           productId: "dc317ca4-c483-41f3-b2b9-9a2733ea0a42", // ID of Product from Polar Dashboard
+    //           slug: "pro", // Custom slug for easy reference in Checkout URL, e.g. /checkout/pro
+    //         },
+    //       ],
+    //       successUrl: process.env.POLAR_SUCCESS_URL,
+    //       authenticatedUsersOnly: true, //only authenticated better auth users can initiate checkouts
+    //     }),
+    //     portal(),
+    //   ],
+    // }),
 
     organization(),
   ],
@@ -70,7 +70,7 @@ export const auth = betterAuth({
     session: {
       create: {
         before: async (userSession) => {
-          console.log(userSession)
+          // console.log(userSession)
           //Give me the latest organization this user joined, and only tell me its organization ID.
           // const membership = await db.query.member.findFirst({
           //   where: eq(member.userId, userSession.userId),
@@ -91,19 +91,14 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          const currentUser = await prisma.user.findFirst({
-            where: {
-              id: user.id,
-            },
-          })
-          console.log("Current user: ", currentUser)
+          const [given_name, family_name] = user.name.split(" ")
 
           return {
             data: {
               ...user,
-              family_name: currentUser?.name ?? "",
-              given_name: currentUser?.name ?? "",
-              picture: currentUser?.image ?? "",
+              family_name,
+              given_name,
+              picture: user?.image ?? "",
             },
           }
         },

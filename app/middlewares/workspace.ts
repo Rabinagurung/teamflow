@@ -1,26 +1,111 @@
-import { KindeOrganization } from "@kinde-oss/kinde-auth-nextjs"
+import { auth } from "@/lib/auth"
+import prisma from "@/lib/db"
+import { ArcjetNextRequest } from "@arcjet/next"
+import { AppWorkspace } from "../schemas/workspace"
 import { base } from "./base"
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
+
+type AuthSession = Awaited<ReturnType<typeof auth.api.getSession>>
+
+const toAppWorkspace = (workspace: {
+  id: string
+  name: string
+  slug: string
+  logo: string | null
+  metadata: string | null
+  createdAt: Date
+}): AppWorkspace => ({
+  ...workspace,
+  orgCode: workspace.id,
+  orgName: workspace.name,
+})
+
+export const getWorkspaceForSession = async (
+  session: NonNullable<AuthSession>,
+) => {
+  const activeOrganizationId = session.session.activeOrganizationId
+
+  if (activeOrganizationId) {
+    const activeWorkspace = await prisma.organization.findFirst({
+      where: {
+        id: activeOrganizationId,
+        members: {
+          some: {
+            userId: session.user.id,
+          },
+        },
+      },
+
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo: true,
+        metadata: true,
+        createdAt: true,
+      },
+    })
+
+    if (activeWorkspace) {
+      return toAppWorkspace(activeWorkspace)
+    }
+  }
+
+  const membership = await prisma.member.findFirst({
+    where: {
+      userId: session.user.id,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          metadata: true,
+          createdAt: true,
+        },
+      },
+    },
+  })
+
+  return membership?.organization
+    ? toAppWorkspace(membership.organization)
+    : null
+}
 
 export const requiredWorkspaceMiddleware = base
   .$context<{
-    workspace?: KindeOrganization<unknown | null>
+    request: Request | ArcjetNextRequest
+    workspace?: AppWorkspace
   }>()
   .middleware(async ({ context, next, errors }) => {
-    const workspace = context.workspace ?? (await getWorkspace())
+    const session = await auth.api.getSession({
+      headers: new Headers(context.request.headers as HeadersInit),
+    })
+
+    if (!session) {
+      throw errors.UNAUTHORIZED()
+    }
+
+    const workspace =
+      context.workspace ?? (await getWorkspaceForSession(session))
+
+    // if (!workspace) {
+    //   return redirect("/no-workspace")
+    // }
 
     if (!workspace) {
-      throw errors.FORBIDDEN()
+      throw errors.FORBIDDEN({
+        message: "NO_WORKSPACE",
+      })
     }
+
+    console.log("Active workspace by workspacemiddleware: ", workspace?.name)
 
     return next({
       context: { workspace },
     })
   })
-
-const getWorkspace = async () => {
-  const { getOrganization } = getKindeServerSession()
-  const organization = await getOrganization()
-
-  return organization
-}

@@ -36,8 +36,12 @@ import { orpc } from "@/lib/orpc"
 import { toast } from "sonner"
 import { isDefinedError } from "@orpc/client"
 
-const CreateWorkspace = () => {
-  const [open, setOpen] = useState(false)
+type CreateWorkspaceProps = {
+  alwaysOpen?: boolean
+}
+
+const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
+  const [open, setOpen] = useState(alwaysOpen ?? false)
   const queryClient = useQueryClient()
 
   const form = useForm<z.infer<typeof workspaceSchema>>({
