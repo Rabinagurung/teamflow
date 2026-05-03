@@ -134,13 +134,13 @@ export const auth = betterAuth({
         invitation,
       }) => {
         console.log("Send invitaiton email called: ", { email }, { inviter })
-        const inviteLink = `${process.env.BETTER_AUTH_URL}/organizations/invites/${invitation.id}`
-        // await sendOrganizationInviteEmail({
-        //   inviter: inviter.user,
-        //   organization,
-        //   email,
-        //   inviteLink,
-        // })
+        const inviteLink = `${process.env.BETTER_AUTH_URL}/workspace/invites/${invitation.id}`
+        await sendOrganizationInviteEmail({
+          inviter: inviter.user,
+          organization,
+          email,
+          inviteLink,
+        })
       },
     }),
   ],

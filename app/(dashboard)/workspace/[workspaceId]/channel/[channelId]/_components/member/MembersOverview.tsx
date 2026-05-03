@@ -23,9 +23,11 @@ const MembersOverview = () => {
 
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const { data, isLoading, error } = useQuery(
-    orpc.workspace.member.list.queryOptions(),
-  )
+  const {
+    data: membersListData,
+    isLoading,
+    error,
+  } = useQuery(orpc.workspace.member.list.queryOptions())
 
   const { data: workspaceData } = useQuery(orpc.workspace.list.queryOptions())
 
@@ -40,16 +42,19 @@ const MembersOverview = () => {
     } satisfies z.infer<typeof UserSchema>
   }, [workspaceData?.user])
 
-  const members = data ?? []
+  const members = membersListData ?? []
+
+  console.log("Members: ", members)
+  console.log("WorkspaceData: ", workspaceData)
 
   const query = search.trim().toLowerCase()
 
   const filteredMembers = query
     ? members.filter((member) => {
-        const name = member.full_name?.toLowerCase()
-        const email = member.email?.toLowerCase()
+        const name = member.user.name.toLowerCase()
+        const email = member.user.email.toLowerCase()
 
-        return name?.includes(query) || email?.includes(query)
+        return name.includes(query) || email.includes(query)
       })
     : members
 

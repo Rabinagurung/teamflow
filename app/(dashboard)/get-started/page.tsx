@@ -1,12 +1,12 @@
 import { requireAuth } from "@/lib/auth/auth-utils"
 import { client } from "@/lib/orpc/orpc"
-import Link from "next/link"
+
 import { redirect } from "next/navigation"
 import CreateWorkspaceCard from "./_components/CreateWorkspaceCard"
 import WorkspacePickerList from "./_components/WorkspacePickerList"
 
 export default async function GetStartedPage() {
-  const session = await requireAuth()
+  await requireAuth()
 
   const { workspaces, user } = await client.workspace.list()
 
@@ -25,12 +25,6 @@ export default async function GetStartedPage() {
           <p className="text-sm font-semibold tracking-[0.18em] text-muted-foreground">
             TEAMFLOW
           </p>
-          <Link
-            href="/login"
-            className="text-sm text-primary underline-offset-4 hover:underline"
-          >
-            Sign in to another account
-          </Link>
         </header>
 
         <section className="mx-auto mt-10 w-full max-w-3xl">

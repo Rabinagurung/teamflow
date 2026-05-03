@@ -1,12 +1,11 @@
+import { BetterAuthMember } from "@/app/router/member"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getAvatar } from "@/lib/utils/get-avatar"
 import { cn } from "@/lib/utils/utils"
-import { organization_user } from "@kinde/management-api-js"
-
 import Image from "next/image"
 
 interface MemberItemProps {
-  member: organization_user
+  member: BetterAuthMember
   isOnline?: boolean
 }
 
@@ -17,7 +16,7 @@ const badgeStyles = {
 }
 
 const MemberItem = ({ member, isOnline }: MemberItemProps) => {
-  const isAdmin = member.roles?.includes("admin")
+  const isAdmin = member.role.includes("owner")
 
   return (
     <div className="px-3 py-2 hover:bg-accent cursor-pointer transition-colors">
@@ -25,13 +24,13 @@ const MemberItem = ({ member, isOnline }: MemberItemProps) => {
         <div className="relative ">
           <Avatar className="size-8">
             <Image
-              src={getAvatar(member.picture ?? null, member.email!)}
+              src={getAvatar(member.user.image ?? null, member.user.email!)}
               alt="Member Avatar"
               fill
               className="object-cover"
             />
             <AvatarFallback>
-              {member.full_name?.charAt(0).toUpperCase()}
+              {member.user.name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           {/* Online/offline status */}
@@ -46,7 +45,7 @@ const MemberItem = ({ member, isOnline }: MemberItemProps) => {
         {/* Member Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium truncate">{member.full_name}</p>
+            <p className="text-sm font-medium truncate">{member.user.name}</p>
             <span
               className={cn(
                 "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
@@ -57,7 +56,7 @@ const MemberItem = ({ member, isOnline }: MemberItemProps) => {
             </span>
           </div>
           <p className="text-xs text-muted-foreground truncate">
-            {member.email}
+            {member.user.email}
           </p>
         </div>
       </div>

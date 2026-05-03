@@ -9,7 +9,7 @@ export default function WorkspacePickerList({
 }) {
   return (
     <Card className="overflow-hidden rounded-2xl border-border shadow-sm">
-      <CardContent className="p-0">
+      <CardContent className="divide-y divide-border p-0">
         {workspaces.map((workspace) => (
           <WorkspacePickerItem
             key={workspace.id}

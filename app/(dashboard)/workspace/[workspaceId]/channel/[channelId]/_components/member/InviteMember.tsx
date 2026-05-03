@@ -19,6 +19,13 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 import { orpc } from "@/lib/orpc/orpc"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
@@ -32,11 +39,11 @@ import z from "zod"
 const InviteMember = () => {
   const [open, setOpen] = useState(false)
 
-  const form = useForm({
+  const form = useForm<z.infer<typeof InviteMemberSchema>>({
     resolver: zodResolver(InviteMemberSchema),
     defaultValues: {
       email: "",
-      name: "",
+      role: "member",
     },
   })
 
@@ -77,12 +84,12 @@ const InviteMember = () => {
           <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
-              name="name"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter Name..." {...field} />
+                    <Input placeholder="Enter Email address..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -91,13 +98,21 @@ const InviteMember = () => {
 
             <FormField
               control={form.control}
-              name="email"
+              name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter Email address..." {...field} />
-                  </FormControl>
+                  <FormLabel>Role</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

@@ -1,6 +1,4 @@
 import { auth } from "@/lib/auth/auth"
-import { getAvatar } from "@/lib/utils/get-avatar"
-import { init, Users } from "@kinde/management-api-js"
 import z from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
@@ -9,7 +7,10 @@ import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
 import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
 import { InviteMemberSchema } from "../schemas/member"
-import { organization_user } from "../schemas/organization-user"
+
+type ListMembersResponse = Awaited<ReturnType<typeof auth.api.listMembers>>
+
+export type BetterAuthMember = ListMembersResponse["members"][number]
 
 export const inviteMember = base
   .use(requiredAuthMiddleware)
@@ -25,31 +26,35 @@ export const inviteMember = base
   .input(InviteMemberSchema)
   .output(z.void())
   .handler(async ({ input, context, errors }) => {
-    try {
-      init()
+    const headers = new Headers(context.request.headers as HeadersInit)
+    await auth.api.createInvitation({
+      body: {
+        email: input.email,
+        role: input.role,
+        organizationId: context.workspace.id,
+      },
+      headers,
+    })
 
-      await Users.createUser({
-        requestBody: {
-          organization_code: context.workspace.id,
-          profile: {
-            given_name: input.name,
-            picture: getAvatar(null, input.email!),
-          },
+    // await Users.createUser({
+    //   requestBody: {
+    //     organization_code: context.workspace.id,
+    //     profile: {
+    //       given_name: input.name,
+    //       picture: getAvatar(null, input.email!),
+    //     },
 
-          //how will user login ? using email identity
-          identities: [
-            {
-              type: "email",
-              details: {
-                email: input.email,
-              },
-            },
-          ],
-        },
-      })
-    } catch {
-      throw errors.INTERNAL_SERVER_ERROR()
-    }
+    //     //how will user login ? using email identity
+    //     identities: [
+    //       {
+    //         type: "email",
+    //         details: {
+    //           email: input.email,
+    //         },
+    //       },
+    //     ],
+    //   },
+    // })
   })
 
 export const listMembers = base
@@ -64,7 +69,7 @@ export const listMembers = base
     tags: ["Members"],
   })
   .input(z.void())
-  .output(z.array(z.custom<organization_user>()))
+  .output(z.array(z.custom<BetterAuthMember>()))
   .handler(async ({ context, errors }) => {
     try {
       // console.log("listMembers PROCEDURE: ", context.workspace.orgCode)
@@ -77,8 +82,9 @@ export const listMembers = base
         },
         headers: new Headers(context.request.headers as HeadersInit),
       })
+      const user = membersData?.members[0].user
 
-      console.log(membersData)
+      console.log("User", user)
 
       if (!membersData.members) {
         throw errors.NOT_FOUND()

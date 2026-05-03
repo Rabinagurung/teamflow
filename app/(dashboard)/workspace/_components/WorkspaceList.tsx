@@ -29,7 +29,7 @@ const colorCombinations = [
   "bg-pink-500 hover:bg-pink-600 text-white",
 ]
 
-const getWorkspaceColor = (id: string) => {
+export const getWorkspaceColor = (id: string) => {
   const charSum = id
     .split("")
     .reduce((sum, char) => sum + char.charCodeAt(0), 0)
