@@ -10,7 +10,7 @@ import { ChevronUp } from "lucide-react"
 import ChannelList from "./_components/ChannelList"
 import WorkspaceMembersList from "./_components/WorkspaceMembersList"
 import { getQueryClient, HydrateClient } from "@/lib/query/hydration"
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 
 const ChannelListLayout = async ({
   children,

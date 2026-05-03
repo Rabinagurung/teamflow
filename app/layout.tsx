@@ -1,4 +1,4 @@
-import "@/lib/orpc.server" //pre-rendering for SSR
+import "@/lib/orpc/orpc.server" //pre-rendering for SSR
 
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"

@@ -16,10 +16,10 @@ import {
   Strikethrough,
   Undo,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 import { Button } from "../ui/button"
 import ComposeAssistant from "./ComposeAssistant"
-import { markdownToJson } from "@/lib/markdown-to-json"
+import { markdownToJson } from "@/lib/utils/markdown-to-json"
 
 interface MenuBarProps {
   editor: Editor | null

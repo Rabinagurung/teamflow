@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/auth"
 import { ArcjetNextRequest } from "@arcjet/next"
 import { redirect } from "next/navigation"
 import { base } from "./base"

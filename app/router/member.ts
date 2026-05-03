@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth"
-import { getAvatar } from "@/lib/get-avatar"
+import { auth } from "@/lib/auth/auth"
+import { getAvatar } from "@/lib/utils/get-avatar"
 import { init, Users } from "@kinde/management-api-js"
 import z from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
@@ -67,7 +67,7 @@ export const listMembers = base
   .output(z.array(z.custom<organization_user>()))
   .handler(async ({ context, errors }) => {
     try {
-      init()
+      // console.log("listMembers PROCEDURE: ", context.workspace.orgCode)
 
       const membersData = await auth.api.listMembers({
         query: {
@@ -77,6 +77,8 @@ export const listMembers = base
         },
         headers: new Headers(context.request.headers as HeadersInit),
       })
+
+      console.log(membersData)
 
       if (!membersData.members) {
         throw errors.NOT_FOUND()

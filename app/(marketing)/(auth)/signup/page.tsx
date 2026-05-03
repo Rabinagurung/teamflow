@@ -1,6 +1,7 @@
 import React from "react"
-import RegisterForm from "../../_components/register-form"
-import { requireUnauth } from "@/lib/auth-utils"
+import RegisterForm from "../_componentss/register-form"
+import { requireUnauth } from "@/lib/auth/auth-utils"
+import { SocialAuthButtons } from "../_componentss/social-auth-buttons"
 
 const SignUp = async () => {
   await requireUnauth()
@@ -8,6 +9,9 @@ const SignUp = async () => {
   return (
     <div>
       <RegisterForm />
+      <div className="grid grid-cols-2 gap-3">
+        <SocialAuthButtons />
+      </div>
     </div>
   )
 }

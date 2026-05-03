@@ -1,8 +1,8 @@
 import React from "react"
-import CreateWorkspace from "../workspace/_components/CreateWorkspace"
+import NoWorkspaceHero from "./_components/NoWorkspaceHero"
 
 const NoWorksapce = () => {
-  return <CreateWorkspace alwaysOpen />
+  return <NoWorkspaceHero />
 }
 
 export default NoWorksapce

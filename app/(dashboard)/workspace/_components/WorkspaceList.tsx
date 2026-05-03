@@ -7,9 +7,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { authClient } from "@/lib/auth-client"
-import { orpc } from "@/lib/orpc"
-import { cn } from "@/lib/utils"
+import { authClient } from "@/lib/auth/auth-client"
+import { orpc } from "@/lib/orpc/orpc"
+import { cn } from "@/lib/utils/utils"
 import {
   useMutation,
   useQueryClient,

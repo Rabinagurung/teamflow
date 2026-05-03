@@ -5,7 +5,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover"
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 import { useQuery } from "@tanstack/react-query"
 import { Search, UsersIcon } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -19,6 +19,7 @@ import { UserSchema } from "@/app/schemas/realtime"
 const MembersOverview = () => {
   const params = useParams<{ workspaceId: string }>()
   const workspaceId = params.workspaceId
+  console.log("MembersOverview workspaceId params: ", workspaceId)
 
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")

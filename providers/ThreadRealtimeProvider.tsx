@@ -1,5 +1,5 @@
 import { ThreadEventSchema } from "@/app/schemas/realtime"
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 import { useQueryClient } from "@tanstack/react-query"
 import usePartySocket from "partysocket/react"
 import { createContext, useContext, useMemo } from "react"

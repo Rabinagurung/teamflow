@@ -1,5 +1,6 @@
-import { createWorkspace, listWorkspaces } from "./workspace"
+import { generateCompose, generateThreadSummary } from "./ai"
 import { createChannel, getChannel, listChannel } from "./channel"
+import { inviteMember, listMembers } from "./member"
 import {
   createMessage,
   listMessages,
@@ -7,8 +8,17 @@ import {
   toggleReaction,
   updateMessage,
 } from "./message"
-import { inviteMember, listMembers } from "./member"
-import { generateCompose, generateThreadSummary } from "./ai"
+import {
+  getAppEntry,
+  getOnboardingState,
+  saveOnboardingProfile,
+  createOnboardingWorkspace,
+  submitOnboardingInvites,
+  skipOnboardingInvites,
+  startOnboardingFreePlan,
+  completeOnboardingProPlan,
+} from "./onboarding"
+import { createWorkspace, listWorkspaces, selectWorkspace } from "./workspace"
 
 /** This is just an object that organizes procedures into namespaces:
  * workspace.list points to the procedure listWorkspaces
@@ -23,9 +33,24 @@ export const router = {
   workspace: {
     list: listWorkspaces,
     create: createWorkspace,
+    select: selectWorkspace,
     member: {
       list: listMembers,
       invite: inviteMember,
+    },
+  },
+  onboarding: {
+    entry: getAppEntry,
+    state: getOnboardingState,
+    profile: { save: saveOnboardingProfile },
+    workspace: { create: createOnboardingWorkspace },
+    invite: {
+      submit: submitOnboardingInvites,
+      skip: skipOnboardingInvites,
+    },
+    billing: {
+      startFree: startOnboardingFreePlan,
+      completePro: completeOnboardingProPlan,
     },
   },
   channel: {

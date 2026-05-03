@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery, useSuspenseQuery } from "@tanstack/react-query"
 import MessageItem from "./message/MessageItem"
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"

@@ -2,9 +2,9 @@ import React from "react"
 import WorkspaceList from "./_components/WorkspaceList"
 import CreateWorkspace from "./_components/CreateWorkspace"
 import UserNav from "./_components/UserNav"
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 import { getQueryClient, HydrateClient } from "@/lib/query/hydration"
-import { requireAuth } from "@/lib/auth-utils"
+import { requireAuth } from "@/lib/auth/auth-utils"
 
 const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
   await requireAuth()

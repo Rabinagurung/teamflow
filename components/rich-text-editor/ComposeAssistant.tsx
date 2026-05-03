@@ -11,7 +11,7 @@ import {
   MessageContent,
   MessageResponse,
 } from "../ai-elements/message"
-import { client } from "@/lib/orpc"
+import { client } from "@/lib/orpc/orpc"
 
 interface ComposeAssistantProps {
   content: string

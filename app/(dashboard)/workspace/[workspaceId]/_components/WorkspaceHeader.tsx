@@ -1,6 +1,6 @@
 "use client"
 
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
 export function WorkspaceHeader() {

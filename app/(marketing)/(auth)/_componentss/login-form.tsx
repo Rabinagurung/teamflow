@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardHeader,
   CardDescription,
+  CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import {
@@ -17,13 +17,18 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { authClient } from "@/lib/auth-client"
+import { authClient } from "@/lib/auth/auth-client"
 import { zodResolver } from "@hookform/resolvers/zod"
-import Image from "next/image"
+
 import Link from "next/link"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { EmailVerification } from "./email-verification"
+import { ForgotPassword } from "./forgot-password"
+
+import { useRouter } from "next/navigation"
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -33,6 +38,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 const LoginForm = () => {
+  const router = useRouter()
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -41,53 +47,76 @@ const LoginForm = () => {
     },
   })
 
-  const signInWithGithub = async () => {
-    await authClient.signIn.social(
-      {
-        provider: "github",
-        callbackURL: "/complete",
-      },
-      {
-        onSuccess: () => {},
-        onError: () => {
-          toast.error("Something went wrong")
-        },
-      },
-    )
+  const [confirmState, setConfirmState] = useState(false)
+  const [email, setEmail] = useState("")
+  const [openForgotPassword, setOpenForgotPassword] = useState(false)
+
+  function handleOpenForgotPasswordSet(value: boolean) {
+    setOpenForgotPassword(value)
   }
 
-  const signInWithGoogle = async () => {
-    await authClient.signIn.social(
-      {
-        provider: "google",
-        callbackURL: "/complete",
-      },
-      {
-        onSuccess: () => {},
-        onError: () => {
-          toast.error("Something went wrong")
-        },
-      },
-    )
-  }
+  // const signInWithGithub = async () => {
+  //   await authClient.signIn.social(
+  //     {
+  //       provider: "github",
+  //       callbackURL: "/app-entry",
+  //     },
+  //     {
+  //       onSuccess: () => {},
+  //       onError: () => {
+  //         toast.error("Something went wrong")
+  //       },
+  //     },
+  //   )
+  // }
+
+  // const signInWithGoogle = async () => {
+  //   await authClient.signIn.social(
+  //     {
+  //       provider: "google",
+  //       callbackURL: "/app-entry",
+  //     },
+  //     {
+  //       onSuccess: () => {},
+  //       onError: () => {
+  //         toast.error("Something went wrong")
+  //       },
+  //     },
+  //   )
+  // }
 
   const onSubmit = async (values: LoginFormValues) => {
     await authClient.signIn.email(
       {
         email: values.email,
         password: values.password,
-        callbackURL: "/complete",
+        callbackURL: "/app-entry",
       },
       {
-        onSuccess: () => {},
-        onError: (ctx) => {
-          toast.error(ctx.error.message)
+        onError: (error) => {
+          if (error.error.code === "EMAIL_NOT_VERIFIED") {
+            console.log("Here error")
+            setEmail(values.email)
+            setConfirmState(true)
+          }
+
+          toast.error(error.error.message || "Failed to sign in")
         },
       },
     )
   }
 
   const isPending = form.formState.isSubmitting
+
+  if (openForgotPassword) {
+    return (
+      <ForgotPassword onOpenForgotPasswordSet={handleOpenForgotPasswordSet} />
+    )
+  }
+
+  if (confirmState && email) {
+    return <EmailVerification email={email} />
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,7 +130,7 @@ const LoginForm = () => {
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="grid gap-6">
                 <div className="flex flex-col gap-4">
-                  <Button
+                  {/* <Button
                     variant="outline"
                     className="w-full"
                     type="button"
@@ -130,7 +159,7 @@ const LoginForm = () => {
                       alt="Github logo"
                     />
                     Continue with Github
-                  </Button>
+                  </Button> */}
                 </div>
                 <div className="grid gap-6">
                   <FormField
@@ -155,7 +184,20 @@ const LoginForm = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        {/* <FormLabel>Password</FormLabel> */}
+                        <div className="flex justify-between items-center">
+                          <FormLabel>Password</FormLabel>
+                          <Button
+                            onClick={() => setOpenForgotPassword(true)}
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            className="text-sm font-normal underline"
+                          >
+                            Forgot password ?
+                          </Button>
+                        </div>
+
                         <FormControl>
                           <Input
                             type="password"

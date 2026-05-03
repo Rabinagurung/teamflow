@@ -1,10 +1,11 @@
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/auth"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
+import { readSecurityMiddleware } from "../middlewares/arcjet/read"
 import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
 import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
-import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
+import { getWorkspaceForSession } from "../middlewares/workspace"
 import { appUserSchema } from "../schemas/user"
 import { appWorkspaceSchema, workspaceSchema } from "../schemas/workspace"
 
@@ -32,7 +33,8 @@ const toWorkspaceSlug = (name: string) =>
 // chain .handler: destructure params , get input and log the input and make the fun async
 export const listWorkspaces = base
   .use(requiredAuthMiddleware)
-  .use(requiredWorkspaceMiddleware)
+  .use(standardSecurityMiddleware)
+  .use(readSecurityMiddleware)
   .route({
     //This binds the procedure to HTTP, GET /workspace (under the prefix /rpc → /rpc/workspace)
     method: "GET",
@@ -54,14 +56,22 @@ export const listWorkspaces = base
       currentWorkspace: appWorkspaceSchema.nullable(),
     }),
   )
-  .handler(async ({ context, errors }) => {
+  .handler(async ({ context }) => {
+    const headers = new Headers(context.request.headers as HeadersInit)
+
+    const session = await auth.api.getSession({ headers })
+    //console.log(session)
     const organizations = await auth.api.listOrganizations({
-      headers: new Headers(context.request.headers as HeadersInit),
+      headers,
     })
 
-    if (!organizations) {
-      throw errors.FORBIDDEN()
-    }
+    // console.log("WORKSPACE PROCEDURE: ", organizations)
+
+    const currentWorkspace = session
+      ? await getWorkspaceForSession(session)
+      : null
+
+    // console.log("CurrentWorkspace", currentWorkspace)
 
     return {
       workspaces: organizations.map((org) => ({
@@ -70,7 +80,7 @@ export const listWorkspaces = base
         avatar: org.name?.charAt(0)?.toUpperCase() ?? "M",
       })),
       user: context.user,
-      currentWorkspace: context.workspace,
+      currentWorkspace,
     }
   })
 
@@ -134,5 +144,34 @@ export const createWorkspace = base
       throw errors.FORBIDDEN({
         message: "Unable to create workspace",
       })
+    }
+  })
+
+export const selectWorkspace = base
+  .use(requiredAuthMiddleware)
+  .use(standardSecurityMiddleware)
+  .route({
+    method: "POST",
+    path: "/workspace/select",
+    summary: "Set active workspace",
+    tags: ["workspace"],
+  })
+  .input(
+    z.object({
+      workspaceId: z.string(),
+    }),
+  )
+  .output(z.object({ workspaceId: z.string() }))
+  .handler(async ({ context, input }) => {
+    await auth.api.setActiveOrganization({
+      body: {
+        organizationId: input.workspaceId,
+      },
+
+      headers: new Headers(context.request.headers as HeadersInit),
+    })
+
+    return {
+      workspaceId: input.workspaceId,
     }
   })

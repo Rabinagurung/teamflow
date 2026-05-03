@@ -5,9 +5,9 @@ import Logo from "@/public/arcjet-logo.png"
 import { Menu, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import React from "react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 import Image from "next/image"
-import { authClient } from "@/lib/auth-client"
+import { authClient } from "@/lib/auth/auth-client"
 
 const menuItems = [
   { name: "Features", href: "#link" },
@@ -99,7 +99,7 @@ export const HeroHeader = () => {
                   {data?.user ? (
                     <>
                       <Link
-                        href="/complete"
+                        href="/app-entry"
                         className={buttonVariants({ size: "sm" })}
                       >
                         <span>Dashboard</span>

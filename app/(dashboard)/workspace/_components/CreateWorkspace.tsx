@@ -32,7 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { workspaceSchema } from "@/app/schemas/workspace"
 import { z } from "zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 import { toast } from "sonner"
 import { isDefinedError } from "@orpc/client"
 

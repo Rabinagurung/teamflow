@@ -1,4 +1,4 @@
-import arcjet, { slidingWindow } from "@/lib/arcjet"
+import arcjet, { slidingWindow } from "@/lib/arcjet/arcjet"
 import { ArcjetNextRequest } from "@arcjet/next"
 import { AppUser } from "../auth"
 import { base } from "../base"

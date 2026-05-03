@@ -1,6 +1,6 @@
 //This standard arcjet middleware will house standard things like: bot detection, shield
 
-import arcjet, { detectBot, shield } from "@/lib/arcjet"
+import arcjet, { detectBot, shield } from "@/lib/arcjet/arcjet"
 
 import { ArcjetNextRequest } from "@arcjet/next"
 import { AppUser } from "../auth"

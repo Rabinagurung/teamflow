@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/auth"
 import prisma from "@/lib/db"
 import { ArcjetNextRequest } from "@arcjet/next"
 import { AppWorkspace } from "../schemas/workspace"
@@ -103,7 +103,7 @@ export const requiredWorkspaceMiddleware = base
       })
     }
 
-    console.log("Active workspace by workspacemiddleware: ", workspace?.name)
+    // console.log("Active workspace by workspacemiddleware: ", workspace?.name)
 
     return next({
       context: { workspace },

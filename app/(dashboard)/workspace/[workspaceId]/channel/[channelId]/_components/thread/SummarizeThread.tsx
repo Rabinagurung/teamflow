@@ -8,7 +8,7 @@ import { Sparkles } from "lucide-react"
 import React, { useState } from "react"
 import { useChat } from "@ai-sdk/react"
 import { eventIteratorToStream } from "@orpc/server"
-import { client } from "@/lib/orpc"
+import { client } from "@/lib/orpc/orpc"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Message,

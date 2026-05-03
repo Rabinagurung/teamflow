@@ -1,8 +1,8 @@
 "use client"
 
 import { buttonVariants } from "@/components/ui/button"
-import { orpc } from "@/lib/orpc"
-import { cn } from "@/lib/utils"
+import { orpc } from "@/lib/orpc/orpc"
+import { cn } from "@/lib/utils/utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Hash } from "lucide-react"
 import Link from "next/link"

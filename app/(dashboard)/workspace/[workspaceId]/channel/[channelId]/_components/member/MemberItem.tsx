@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { getAvatar } from "@/lib/get-avatar"
-import { cn } from "@/lib/utils"
+import { getAvatar } from "@/lib/utils/get-avatar"
+import { cn } from "@/lib/utils/utils"
 import { organization_user } from "@kinde/management-api-js"
 
 import Image from "next/image"

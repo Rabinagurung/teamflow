@@ -11,7 +11,7 @@ import {
   ToggleReactionSchema,
   UpdateMessageSchema,
 } from "../schemas/message"
-import { getAvatar } from "@/lib/get-avatar"
+import { getAvatar } from "@/lib/utils/get-avatar"
 import { Message } from "@/lib/generated/prisma/client"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
 import { MessageListItem } from "@/lib/types"

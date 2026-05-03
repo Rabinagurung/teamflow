@@ -1,5 +1,5 @@
-const WorkspacePage = async () => {
-  return <div></div>
-}
+import { redirect } from "next/navigation"
 
-export default WorkspacePage
+export default function WorkspacePage() {
+  redirect("/app-entry")
+}

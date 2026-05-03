@@ -6,7 +6,7 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@/components/ui/empty"
-import { client } from "@/lib/orpc"
+import { client } from "@/lib/orpc/orpc"
 import { Cloud } from "lucide-react"
 import { redirect } from "next/navigation"
 import CreateNewChannel from "./_components/CreateNewChannel"

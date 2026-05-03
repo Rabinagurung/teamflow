@@ -11,8 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
-import { getAvatar } from "@/lib/get-avatar"
-import { orpc } from "@/lib/orpc"
+import { getAvatar } from "@/lib/utils/get-avatar"
+import { orpc } from "@/lib/orpc/orpc"
 import { LogoutLink, PortalLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { CreditCardIcon, LogOut, User } from "lucide-react"

@@ -3,7 +3,7 @@ import aj, {
   sensitiveInfo,
   shield,
   slidingWindow,
-} from "@/lib/arcjet"
+} from "@/lib/arcjet/arcjet"
 import { ArcjetNextRequest } from "@arcjet/next"
 import { AppUser } from "../auth"
 import { base } from "../base"

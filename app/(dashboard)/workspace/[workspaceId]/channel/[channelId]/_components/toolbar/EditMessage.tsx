@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Message } from "@/lib/generated/prisma/client"
-import { orpc } from "@/lib/orpc"
+import { orpc } from "@/lib/orpc/orpc"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
