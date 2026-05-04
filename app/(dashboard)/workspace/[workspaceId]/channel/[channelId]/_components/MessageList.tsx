@@ -297,12 +297,12 @@ const MessageList = () => {
   return (
     <div className="relative h-full">
       <div
-        className="flex flex-col space-y-1 h-full overflow-y-auto px-4 "
+        className="flex h-full flex-col space-y-1 overflow-y-auto px-4 py-4"
         ref={scrollRef}
         onScroll={handleScroll}
       >
         {isEmpty ? (
-          <div className="h-full flex pt-4">
+          <div className="flex h-full items-center justify-center">
             <EmptyState
               title="No message yet"
               description="Start the conversation by sending the first message"
@@ -311,13 +311,15 @@ const MessageList = () => {
             />
           </div>
         ) : (
-          items.map((message) => (
-            <MessageItem
-              key={message.id}
-              message={message}
-              currentUserId={user.id}
-            />
-          ))
+          <div className="flex w-full flex-col gap-0.5">
+            {items.map((message) => (
+              <MessageItem
+                key={message.id}
+                message={message}
+                currentUserId={user.id}
+              />
+            ))}
+          </div>
         )}
         {isFetching && !isFetchingNextPage ? (
           <div className="py-2 text-center text-sm text-muted-foreground">

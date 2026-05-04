@@ -19,7 +19,6 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query"
-import { schema } from "better-auth/client/plugins"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -29,6 +28,12 @@ import SkipInviteDialog from "./SkipInviteDialog"
 const InviteFormSchema = z.object({
   emails: z.string().trim().min(1, "Add at least one email or skip this step"),
 })
+
+const parseEmails = (value: string) =>
+  value
+    .split(/[,\n\s]+/)
+    .map((email) => email.trim())
+    .filter(Boolean)
 
 const InviteStepForm = () => {
   const { data } = useSuspenseQuery(orpc.onboarding.state.queryOptions())
@@ -77,44 +82,46 @@ const InviteStepForm = () => {
     }),
   )
 
-  const onSubmit = (values: z.infer<typeof schema>) => {
-    // const parsed = onboardingInviteSchema.safeParse({
-    //   emails: parseEmails(values.emails),
-    // })
-    // if (!parsed.success) {
-    //   form.setError("emails", {
-    //     message: parsed.error.issues[0]?.message ?? "Invalid emails",
-    //   })
-    //   return
-    // }
-    // inviteMutation.mutate(parsed.data)
+  const onSubmit = (values: z.infer<typeof InviteFormSchema>) => {
+    const parsed = onboardingInviteSchema.safeParse({
+      emails: parseEmails(values.emails),
+    })
+
+    if (!parsed.success) {
+      form.setError("emails", {
+        message: parsed.error.issues[0]?.message ?? "Invalid emails",
+      })
+      return
+    }
+
+    inviteMutation.mutate(parsed.data)
   }
 
   const isPending = inviteMutation.isPending || skipMutation.isPending
 
   return (
     <OnboardingShell
-      step={1}
+      step={3}
       totalSteps={4}
       workspaceName={data.state.workspaceName ?? "New Workspace"}
       title="Who else is in the TeamFlow group?"
       description="Add coworkers by email, or skip this step and invite them later."
     >
       <Form {...form}>
-        <form className="space-y-8">
+        <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="emails"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base text-white/80">
+                <FormLabel className="text-base text-foreground">
                   Add coworker by email
                 </FormLabel>
                 <FormControl>
                   <textarea
                     {...field}
                     disabled={isPending}
-                    className="min-h-45 w-full rounded-2xl border border-cyan-500/60 bg-transparent p-5 text-xl text-white outline-none placeholder:text-white/35 "
+                    className="min-h-40 w-full rounded-xl border border-input bg-background p-4 text-lg text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="alex@company.com, maria@company.com"
                   />
                 </FormControl>
@@ -123,7 +130,7 @@ const InviteStepForm = () => {
             )}
           />
 
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-muted-foreground">
             Keep in mind that invitations expire in 30 days.
           </p>
 
@@ -132,7 +139,7 @@ const InviteStepForm = () => {
               type="submit"
               size="lg"
               disabled={isPending}
-              className="bg-[#611f69] px-8 hover:bg-[#4e1755]"
+              className="h-12 px-8"
             >
               {inviteMutation.isPending ? "Sending..." : "Next"}
             </Button>

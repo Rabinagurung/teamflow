@@ -23,12 +23,12 @@ const SkipInviteDialog = ({ onConfirm, disabled }: SkipInviteDialogProps) => {
         <Button
           type="button"
           variant="link"
-          className="text-white-70 hover:text-white disabled:opacity-50"
+          className="text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
           Skip this step
         </Button>
       </DialogTrigger>
-      <DialogContent className="border-zinc-700 bg-zinc-900 text-white">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Skip without inviting ?</DialogTitle>
           <DialogDescription>

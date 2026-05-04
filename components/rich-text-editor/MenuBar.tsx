@@ -62,7 +62,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
   }
 
   return (
-    <div className="border border-input border-t-0 border-x-0 rounded-t-lg p-2 bg-card flex flex-wrap gap-1 items-center">
+    <div className="flex flex-wrap items-center gap-1 rounded-t-xl border-x-0 border-t-0 border-b border-input bg-muted/45 p-2">
       <TooltipProvider>
         <div className="flex flex-wrap gap-1">
           <Tooltip>

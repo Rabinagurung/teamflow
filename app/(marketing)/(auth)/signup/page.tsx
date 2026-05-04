@@ -1,17 +1,19 @@
 import React from "react"
 import RegisterForm from "../_componentss/register-form"
 import { requireUnauth } from "@/lib/auth/auth-utils"
-import { SocialAuthButtons } from "../_componentss/social-auth-buttons"
+import { getInviteRedirectPath } from "@/lib/invites/invite-redirect"
 
-const SignUp = async () => {
-  await requireUnauth()
+const SignUp = async ({ searchParams }: PageProps<"/signup">) => {
+  const { inviteURL } = await searchParams
+  const inviteRedirectPath = getInviteRedirectPath(
+    Array.isArray(inviteURL) ? inviteURL[0] : inviteURL,
+  )
+
+  await requireUnauth(inviteRedirectPath ?? "/app-entry")
 
   return (
     <div>
       <RegisterForm />
-      <div className="grid grid-cols-2 gap-3">
-        <SocialAuthButtons />
-      </div>
     </div>
   )
 }

@@ -72,7 +72,7 @@ const WorkspaceStepForm = () => {
 
   return (
     <OnboardingShell
-      step={1}
+      step={2}
       totalSteps={4}
       workspaceName={workspaceName || "New Workspace"}
       title="What’s the name of your group?"
@@ -85,13 +85,13 @@ const WorkspaceStepForm = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base text-white/80">
+                <FormLabel className="text-base text-foreground">
                   Workspace name
                 </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    className="h-16 border-white/15 bg-transparent text-2xl text-white placeholder:text-white/35"
+                    className="h-14 border-input bg-background text-lg text-foreground placeholder:text-muted-foreground"
                     placeholder="TeamFlow Workspace"
                   />
                 </FormControl>
@@ -99,11 +99,7 @@ const WorkspaceStepForm = () => {
               </FormItem>
             )}
           />
-          <Button
-            type="submit"
-            size="lg"
-            className="bg-[#611f69] px-8 hover:bg-[#4e1755]"
-          >
+          <Button type="submit" size="lg" className="h-12 px-8">
             Next
           </Button>
         </form>

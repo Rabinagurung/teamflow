@@ -1,4 +1,3 @@
-import { requireAuth } from "@/lib/auth/auth-utils"
 import React from "react"
 
 export default async function DashoboardGroupLayout({
@@ -6,6 +5,5 @@ export default async function DashoboardGroupLayout({
 }: {
   children: React.ReactNode
 }) {
-  await requireAuth()
   return children
 }
