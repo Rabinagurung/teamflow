@@ -1,7 +1,7 @@
 "use client"
 
 import { orpc } from "@/lib/orpc/orpc"
-import { cn } from "@/lib/utils/utils"
+import { cn } from "@/lib/utlis/utils"
 import { useMutation } from "@tanstack/react-query"
 import { ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"

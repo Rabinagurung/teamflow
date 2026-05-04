@@ -8,16 +8,10 @@ import { base } from "../middlewares/base"
 import { getWorkspaceForSession } from "../middlewares/workspace"
 import { appUserSchema } from "../schemas/user"
 import { appWorkspaceSchema, workspaceSchema } from "../schemas/workspace"
+import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
 
 //This file defines what happens when the route is called
 //This file will stores all procedures for workspace category.
-
-const toWorkspaceSlug = (name: string) =>
-  `${name
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")}-${crypto.randomUUID().slice(0, 8)}`
 
 //Procedures are like actions like: getWorkspaces, createWorkspace are two procedures
 
@@ -60,18 +54,18 @@ export const listWorkspaces = base
     const headers = new Headers(context.request.headers as HeadersInit)
 
     const session = await auth.api.getSession({ headers })
-    //console.log(session)
+
     const organizations = await auth.api.listOrganizations({
       headers,
     })
 
-    // console.log("WORKSPACE PROCEDURE: ", organizations)
+    console.log("WORKSPACE PROCEDURE: ", organizations)
 
     const currentWorkspace = session
       ? await getWorkspaceForSession(session)
       : null
 
-    // console.log("CurrentWorkspace", currentWorkspace)
+    console.log("CurrentWorkspace", currentWorkspace)
 
     return {
       workspaces: organizations.map((org) => ({
@@ -113,31 +107,16 @@ export const createWorkspace = base
   )
   .handler(async ({ context, errors, input }) => {
     try {
-      const organization = await auth.api.createOrganization({
-        body: {
-          name: input.name,
-          slug: toWorkspaceSlug(input.name),
+      const { organizationId, organizationName } =
+        await createWorkspaceWithDefaultChannels({
+          organizationName: input.name,
           userId: context.user.id,
-        },
-        headers: new Headers(context.request.headers as HeadersInit),
-      })
-
-      if (!organization?.id) {
-        throw errors.INTERNAL_SERVER_ERROR({
-          message: "Organization id is not defined",
+          headers: new Headers(context.request.headers as HeadersInit),
         })
-      }
-
-      await auth.api.setActiveOrganization({
-        body: {
-          organizationId: organization.id,
-        },
-        headers: new Headers(context.request.headers as HeadersInit),
-      })
 
       return {
-        orgCode: organization.id,
-        workspaceName: organization.name,
+        orgCode: organizationId,
+        workspaceName: organizationName,
       }
     } catch (error) {
       console.error("Failed to create organizaiton: ", error)

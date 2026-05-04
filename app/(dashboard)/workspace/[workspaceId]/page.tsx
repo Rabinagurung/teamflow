@@ -20,9 +20,9 @@ const WorkspaceIdPage = async ({ params }: WorkspaceIdPageParams) => {
 
   const { channels } = await client.channel.list()
 
-  if (channels.length > 0) {
-    return redirect(`/workspace/${workspaceId}/channel/${channels[0].id}`)
-  }
+  // if (channels.length > 0) {
+  //   return redirect(`/workspace/${workspaceId}/channel/${channels[0].id}`)
+  // }
 
   return (
     <div className="p-16 flex flex-1">

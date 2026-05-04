@@ -1,7 +1,11 @@
 import { z } from "zod"
 
 export const workspaceSchema = z.object({
-  name: z.string().min(2).max(50),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Workspace name must be at least 2 characters")
+    .max(50, "Workspace name cannot exceed 50 characters"),
 })
 
 export const appWorkspaceSchema = z.object({

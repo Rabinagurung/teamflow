@@ -7,23 +7,7 @@ import { sendPasswordResetEmail } from "../emails/send-password-reset-email"
 // import { checkout, portal, polar } from "@polar-sh/better-auth"
 // import { polarClient } from "./polar"
 import { sendOrganizationInviteEmail } from "../emails/organization-invite-email"
-
-const splitUserName = (fullName?: string | null) => {
-  const trimmed = fullName?.trim() ?? ""
-  if (!trimmed) {
-    return {
-      given_name: null,
-      family_name: null,
-    }
-  }
-
-  const [given_name, ...rest] = trimmed.split(/\s+/)
-
-  return {
-    given_name: given_name ?? null,
-    family_name: rest.length ? rest.join(" ") : null,
-  }
-}
+import { splitUserName } from "../onboarding/split-user-name"
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -172,7 +156,7 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          console.log(user)
+          console.log("User:  ", user)
           const { given_name, family_name } = splitUserName(user.name)
 
           return {

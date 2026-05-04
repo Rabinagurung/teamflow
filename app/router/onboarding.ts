@@ -17,13 +17,7 @@ import {
   onboardingStepSchema,
 } from "../schemas/onboarding"
 import { workspaceSchema } from "../schemas/workspace"
-
-const toWorkspaceSlug = (name: string) =>
-  `${name
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")}-${crypto.randomUUID().slice(0, 8)}`
+import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
 
 const resolveCurrentStep = (
   state: {
@@ -158,7 +152,7 @@ export const getOnboardingState = base
         })
       : null
 
-    console.log("getOnboardingState", { workspace })
+    console.log("getOnboardingState workspace", { workspace })
 
     return {
       user: context.user,
@@ -238,56 +232,43 @@ export const createOnboardingWorkspace = base
     }),
   )
   .handler(async ({ context, input, errors }) => {
-    const organization = await auth.api.createOrganization({
-      body: {
-        name: input.name,
-        slug: toWorkspaceSlug(input.name),
-        userId: context.user.id,
-      },
-      headers: new Headers(context.request.headers as HeadersInit),
-    })
+    try {
+      const { organizationId, organizationName } =
+        await createWorkspaceWithDefaultChannels({
+          organizationName: input.name,
+          userId: context.user.id,
+          headers: new Headers(context.request.headers as HeadersInit),
+        })
 
-    if (!organization?.id) {
+      await prisma.onboardingState.upsert({
+        where: {
+          userId: context.user.id,
+        },
+        create: {
+          userId: context.user.id,
+          workspaceId: organizationId,
+          hasCompletedProfile: true,
+          hasCreatedWorkspace: true,
+          currentStep: "invite",
+        },
+        update: {
+          workspaceId: organizationId,
+          hasCreatedWorkspace: true,
+          currentStep: "invite",
+        },
+      })
+
+      return {
+        workspaceId: organizationId,
+        workspaceName: organizationName,
+        nextStep: "invite",
+      }
+    } catch (error) {
+      console.error("Failed to create onboarding workspace", error)
+
       throw errors.INTERNAL_SERVER_ERROR({
         message: "Failed to create workspace",
       })
-    }
-
-    await auth.api.setActiveOrganization({
-      body: { organizationId: organization.id },
-      headers: new Headers(context.request.headers as HeadersInit),
-    })
-
-    await prisma.channel.create({
-      data: {
-        name: "general",
-        workspaceId: organization.id,
-        createdById: context.user.id,
-      },
-    })
-
-    await prisma.onboardingState.upsert({
-      where: {
-        userId: context.user.id,
-      },
-      create: {
-        userId: context.user.id,
-        workspaceId: organization.id,
-        hasCompletedProfile: true,
-        hasCreatedWorkspace: true,
-        currentStep: "invite",
-      },
-      update: {
-        workspaceId: organization.id,
-        hasCreatedWorkspace: true,
-        currentStep: "invite",
-      },
-    })
-
-    return {
-      workspaceId: organization.id,
-      workspaceName: organization.name,
-      nextStep: "invite",
     }
   })
 
@@ -305,6 +286,10 @@ export const submitOnboardingInvites = base
   .output(
     z.object({
       invitedCount: z.number(),
+      invitedEmails: z.array(z.string()),
+      existingMemberEmails: z.array(z.string()),
+      alreadyInvitedEmails: z.array(z.string()),
+      selfEmails: z.array(z.string()),
       failedEmails: z.array(z.string()),
       nextStep: onboardingStepSchema,
     }),
@@ -322,16 +307,84 @@ export const submitOnboardingInvites = base
 
     console.log("submitOnboardingInvites procedures: ", { normalizedEmails })
 
-    const selfEmail = context.user.email.toLowerCase()
-    const inviteableEmails = normalizedEmails.filter(
-      (email) => email !== selfEmail,
-    )
-    const failedEmails = normalizedEmails.filter((email) => email === selfEmail)
+    const selfEmail = context.user.email.trim().toLowerCase()
 
     const headers = new Headers(context.request.headers as HeadersInit)
 
+    const membersList = await auth.api.listMembers({
+      query: {
+        organizationId: workspace.id,
+        sortBy: "createdAt",
+        sortDirection: "desc",
+      },
+      headers,
+    })
+
+    console.log("submitOnboardingInvites: ", membersList)
+
+    const existingMemberEmails = new Set(
+      membersList.members
+        .map((member) => member.user.email?.trim().toLowerCase())
+        .filter(Boolean),
+    )
+
+    console.log("submitOnboardingInvites: ", { existingMemberEmails })
+
+    const pendingInvitations = await prisma.invitation.findMany({
+      where: {
+        organizationId: workspace.id,
+        status: "pending",
+        email: { in: normalizedEmails },
+      },
+      select: { email: true },
+    })
+
+    console.log("submitOnboardingInvites: ", { pendingInvitations })
+
+    const alreadyInvitedEmails = new Set(
+      pendingInvitations.map((invitation) =>
+        invitation.email.trim().toLowerCase(),
+      ),
+    )
+    console.log("submitOnboardingInvites: ", { alreadyInvitedEmails })
+
+    const selfEmails: string[] = []
+    const blockedExistingMembers: string[] = []
+    const blockedAlreadyInvited: string[] = []
+
+    const sendableEmails = normalizedEmails.filter((email) => {
+      if (email === selfEmail) {
+        selfEmails.push(email)
+        return false
+      }
+
+      if (existingMemberEmails.has(email)) {
+        blockedExistingMembers.push(email)
+        return false
+      }
+
+      if (alreadyInvitedEmails.has(email)) {
+        blockedAlreadyInvited.push(email)
+        return false
+      }
+
+      return true
+    })
+
+    if (sendableEmails.length === 0) {
+      return {
+        invitedCount: 0,
+        invitedEmails: [],
+        existingMemberEmails: blockedExistingMembers,
+        alreadyInvitedEmails: blockedAlreadyInvited,
+        selfEmails,
+        failedEmails: [],
+        nextStep: "invite",
+      }
+    }
+
     const results = await Promise.allSettled(
-      inviteableEmails.map((email) =>
+      sendableEmails.map((email) =>
         auth.api.createInvitation({
           body: {
             email,
@@ -343,17 +396,40 @@ export const submitOnboardingInvites = base
       ),
     )
 
-    console.log("Results from Promise.allSettled createInvites : ", { results })
-    failedEmails.push(
-      ...results.flatMap((result, index) =>
-        result.status === "rejected" ? [inviteableEmails[index]!] : [],
-      ),
+    const invitedEmails = results.flatMap((result, index) =>
+      result.status === "fulfilled" ? [sendableEmails[index]!] : [],
     )
 
-    console.log("submitOnboardingInvites procedures: ", { failedEmails })
-    const invitedCount = normalizedEmails.length - failedEmails.length
+    console.log("submitOnboardingInvites: ", { invitedEmails })
 
-    if (invitedCount > 0) {
+    const failedEmails = results.flatMap((result, index) =>
+      result.status === "rejected" ? [sendableEmails[index]!] : [],
+    )
+
+    console.log("submitOnboardingInvites: ", { failedEmails })
+
+    //const failedEmails = normalizedEmails.filter((email) => email === selfEmail)
+
+    // const results = await Promise.allSettled(
+    //   inviteableEmails.map((email) =>
+    //     auth.api.createInvitation({
+    //       body: {
+    //         email,
+    //         role: "member",
+    //         organizationId: workspace.id,
+    //       },
+    //       headers,
+    //     }),
+    //   ),
+    // )
+
+    // failedEmails.push(
+    //   ...results.flatMap((result, index) =>
+    //     result.status === "rejected" ? [inviteableEmails[index]!] : [],
+    //   ),
+    // )
+
+    if (invitedEmails.length > 0) {
       await prisma.$transaction([
         prisma.organization.update({
           where: {
@@ -362,7 +438,7 @@ export const submitOnboardingInvites = base
           data: {
             metadata: mergeMetadata(workspace.metadata, {
               onboarding: {
-                invitedCount,
+                invitedCount: invitedEmails.length,
                 invitedAt: new Date().toISOString(),
               },
             }),
@@ -380,9 +456,13 @@ export const submitOnboardingInvites = base
     }
 
     return {
-      invitedCount,
+      invitedCount: invitedEmails.length,
+      invitedEmails,
+      existingMemberEmails: blockedExistingMembers,
+      alreadyInvitedEmails: blockedAlreadyInvited,
+      selfEmails,
       failedEmails,
-      nextStep: invitedCount > 0 ? "billing" : "invite",
+      nextStep: invitedEmails.length > 0 ? "billing" : "invite",
     }
   })
 

@@ -1,5 +1,5 @@
 import SafeContent from "@/components/rich-text-editor/SafeContent"
-import { getAvatar } from "@/lib/utils/get-avatar"
+import { getAvatar } from "@/lib/utlis/get-avatar"
 import Image from "next/image"
 import { MessageHoverToolbar } from "../toolbar"
 import { useCallback, useState } from "react"

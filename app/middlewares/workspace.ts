@@ -24,6 +24,10 @@ export const getWorkspaceForSession = async (
 ) => {
   const activeOrganizationId = session.session.activeOrganizationId
 
+  console.log("getWorkspaceForSession activeOrganizationId:  ", {
+    activeOrganizationId,
+  })
+
   if (activeOrganizationId) {
     const activeWorkspace = await prisma.organization.findFirst({
       where: {
@@ -43,6 +47,10 @@ export const getWorkspaceForSession = async (
         metadata: true,
         createdAt: true,
       },
+    })
+
+    console.log("getWorkspaceForSession activeWorkspace:  ", {
+      activeWorkspace,
     })
 
     if (activeWorkspace) {
@@ -70,6 +78,11 @@ export const getWorkspaceForSession = async (
       },
     },
   })
+
+  console.log(
+    "getWorkspaceForSession membership organization:  ",
+    membership?.organization,
+  )
 
   return membership?.organization
     ? toAppWorkspace(membership.organization)

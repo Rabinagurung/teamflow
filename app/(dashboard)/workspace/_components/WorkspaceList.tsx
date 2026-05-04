@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/tooltip"
 import { authClient } from "@/lib/auth/auth-client"
 import { orpc } from "@/lib/orpc/orpc"
-import { cn } from "@/lib/utils/utils"
+import { cn } from "@/lib/utlis/utils"
 import {
   useMutation,
   useQueryClient,

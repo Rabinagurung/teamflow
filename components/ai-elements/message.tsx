@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils/utils"
+import { cn } from "@/lib/utlis/utils"
 import type { FileUIPart, UIMessage } from "ai"
 import { ChevronLeftIcon, PaperclipIcon, XIcon } from "lucide-react"
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react"

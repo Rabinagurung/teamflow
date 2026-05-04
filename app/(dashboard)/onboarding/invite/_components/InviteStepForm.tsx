@@ -19,15 +19,18 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query"
-import { schema } from "better-auth/client/plugins"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useMemo } from "react"
+import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
+import InviteEmailsInput, {
+  getInviteEmailDiagnostics,
+} from "./InviteEmailsTextArea"
 import SkipInviteDialog from "./SkipInviteDialog"
 
 const InviteFormSchema = z.object({
-  emails: z.string().trim().min(1, "Add at least one email or skip this step"),
+  emails: z.array(z.string()),
 })
 
 const InviteStepForm = () => {
@@ -38,22 +41,61 @@ const InviteStepForm = () => {
   const form = useForm<z.infer<typeof InviteFormSchema>>({
     resolver: zodResolver(InviteFormSchema),
     defaultValues: {
-      emails: "",
+      emails: [],
     },
+    mode: "onChange",
   })
+
+  const watchedEmails = useWatch({
+    control: form.control,
+    name: "emails",
+  })
+
+  const diagnostics = useMemo(
+    () => getInviteEmailDiagnostics(watchedEmails ?? []),
+    [watchedEmails],
+  )
 
   const inviteMutation = useMutation(
     orpc.onboarding.invite.submit.mutationOptions({
-      onSuccess: async ({ nextStep, invitedCount, failedEmails }) => {
+      onSuccess: async ({
+        invitedCount,
+        failedEmails,
+        existingMemberEmails,
+        alreadyInvitedEmails,
+        selfEmails,
+        nextStep,
+      }) => {
         await queryClient.invalidateQueries({
           queryKey: orpc.onboarding.state.queryKey(),
         })
-        if (invitedCount > 0)
+
+        if (invitedCount > 0) {
           toast.success(
             `${invitedCount} invitation${invitedCount > 1 ? "s" : ""} sent`,
           )
-        if (failedEmails.length > 0)
-          toast.warning(`Failed: ${failedEmails.slice(0, 3).join(", ")}`)
+        }
+
+        if (existingMemberEmails.length > 0) {
+          toast.warning(
+            `Already members: ${existingMemberEmails.slice(0, 3).join(", ")}`,
+          )
+        }
+
+        if (alreadyInvitedEmails.length > 0) {
+          toast.warning(
+            `Already invited: ${alreadyInvitedEmails.slice(0, 3).join(", ")}`,
+          )
+        }
+
+        if (selfEmails.length > 0) {
+          toast.warning("You cannot invite yourself")
+        }
+
+        if (failedEmails.length > 0) {
+          toast.error(`Failed: ${failedEmails.slice(0, 3).join(", ")}`)
+        }
+
         router.push(`/onboarding/${nextStep}`)
         router.refresh()
       },
@@ -71,37 +113,46 @@ const InviteStepForm = () => {
         await queryClient.invalidateQueries({
           queryKey: orpc.onboarding.state.queryKey(),
         })
+
         router.push(`/onboarding/${nextStep}`)
         router.refresh()
+      },
+      onError: (error) => {
+        toast.error(
+          isDefinedError(error) ? error.message : "Unable to skip this step",
+        )
       },
     }),
   )
 
-  const onSubmit = (values: z.infer<typeof schema>) => {
-    // const parsed = onboardingInviteSchema.safeParse({
-    //   emails: parseEmails(values.emails),
-    // })
-    // if (!parsed.success) {
-    //   form.setError("emails", {
-    //     message: parsed.error.issues[0]?.message ?? "Invalid emails",
-    //   })
-    //   return
-    // }
-    // inviteMutation.mutate(parsed.data)
+  const onSubmit = () => {
+    const parsed = onboardingInviteSchema.safeParse({
+      emails: diagnostics.validEmails,
+    })
+
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Invalid emails")
+      return
+    }
+
+    inviteMutation.mutate(parsed.data)
   }
 
   const isPending = inviteMutation.isPending || skipMutation.isPending
 
+  const canSend =
+    diagnostics.validEmails.length > 0 && !diagnostics.hasErrors && !isPending
+
   return (
     <OnboardingShell
-      step={1}
+      step={3}
       totalSteps={4}
       workspaceName={data.state.workspaceName ?? "New Workspace"}
       title="Who else is in the TeamFlow group?"
       description="Add coworkers by email, or skip this step and invite them later."
     >
       <Form {...form}>
-        <form className="space-y-8">
+        <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="emails"
@@ -110,31 +161,33 @@ const InviteStepForm = () => {
                 <FormLabel className="text-base text-white/80">
                   Add coworker by email
                 </FormLabel>
+
                 <FormControl>
-                  <textarea
-                    {...field}
+                  <InviteEmailsInput
+                    value={field.value ?? []}
+                    onChange={field.onChange}
                     disabled={isPending}
-                    className="min-h-45 w-full rounded-2xl border border-cyan-500/60 bg-transparent p-5 text-xl text-white outline-none placeholder:text-white/35 "
-                    placeholder="alex@company.com, maria@company.com"
                   />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <p className="text-sm text-white/60">
-            Keep in mind that invitations expire in 30 days.
+          <p className="text-sm text-white/45">
+            Invitations expire in 30 days. You can invite up to 10 teammates
+            during onboarding.
           </p>
 
           <div className="flex items-center gap-4">
             <Button
               type="submit"
               size="lg"
-              disabled={isPending}
+              disabled={!canSend}
               className="bg-[#611f69] px-8 hover:bg-[#4e1755]"
             >
-              {inviteMutation.isPending ? "Sending..." : "Next"}
+              {inviteMutation.isPending ? "Sending..." : "Send invites"}
             </Button>
 
             <SkipInviteDialog
