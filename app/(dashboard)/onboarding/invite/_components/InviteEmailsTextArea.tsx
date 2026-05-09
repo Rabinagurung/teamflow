@@ -42,7 +42,7 @@ export const getInviteEmailDiagnostics = (values: string[]) => {
 }
 
 interface InviteEmailsInputProps {
-  value: string[]
+  value: string
   onChange: (value: string[]) => void
   disabled?: boolean
 }
