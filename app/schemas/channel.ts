@@ -1,13 +1,5 @@
-import z from "zod"
-
-export function transformChannelName(name: string) {
-  return name
-    .toLowerCase()
-    .replace(/\s+/g, "-") // Replace spaces with dashes
-    .replace(/[^a-z0-9-]/g, "") // Remove special characters (keep only letters, numbers, and dashes)
-    .replace(/-+/g, "-") // Replace multiple consecutive dashes with single dash
-    .replace(/^-|-$/g, "") // Remove leading/trailing dashes
-}
+import { normalizeChannelName } from "@/lib/utlis/normalize-channel-name"
+import { z } from "zod"
 
 export const ChannelNameSchema = z.object({
   name: z
@@ -15,7 +7,7 @@ export const ChannelNameSchema = z.object({
     .min(2, "Channel name must be at least 2 characters")
     .max(50, "Channel name cannot exceed 50 characters")
     .transform((name, ctx) => {
-      const transformed = transformChannelName(name)
+      const transformed = normalizeChannelName(name)
 
       if (transformed.length < 2) {
         ctx.addIssue({

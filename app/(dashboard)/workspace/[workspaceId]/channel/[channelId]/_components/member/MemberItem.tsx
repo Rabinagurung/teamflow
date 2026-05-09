@@ -1,7 +1,7 @@
 import { BetterAuthMember } from "@/app/router/member"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { getAvatar } from "@/lib/utils/get-avatar"
-import { cn } from "@/lib/utils/utils"
+import { getAvatar } from "@/lib/utlis/get-avatar"
+import { cn } from "@/lib/utlis/utils"
 import Image from "next/image"
 
 interface MemberItemProps {

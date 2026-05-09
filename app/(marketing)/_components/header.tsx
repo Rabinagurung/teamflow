@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import React from "react"
-import { cn } from "@/lib/utils/utils"
+import { cn } from "@/lib/utlis/utils"
 import Image from "next/image"
 import { authClient } from "@/lib/auth/auth-client"
 

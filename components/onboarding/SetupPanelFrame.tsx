@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils/utils"
+import { cn } from "@/lib/utlis/utils"
 
 export default function SetupPanelFrame({
   children,

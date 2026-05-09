@@ -1,12 +1,13 @@
 import {
   Empty,
+  EmptyContent,
+  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
 } from "@/components/ui/empty"
-import { client } from "@/lib/orpc/orpc"
+import { orpc } from "@/lib/orpc/orpc"
+import { getQueryClient } from "@/lib/query/hydration"
 import { Cloud } from "lucide-react"
 import { redirect } from "next/navigation"
 import CreateNewChannel from "./_components/CreateNewChannel"
@@ -17,11 +18,17 @@ interface WorkspaceIdPageParams {
 
 const WorkspaceIdPage = async ({ params }: WorkspaceIdPageParams) => {
   const { workspaceId } = await params
+  const queryClient = getQueryClient()
 
-  const { channels } = await client.channel.list()
+  const { channels } = await queryClient.fetchQuery(
+    orpc.channel.list.queryOptions(),
+  )
 
-  if (channels.length > 0) {
-    return redirect(`/workspace/${workspaceId}/channel/${channels[0].id}`)
+  const initialChannel =
+    channels.find((channel) => channel.name === "general") ?? channels[0]
+
+  if (initialChannel) {
+    return redirect(`/workspace/${workspaceId}/channel/${initialChannel.id}`)
   }
 
   return (

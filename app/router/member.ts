@@ -25,7 +25,7 @@ export const inviteMember = base
   })
   .input(InviteMemberSchema)
   .output(z.void())
-  .handler(async ({ input, context, errors }) => {
+  .handler(async ({ input, context }) => {
     const headers = new Headers(context.request.headers as HeadersInit)
     await auth.api.createInvitation({
       body: {

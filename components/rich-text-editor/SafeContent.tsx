@@ -1,4 +1,4 @@
-import { convertJsonToHtml } from "@/lib/utils/json-to-html"
+import { convertJsonToHtml } from "@/lib/utlis/json-to-html"
 import { type JSONContent } from "@tiptap/react"
 import DOMPurify from "dompurify"
 import parse from "html-react-parser"

@@ -8,7 +8,6 @@ import {
 } from "@/lib/auth/o-auth-providers"
 
 import { toast } from "sonner"
-
 export function SocialAuthButtons({
   callbackURL = "/app-entry",
 }: {
@@ -23,6 +22,9 @@ export function SocialAuthButtons({
         callbackURL,
         errorCallbackURL: "/auth/login/error",
         fetchOptions: {
+          onSuccess: (ctx) => {
+            console.log("After user is created ", ctx.data)
+          },
           onError: (ctx) => {
             toast.error(ctx.error.message)
           },

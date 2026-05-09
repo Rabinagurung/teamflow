@@ -1,21 +1,20 @@
 import { requireAuth } from "@/lib/auth/auth-utils"
-import { client } from "@/lib/orpc/orpc"
 
+import { getQueryClient } from "@/lib/query/hydration"
 import { redirect } from "next/navigation"
 import Image from "next/image"
 import CreateWorkspaceCard from "./_components/CreateWorkspaceCard"
 import WorkspacePickerList from "./_components/WorkspacePickerList"
+import { orpc } from "@/lib/orpc/orpc"
 
 export default async function GetStartedPage() {
   await requireAuth()
 
-  const { workspaces, user } = await client.workspace.list()
+  const queryClient = getQueryClient()
 
-  //   const workspaceListQuery = orpc.workspace.list.queryOptions()
-
-  //   const {
-  //     data: { workspaces, user },
-  //   } = useSuspenseQuery(workspaceListQuery)
+  const { workspaces, user } = await queryClient.fetchQuery(
+    orpc.workspace.list.queryOptions(),
+  )
 
   if (workspaces.length === 0) redirect("/no-workspace")
 

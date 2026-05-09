@@ -18,7 +18,7 @@ import z from "zod"
 import { useState } from "react"
 import { useAttachmentUpload } from "@/hooks/use-attachment-upload"
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
-import { getAvatar } from "@/lib/utils/get-avatar"
+import { getAvatar } from "@/lib/utlis/get-avatar"
 import { InfiniteMessages, MessageListItem, MessagePage } from "@/lib/types"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 

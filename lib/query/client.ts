@@ -1,5 +1,5 @@
 import { defaultShouldDehydrateQuery, QueryClient } from "@tanstack/react-query"
-import { serializer } from "../utils/serializer"
+import { serializer } from "../utlis/serializer"
 
 export function createQueryClient() {
   return new QueryClient({

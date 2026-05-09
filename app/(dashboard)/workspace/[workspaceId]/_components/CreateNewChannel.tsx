@@ -1,6 +1,6 @@
 "use client"
 
-import { ChannelNameSchema, transformChannelName } from "@/app/schemas/channel"
+import { ChannelNameSchema } from "@/app/schemas/channel"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { orpc } from "@/lib/orpc/orpc"
+import { normalizeChannelName } from "@/lib/utlis/normalize-channel-name"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isDefinedError } from "@orpc/client"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -73,7 +74,7 @@ const CreateNewChannel = () => {
   }
 
   const watchedName = form.watch("name")
-  const transformedName = watchedName ? transformChannelName(watchedName) : ""
+  const transformedName = watchedName ? normalizeChannelName(watchedName) : ""
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

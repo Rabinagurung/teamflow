@@ -25,7 +25,7 @@ import {
 import { DialogDescription } from "@radix-ui/react-dialog"
 import { Plus } from "lucide-react"
 
-import { useState } from "react"
+import { startTransition, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -35,6 +35,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { orpc } from "@/lib/orpc/orpc"
 import { toast } from "sonner"
 import { isDefinedError } from "@orpc/client"
+import { useRouter } from "next/navigation"
 
 type CreateWorkspaceProps = {
   alwaysOpen?: boolean
@@ -43,6 +44,7 @@ type CreateWorkspaceProps = {
 const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
   const [open, setOpen] = useState(alwaysOpen ?? false)
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof workspaceSchema>>({
     resolver: zodResolver(workspaceSchema),
@@ -58,14 +60,21 @@ const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
           `Workspace ${newWorkspace.workspaceName} created successfully`,
         )
 
-        //revalidate the data to fetch workspaces data that contains new workspace for UI
-        /** ORPC generates query key using .queryKey()  */
-        queryClient.invalidateQueries({
+        form.reset()
+        setOpen(false)
+
+        startTransition(() => {
+          router.push(`/workspace/${newWorkspace.workspaceId}`)
+          router.refresh()
+        })
+
+        void queryClient.invalidateQueries({
           queryKey: orpc.workspace.list.queryKey(),
         })
 
-        form.reset()
-        setOpen(false)
+        void queryClient.invalidateQueries({
+          queryKey: orpc.channel.list.queryKey(),
+        })
       },
 
       onError: (error) => {

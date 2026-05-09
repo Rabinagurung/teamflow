@@ -7,9 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { authClient } from "@/lib/auth/auth-client"
 import { orpc } from "@/lib/orpc/orpc"
-import { cn } from "@/lib/utils/utils"
+import { cn } from "@/lib/utlis/utils"
 import {
   useMutation,
   useQueryClient,
@@ -48,30 +47,24 @@ const WorkspaceList = () => {
     data: { workspaces, currentWorkspace },
   } = useSuspenseQuery(workspaceListQuery)
 
-  const switchWorkspace = useMutation({
-    mutationFn: async (workspaceId: string) => {
-      const { error } = await authClient.organization.setActive({
-        organizationId: workspaceId,
-      })
+  const switchWorkspace = useMutation(
+    orpc.workspace.select.mutationOptions({
+      onSuccess: ({ workspaceId }) => {
+        startTransition(() => {
+          router.push(`/workspace/${workspaceId}`)
+          router.refresh()
+        })
 
-      if (error) {
-        throw new Error(error.message || "Failed to switch workspace")
-      }
+        void queryClient.invalidateQueries({
+          queryKey: workspaceListQuery.queryKey,
+        })
 
-      return workspaceId
-    },
-
-    onSuccess: async (workspaceId) => {
-      await queryClient.invalidateQueries({
-        queryKey: workspaceListQuery.queryKey,
-      })
-
-      startTransition(() => {
-        router.push(`/workspace/${workspaceId}`)
-        router.refresh()
-      })
-    },
-  })
+        void queryClient.invalidateQueries({
+          queryKey: orpc.channel.list.queryKey(),
+        })
+      },
+    }),
+  )
 
   return (
     <TooltipProvider>
@@ -80,7 +73,7 @@ const WorkspaceList = () => {
           const isActive = currentWorkspace?.id === workspace.id
           const isSwitching =
             switchWorkspace.isPending &&
-            switchWorkspace.variables === workspace.id
+            switchWorkspace.variables?.workspaceId === workspace.id
 
           return (
             <Tooltip key={workspace.id}>
@@ -96,7 +89,7 @@ const WorkspaceList = () => {
                       router.push(`/workspace/${workspace.id}`)
                       return
                     }
-                    switchWorkspace.mutate(workspace.id)
+                    switchWorkspace.mutate({ workspaceId: workspace.id })
                   }}
                   className={cn(
                     "size-12 transition-all duration-200",

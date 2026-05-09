@@ -1,6 +1,5 @@
 import SafeContent from "@/components/rich-text-editor/SafeContent"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getAvatar } from "@/lib/utils/get-avatar"
 import Image from "next/image"
 import { MessageHoverToolbar } from "../toolbar"
 import { useCallback, useState } from "react"
@@ -11,6 +10,7 @@ import { useThread } from "@/providers/ThreadProvider"
 import { orpc } from "@/lib/orpc/orpc"
 import { useQueryClient } from "@tanstack/react-query"
 import ReactionsBar from "../reaction/ReactionsBar"
+import { getAvatar } from "@/lib/utlis/get-avatar"
 
 interface MessageItemProps {
   message: MessageListItem
