@@ -1,9 +1,14 @@
-import { client } from "@/lib/orpc/orpc"
+import { orpc } from "@/lib/orpc/orpc"
+import { getQueryClient } from "@/lib/query/hydration"
 import { redirect } from "next/navigation"
 
 export default async function AppEntryPage() {
   //gives user's current onboarding step
-  const result = await client.onboarding.entry()
+  const queryClient = getQueryClient()
+
+  const result = await queryClient.fetchQuery(
+    orpc.onboarding.entry.queryOptions(),
+  )
 
   console.log("App ENTREY PAGE: ", { result })
 

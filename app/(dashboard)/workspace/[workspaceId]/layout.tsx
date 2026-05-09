@@ -1,23 +1,40 @@
-import React from "react"
-import WorkspaceHeader from "./_components/WorkspaceHeader"
-import CreateNewChannel from "./_components/CreateNewChannel"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { ChevronUp } from "lucide-react"
-import ChannelList from "./_components/ChannelList"
-import WorkspaceMembersList from "./_components/WorkspaceMembersList"
-import { getQueryClient, HydrateClient } from "@/lib/query/hydration"
 import { orpc } from "@/lib/orpc/orpc"
+import { getQueryClient, HydrateClient } from "@/lib/query/hydration"
+import { ChevronUp } from "lucide-react"
+import { redirect } from "next/navigation"
+import React from "react"
+import ChannelList from "./_components/ChannelList"
+import CreateNewChannel from "./_components/CreateNewChannel"
+import WorkspaceHeader from "./_components/WorkspaceHeader"
+import WorkspaceMembersList from "./_components/WorkspaceMembersList"
 
-const ChannelListLayout = async ({
+const WorkspaceDetailsLayout = async ({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Promise<{ workspaceId: string }>
 }) => {
+  const { workspaceId } = await params
   const queryClient = getQueryClient()
+
+  const { currentWorkspace } = await queryClient.fetchQuery(
+    orpc.workspace.list.queryOptions(),
+  )
+
+  if (!currentWorkspace) {
+    redirect("/no-workspace")
+  }
+
+  if (currentWorkspace && currentWorkspace.orgCode !== workspaceId) {
+    redirect(`/workspace/${currentWorkspace.orgCode}`)
+  }
+
   await queryClient.prefetchQuery(orpc.channel.list.queryOptions())
 
   return (
@@ -72,4 +89,4 @@ const ChannelListLayout = async ({
   )
 }
 
-export default ChannelListLayout
+export default WorkspaceDetailsLayout

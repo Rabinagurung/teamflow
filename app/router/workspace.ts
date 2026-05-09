@@ -1,11 +1,11 @@
 import { auth } from "@/lib/auth/auth"
+import { resolveWorkspaceForSession } from "@/lib/workspace/current-workspace.server"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
 import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
 import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
-import { getWorkspaceForSession } from "../middlewares/workspace"
 import { appUserSchema } from "../schemas/user"
 import { appWorkspaceSchema, workspaceSchema } from "../schemas/workspace"
 import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
@@ -62,7 +62,7 @@ export const listWorkspaces = base
     console.log("WORKSPACE PROCEDURE: ", organizations)
 
     const currentWorkspace = session
-      ? await getWorkspaceForSession(session)
+      ? await resolveWorkspaceForSession({ session, headers })
       : null
 
     console.log("CurrentWorkspace", currentWorkspace)
@@ -101,7 +101,7 @@ export const createWorkspace = base
   .input(workspaceSchema)
   .output(
     z.object({
-      orgCode: z.string(),
+      workspaceId: z.string(),
       workspaceName: z.string(),
     }),
   )
@@ -115,12 +115,12 @@ export const createWorkspace = base
         })
 
       return {
-        orgCode: organizationId,
+        workspaceId: organizationId,
         workspaceName: organizationName,
       }
     } catch (error) {
       console.error("Failed to create organizaiton: ", error)
-      throw errors.FORBIDDEN({
+      throw errors.INTERNAL_SERVER_ERROR({
         message: "Unable to create workspace",
       })
     }
@@ -141,7 +141,21 @@ export const selectWorkspace = base
     }),
   )
   .output(z.object({ workspaceId: z.string() }))
-  .handler(async ({ context, input }) => {
+  .handler(async ({ context, input, errors }) => {
+    const headers = new Headers(context.request.headers as HeadersInit)
+
+    const organizations = await auth.api.listOrganizations({
+      headers,
+    })
+
+    const hasAccess = organizations.some((org) => org.id === input.workspaceId)
+
+    if (!hasAccess) {
+      throw errors.FORBIDDEN({
+        message: "NO_WORKSPACE",
+      })
+    }
+
     await auth.api.setActiveOrganization({
       body: {
         organizationId: input.workspaceId,

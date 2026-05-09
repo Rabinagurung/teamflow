@@ -585,6 +585,7 @@ export const completeOnboardingProPlan = base
     const customerState = await polarClient.customers.getStateExternal({
       externalId: context.user.id,
     })
+
     const activeSubscription = customerState.activeSubscriptions[0]
 
     if (!activeSubscription) {
