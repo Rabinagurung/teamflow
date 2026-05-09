@@ -1,5 +1,8 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { WorkspaceItem } from "@/lib/app-entry"
+import { useState } from "react"
 import WorkspacePickerItem from "./WorkspacePickerItem"
 
 export default function WorkspacePickerList({
@@ -7,8 +10,12 @@ export default function WorkspacePickerList({
 }: {
   workspaces: WorkspaceItem[]
 }) {
+  const [pendingWorkspaceId, setPendingWorkspaceId] = useState<string | null>(
+    null,
+  )
+
   return (
-    <Card className="overflow-hidden rounded-2xl border-border shadow-sm">
+    <Card className="overflow-hidden rounded-xl border-border bg-card shadow-sm py-0">
       <CardContent className="divide-y divide-border p-0">
         {workspaces.map((workspace) => (
           <WorkspacePickerItem
@@ -16,6 +23,9 @@ export default function WorkspacePickerList({
             id={workspace.id}
             name={workspace.name}
             memberCount={workspace.memberCount}
+            disabled={pendingWorkspaceId !== null}
+            isPending={pendingWorkspaceId === workspace.id}
+            onPendingChange={setPendingWorkspaceId}
           />
         ))}
       </CardContent>

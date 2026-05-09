@@ -20,18 +20,22 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
-import { useMemo } from "react"
-import { useForm, useWatch } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
-import InviteEmailsInput, {
-  getInviteEmailDiagnostics,
-} from "./InviteEmailsTextArea"
+import InviteEmailsInput from "./InviteEmailsTextArea"
 import SkipInviteDialog from "./SkipInviteDialog"
+import { LoadingSwap } from "@/components/ui/loading-swap"
 
 const InviteFormSchema = z.object({
-  emails: z.array(z.string()),
+  emails: z.string(),
 })
+
+const parseEmails = (value: string) =>
+  value
+    .split(/[,\n\s]+/)
+    .map((email) => email.trim())
+    .filter(Boolean)
 
 const InviteStepForm = () => {
   const { data } = useSuspenseQuery(orpc.onboarding.state.queryOptions())
@@ -41,20 +45,10 @@ const InviteStepForm = () => {
   const form = useForm<z.infer<typeof InviteFormSchema>>({
     resolver: zodResolver(InviteFormSchema),
     defaultValues: {
-      emails: [],
+      emails: "",
     },
     mode: "onChange",
   })
-
-  const watchedEmails = useWatch({
-    control: form.control,
-    name: "emails",
-  })
-
-  const diagnostics = useMemo(
-    () => getInviteEmailDiagnostics(watchedEmails ?? []),
-    [watchedEmails],
-  )
 
   const inviteMutation = useMutation(
     orpc.onboarding.invite.submit.mutationOptions({
@@ -125,13 +119,15 @@ const InviteStepForm = () => {
     }),
   )
 
-  const onSubmit = () => {
+  const onSubmit = (values: z.infer<typeof InviteFormSchema>) => {
     const parsed = onboardingInviteSchema.safeParse({
-      emails: diagnostics.validEmails,
+      emails: parseEmails(values.emails),
     })
 
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Invalid emails")
+      form.setError("emails", {
+        message: parsed.error.issues[0]?.message ?? "Invalid emails",
+      })
       return
     }
 
@@ -139,9 +135,6 @@ const InviteStepForm = () => {
   }
 
   const isPending = inviteMutation.isPending || skipMutation.isPending
-
-  const canSend =
-    diagnostics.validEmails.length > 0 && !diagnostics.hasErrors && !isPending
 
   return (
     <OnboardingShell
@@ -158,7 +151,7 @@ const InviteStepForm = () => {
             name="emails"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base text-white/80">
+                <FormLabel className="text-base text-foreground">
                   Add coworker by email
                 </FormLabel>
 
@@ -167,6 +160,8 @@ const InviteStepForm = () => {
                     value={field.value ?? []}
                     onChange={field.onChange}
                     disabled={isPending}
+                    className="min-h-40 w-full rounded-xl border border-input bg-background p-4 text-lg text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="alex@company.com, maria@company.com"
                   />
                 </FormControl>
 
@@ -179,15 +174,14 @@ const InviteStepForm = () => {
             Invitations expire in 30 days. You can invite up to 10 teammates
             during onboarding.
           </p>
-
           <div className="flex items-center gap-4">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={!canSend}
-              className="bg-[#611f69] px-8 hover:bg-[#4e1755]"
-            >
-              {inviteMutation.isPending ? "Sending..." : "Send invites"}
+            <Button type="submit" size="lg" className="h-12 px-8">
+              <LoadingSwap
+                isLoading={isPending}
+                className="inline-flex items-center gap-2"
+              >
+                Next
+              </LoadingSwap>
             </Button>
 
             <SkipInviteDialog

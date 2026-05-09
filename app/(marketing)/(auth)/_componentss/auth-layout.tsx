@@ -4,19 +4,19 @@ import React from "react"
 
 export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="bg-muted flex flex-col min-h-svh  justify-center items-center gap-6 p-6 md:p-10 ">
-      <div className="flex w-full max-w-sm flex-col gap-6">
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+      <div className="flex w-full max-w-md flex-col gap-6">
         <Link
           href={"/"}
-          className="flex items-center justify-center gap-2 self-center font-medium"
+          className="flex items-center justify-center self-center"
         >
           <Image
-            src="/logos/arcjet-logo.png"
+            src="/logos/teamflow-wordmark.svg"
             alt="Teamflow"
-            width={100}
-            height={100}
+            width={180}
+            height={40}
+            priority
           />
-          TeamFlow
         </Link>
         {children}
       </div>

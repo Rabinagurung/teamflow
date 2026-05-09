@@ -48,7 +48,7 @@ const WorkspaceMembersList = () => {
       {members.map((member) => (
         <div
           key={member.id}
-          className="flex items-center px-3 py-2 space-x-3 hover:bg-accent cursor-pointer transition-colors "
+          className="flex cursor-pointer items-center space-x-3 px-3 py-2 text-sidebar-foreground/90 transition-colors hover:bg-white/10 hover:text-white"
         >
           <div className="relative">
             <Avatar className="size-8">
@@ -71,10 +71,10 @@ const WorkspaceMembersList = () => {
               )}
             ></div>
           </div>
-          <div className="flex-1 min-w-0 ">
-            <p className="text-sm font-medium truncate">{member.full_name}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{member.full_name}</p>
             {member.email && (
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="truncate text-xs text-sidebar-foreground/65">
                 {member.email}
               </p>
             )}

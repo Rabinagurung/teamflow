@@ -33,7 +33,7 @@ const WorkspaceIdPage = async ({ params }: WorkspaceIdPageParams) => {
 
   return (
     <div className="p-16 flex flex-1">
-      <Empty className="from-muted/50 to-background h-full bg-gradient-to-b from-30%">
+      <Empty className="from-muted/50 to-background h-full bg-linear-to-b from-30%">
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <Cloud />

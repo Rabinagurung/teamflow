@@ -39,9 +39,9 @@ const WorkspaceDetailsLayout = async ({
 
   return (
     <>
-      <div className="flex flex-col h-full w-80 bg-secondary border-r border-border">
+      <div className="flex h-full w-80 flex-col border-r border-channel-sidebar-border bg-channel-sidebar shadow-sm">
         {/*Header */}
-        <div className="flex items-center px-4 h-14 border-b border-border">
+        <div className="flex h-14 items-center border-b border-channel-sidebar-border bg-channel-sidebar px-4">
           <HydrateClient client={queryClient}>
             <WorkspaceHeader />
           </HydrateClient>
@@ -54,7 +54,7 @@ const WorkspaceDetailsLayout = async ({
           <Collapsible defaultOpen>
             <CollapsibleTrigger
               className="flex w-full items-center justify-between px-2 py-1 text-sm 
-            font-medium text-muted-foreground hover:text-accent-foreground  [&[data-state=open]>svg]:rotate-180"
+            font-medium text-sidebar-foreground/75 hover:text-white [&[data-state=open]>svg]:rotate-180"
             >
               Main
               <ChevronUp className="size-4 transition-transform duration-200" />
@@ -67,11 +67,11 @@ const WorkspaceDetailsLayout = async ({
           </Collapsible>
         </div>
         {/* Members List */}
-        <div className="px-4 py-2 border-t border-border">
+        <div className="border-t border-channel-sidebar-border px-4 py-2">
           <Collapsible defaultOpen>
             <CollapsibleTrigger
               className="flex w-full items-center justify-between px-2 py-1 text-sm
-            font-medium text-muted-foreground hover:text-accent-foreground [&[data-state=open]>svg]:rotate-180"
+            font-medium text-sidebar-foreground/75 hover:text-white [&[data-state=open]>svg]:rotate-180"
             >
               Members
               <ChevronUp className="size-4 transition-transform duration-200" />
