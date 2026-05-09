@@ -103,8 +103,9 @@ const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="size-12 rounded-xl border-2 border-dashed border-workspace-rail-border text-muted-foreground 
-              transition-all duration-200 hover:rounded-lg hover:border-sidebar-ring hover:bg-workspace-rail-accent hover:text-foreground"
+              className="size-12 rounded-xl border-2 border-dashed border-muted-foreground/50 
+              text-muted-foreground hover:border-muted-foreground hover:text-foreground 
+              hover:rounded-lg transition-all duration-200"
             >
               <Plus className="size-5" />
             </Button>

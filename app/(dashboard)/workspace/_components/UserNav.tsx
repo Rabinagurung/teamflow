@@ -28,8 +28,8 @@ const UserNav = () => {
         <Button
           size="icon"
           variant="outline"
-          className="size-12 rounded-xl border-workspace-rail-border bg-workspace-rail-accent 
-          transition-all duration-200 hover:rounded-lg hover:bg-sidebar-accent hover:text-accent-foreground"
+          className="size-12 rounded-xl hover:rounded-lg transition-all duration-200 
+          bg-background/50 border-border/50  hover:bg-accent hover:text-accent-foreground"
         >
           <Avatar>
             <AvatarImage

@@ -79,10 +79,7 @@ const CreateNewChannel = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-full border-white/15 bg-white/8 text-sidebar-foreground hover:bg-white/14 hover:text-white"
-        >
+        <Button variant="outline" className="w-full">
           <Plus className="size-4" />
           Add Channel
         </Button>

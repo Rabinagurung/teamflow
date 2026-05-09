@@ -2,7 +2,6 @@
 
 import { BetterAuthActionButton } from "@/components/auth/better-auth-action-button"
 import { authClient } from "@/lib/auth/auth-client"
-import { Check, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface InviteInformationProps {
@@ -42,23 +41,16 @@ export function InviteInformation({ invitation }: InviteInformationProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row">
-      <BetterAuthActionButton
-        className="h-12 flex-1 rounded-xl text-base"
-        action={acceptInvite}
-        successMessage="Invitation accepted"
-      >
-        <Check className="size-4" />
-        Accept invitation
+    <div className="flex gap-4">
+      <BetterAuthActionButton className="grow" action={acceptInvite}>
+        Accept
       </BetterAuthActionButton>
       <BetterAuthActionButton
-        className="h-12 flex-1 rounded-xl border-destructive/30 text-base text-destructive hover:bg-destructive/10 hover:text-destructive"
-        variant="outline"
+        className="grow"
+        variant="destructive"
         action={rejectInvite}
-        successMessage="Invitation declined"
       >
-        <X className="size-4" />
-        Decline
+        Reject
       </BetterAuthActionButton>
     </div>
   )

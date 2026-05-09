@@ -7,13 +7,12 @@ import { authClient } from "@/lib/auth/auth-client"
 import { orpc } from "@/lib/orpc/orpc"
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import {
-  ArrowUpRight,
   Check,
-  ChevronRight,
   History,
   Sparkles,
   Users,
   Video,
+  ChevronRight,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
@@ -44,6 +43,7 @@ const FEATURES = [
     title: "AI conversation summaries",
     description: "Get up to speed in any channel or thread with one click.",
     icon: Sparkles,
+    accent: "text-fuchsia-300",
   },
 ] as const
 
@@ -103,110 +103,204 @@ const BillingStepCard = () => {
       title="Start with TeamFlow Pro"
       description="Your workspace is ready to go."
     >
-      <div className="grid gap-8 lg:grid-cols-[1.2fr_.8fr]">
+      <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr]">
         <div className="space-y-6">
-          <div className="overflow-hidden rounded-2xl border border-border">
+          <div className="space-y-0 border-t border-white/10">
             {FEATURES.map((feature) => {
               const selected = feature.id === selectedFeature
-              const Icon = feature.icon
+              // const Icon = feature.icon
               return (
                 <button
                   key={feature.id}
                   type="button"
                   onClick={() => setSelectedFeature(feature.id)}
-                  className="cursor-pointer w-full border-b border-border px-4 py-4 text-left last:border-b-0 hover:bg-muted/60"
+                  className="w-full border-b border-white/10 py-5 text-left"
                 >
                   <div className="flex items-start gap-4">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-primary">
-                      <Icon className="size-4" />
-                    </span>
+                    {selected ? (
+                      <Check className="mt-1 size-5 text-emerald-400" />
+                    ) : (
+                      <ChevronRight className="mt-1 size-5 text-white/60" />
+                    )}
                     <div>
-                      <p className="font-semibold text-foreground">
+                      <p
+                      // className={`text-2xl font-semibold ${feature.accent ?? "text-white"}`}
+                      >
                         {feature.title}
                       </p>
                       {selected && (
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        <p className="mt-1 text-lg leading-8 text-white/60">
                           {feature.description}
                         </p>
                       )}
                     </div>
-                    {selected ? (
-                      <Check className="mt-1 ml-auto size-5 text-primary" />
-                    ) : (
-                      <ChevronRight className="mt-1 ml-auto size-5 text-muted-foreground" />
-                    )}
                   </div>
                 </button>
               )
             })}
           </div>
 
-          <div className="flex w-full gap-6 flex-col items-center">
-            <Card className="w-full rounded-2xl border-primary/20 bg-primary text-primary-foreground shadow-xl shadow-primary/20">
-              <CardContent className="space-y-5 p-5">
-                <div>
-                  <p className="text-2xl font-semibold">50% off 3 months</p>
-                  <p className="text-base text-primary-foreground/75">
-                    <span className="font-semibold">$4.38 USD</span> per
-                    person/month
-                  </p>
-                </div>
-                <Button
-                  size="lg"
-                  disabled={freeMutation.isPending || startingCheckout}
-                  onClick={startPro}
-                  className="h-12 w-full rounded-xl bg-accent text-base font-semibold text-accent-foreground hover:bg-accent/90"
-                >
-                  {startingCheckout ? "Opening checkout..." : "Start with Pro"}
-                </Button>
-              </CardContent>
-            </Card>
+          <Card className="max-w-md rounded-3xl border-0 bg-[#6a2576] text-white shadow-xl">
+            <CardContent className="space-y-5 p-5">
+              <div>
+                <p className="text-3xl font-semibold">50% off 3 months</p>
+                <p className="text-lg text-white/75">
+                  <span className="font-semibold">$4.38 USD</span> per
+                  person/month
+                </p>
+              </div>
+              <Button
+                size="lg"
+                disabled={freeMutation.isPending || startingCheckout}
+                onClick={startPro}
+                className="h-12 w-full rounded-xl bg-emerald-700 text-lg font-extrabold text-white hover:bg-emerald-600"
+              >
+                {startingCheckout ? "Opening checkout..." : "Start with Pro"}
+              </Button>
+            </CardContent>
+          </Card>
 
-            <Button
-              size="lg"
-              variant="secondary"
-              disabled={freeMutation.isPending || startingCheckout}
-              onClick={() => freeMutation.mutate()}
-              className="h-12 w-full  rounded-xl text-base font-semibold"
-            >
-              {freeMutation.isPending
-                ? "Starting free version..."
-                : "Start with the Limited Free Version"}
-            </Button>
-          </div>
+          <Button
+            size="lg"
+            variant="outline"
+            disabled={freeMutation.isPending || startingCheckout}
+            onClick={() => freeMutation.mutate()}
+            className="h-12 w-full max-w-md rounded-xl text-lg font-extrabold"
+          >
+            {freeMutation.isPending
+              ? "Starting free version..."
+              : "Start with the Limited Free Version"}
+          </Button>
         </div>
 
-        <div className="hidden border-l border-border pl-8 lg:block min-h-[400px]">
-          <div className="min-h-[400px] flex flex-col rounded-2xl border border-border bg-background p-6 shadow-xl shadow-primary/10">
-            <p className="text-sm font-medium text-muted-foreground">
-              Plan preview
+        <div className="hidden border-l border-white/10 pl-8 lg:block">
+          <div className="rounded-[24px] border border-white/10 bg-white p-6 shadow-2xl">
+            <p className="text-sm font-medium text-zinc-500">
+              {activeFeature.title}
             </p>
-            <div className="mt-4 flex-1 rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-foreground">
-                  {activeFeature.title}
-                </p>
-                <ArrowUpRight className="size-4 text-primary" />
-              </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                {activeFeature.description}
-              </p>
-              <div className="mt-6 space-y-3">
-                <div className="h-2.5 rounded-full bg-muted" />
-                <div className="h-2.5 rounded-full bg-muted" />
-                <div className="h-2.5 rounded-full bg-muted" />
-                <div className="h-2.5 rounded-full bg-muted" />
-                <div className="h-2.5 rounded-full bg-muted" />
-                <div className="h-2.5 rounded-full bg-muted" />
-                <div className="h-2.5 w-10/12 rounded-full bg-muted" />
-                <div className="h-2.5 w-7/12 rounded-full bg-accent" />
-              </div>
-            </div>
+            <div className="mt-4 h-72 rounded-2xl bg-zinc-100" />
           </div>
         </div>
       </div>
     </OnboardingShell>
   )
+
+  // return (
+  //   <>
+  //     <OnboardingShell
+  //       step={4}
+  //       totalSteps={4}
+  //       workspaceName={data.state.workspaceName ?? "New Workspace"}
+  //       title="Start with TeamFlow Pro"
+  //       description="Your workspace is ready to go✨"
+  //     >
+  //       <div className="grid gap-8 lg:grid-cols-[1.2fr_.8fr]">
+  //         <div className="space-y-6">
+  //           <div className="space-y-0 border-t border-white/10">
+  //             {FEATURES.map((feature) => {
+  //               const selected = feature.id === selectedFeature
+  //               const Icon = feature.icon
+  //               return (
+  //                 <button
+  //                   key={feature.id}
+  //                   type="button"
+  //                   onClick={() => setSelectedFeature(feature.id)}
+  //                   className="w-full border-b border-white/10 py-5 text-left"
+  //                 >
+  //                   <div className="flex items-start gap-4">
+  //                     {selected ? (
+  //                       <Check className="mt-1 size-5 text-emerald-400" />
+  //                     ) : (
+  //                       <ChevronRight className="mt-1 size-5 text-white/60" />
+  //                     )}
+  //                     <div>
+  //                       <p
+  //                       // className={`text-2xl font-semibold ${feature.accent ?? "text-white"}`}
+  //                       >
+  //                         {feature.title}
+  //                       </p>
+  //                       {selected && (
+  //                         <p className="mt-1 text-lg leading-8 text-white/60">
+  //                           {feature.description}
+  //                         </p>
+  //                       )}
+  //                     </div>
+  //                   </div>
+  //                 </button>
+  //               )
+  //             })}
+  //           </div>
+
+  //           <Card className="max-w-md rounded-3xl border-0 bg-[#6a2576] text-white shadow-xl">
+  //             <CardContent className="space-y-5 p-5">
+  //               <div className="flex items-start gap-4">
+  //                 <div className="grid place-items-center rounded-2xl text-zinc-950 shadow-sm">
+  //                   <p className="text-6xl">🎁</p>
+  //                 </div>
+
+  //                 <div>
+  //                   <p className="text-3xl font-semibold">50% off 3 months</p>
+  //                   <p className="text-lg text-white/75">
+  //                     <span className="font-semibold">$4.38 USD</span> per
+  //                     person/month
+  //                   </p>
+  //                 </div>
+  //               </div>
+  //               <Button
+  //                 size="lg"
+  //                 className="h-12 w-full rounded-xl bg-emerald-700 text-lg font-extrabold text-white hover:bg-emerald-600"
+  //               >
+  //                 {startingCheckout ? "Opening checkout..." : "Start with Pro"}
+  //               </Button>
+  //             </CardContent>
+  //           </Card>
+
+  //           <Button
+  //             size="lg"
+  //             variant="outline"
+  //             onClick={() => freeMutation.mutate()}
+  //             className="h-12 w-full  max-w-md rounded-xl text-lg font-extrabold hover:bg-white/5 hover:text-white"
+  //           >
+  //             {freeMutation.isPending
+  //               ? "Starting free version..."
+  //               : "Start with the Limited Free Version"}
+  //           </Button>
+  //         </div>
+
+  //         <div className="hidden items-center justify-center border-l border-white/10 pl-8 lg:flex">
+  //           {/* <div className="w-full max-w-sm rounded-[24px] border border-white/10 bg-white p-6 shadow-2xl">
+  //             <div className="space-y-3">
+  //               <div className="flex items-center justify-between text-xs text-zinc-400">
+  //                 <span>AI Summary</span>
+  //                 <span>Preview</span>
+  //               </div>
+
+  //               <div className="space-y-2">
+  //                 <div className="h-3 w-3/4 rounded-full bg-zinc-200" />
+  //                 <div className="h-3 w-2/3 rounded-full bg-zinc-100" />
+  //                 <div className="h-3 w-5/6 rounded-full bg-zinc-100" />
+  //               </div>
+
+  //               <div className="rounded-xl border border-zinc-200 p-4">
+  //                 <div className="space-y-3">
+  //                   <div className="h-3 w-full rounded-full bg-zinc-200" />
+  //                   <div className="h-3 w-10/12 rounded-full bg-zinc-100" />
+  //                   <div className="h-3 w-8/12 rounded-full bg-zinc-100" />
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </div> */}
+  //           <div className="rounded-[24px] border border-white/10 bg-white p-6 shadow-2xl">
+  //             <p className="text-sm font-medium text-zinc-500">
+  //               {activeFeature.title}
+  //             </p>
+  //             <div className="mt-4 h-72 rounded-2xl bg-zinc-100" />
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </OnboardingShell>
+  //   </>
+  // )
 }
 
 export default BillingStepCard

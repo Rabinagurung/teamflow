@@ -6,20 +6,19 @@ import {
   SUPPORTED_OATUH_PROVIDER_DETAILS,
   SUPPORTED_OATUH_PROVIDERS,
 } from "@/lib/auth/o-auth-providers"
+// import { useRouter } from "next/navigation"
 
 import { toast } from "sonner"
-export function SocialAuthButtons({
-  callbackURL = "/app-entry",
-}: {
-  callbackURL?: string
-}) {
+
+export function SocialAuthButtons() {
+  // const router = useRouter()
   return SUPPORTED_OATUH_PROVIDERS.map((provider) => {
     const Icon = SUPPORTED_OATUH_PROVIDER_DETAILS[provider].Icon
 
     function handleClick() {
       return authClient.signIn.social({
         provider,
-        callbackURL,
+        callbackURL: "/app-entry",
         errorCallbackURL: "/auth/login/error",
         fetchOptions: {
           onSuccess: (ctx) => {

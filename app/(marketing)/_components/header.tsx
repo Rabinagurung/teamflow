@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Logo from "@/public/arcjet-logo.png"
 import { Menu, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import React from "react"
@@ -48,13 +49,10 @@ export const HeroHeader = () => {
                 aria-label="home"
                 className="flex items-center space-x-2"
               >
-                <Image
-                  src="/logos/teamflow-wordmark.svg"
-                  alt="TeamFlow"
-                  width={165}
-                  height={36}
-                  priority
-                />
+                <Image src={Logo} alt="Logo" width={32} height={32} />
+                <h1 className="text-2xl font-bold">
+                  Tail<span className="text-primary">Flow</span>
+                </h1>
               </Link>
               <button
                 onClick={() => setMenuState(!menuState)}
@@ -108,8 +106,10 @@ export const HeroHeader = () => {
                       </Link>
                       <Button
                         onClick={() => authClient.signOut()}
-                        variant="outline"
-                        size="sm"
+                        className={buttonVariants({
+                          size: "sm",
+                          variant: "outline",
+                        })}
                       >
                         <span>Logout</span>
                       </Button>

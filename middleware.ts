@@ -1,6 +1,6 @@
 import arcjet, { createMiddleware, detectBot } from "@arcjet/next"
 // import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware"
-import { NextRequest, NextResponse } from "next/server"
+import { NextMiddleware, NextRequest, NextResponse } from "next/server"
 
 const ARCJET_KEY = process.env.ARCJET_KEY
 if (!ARCJET_KEY) {
@@ -22,19 +22,12 @@ const aj = arcjet({
   ],
 })
 
-type KindeLike = {
-  org_code?: string
-  claims?: {
-    org_code?: string
-  }
-}
-
 async function existingMiddleware(request: NextRequest) {
   const anyRequest = request as {
     nextUrl: NextRequest["nextUrl"]
     kindeAuth?: {
-      token?: KindeLike
-      user?: KindeLike
+      token?: any
+      user?: any
     }
   }
 
@@ -62,8 +55,6 @@ async function existingMiddleware(request: NextRequest) {
   return NextResponse.next()
 }
 
-void existingMiddleware
-
 //createMiddleware from arcjet
 // withAuth from Kinde will run on all routes and check user's authentication status and not run on publicPaths
 export default createMiddleware(
@@ -83,5 +74,5 @@ export const config = {
    * - this middleware should run only on public routes: homepage, about, pricing.
    * added |/rpc in matcher
    */
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*|rpc).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|rpc).*)"],
 }

@@ -72,6 +72,8 @@ export const listMembers = base
   .output(z.array(z.custom<BetterAuthMember>()))
   .handler(async ({ context, errors }) => {
     try {
+      // console.log("listMembers PROCEDURE: ", context.workspace.orgCode)
+
       const membersData = await auth.api.listMembers({
         query: {
           organizationId: context.workspace.id,
@@ -80,6 +82,9 @@ export const listMembers = base
         },
         headers: new Headers(context.request.headers as HeadersInit),
       })
+      const user = membersData?.members[0].user
+
+      console.log("User", user)
 
       if (!membersData.members) {
         throw errors.NOT_FOUND()

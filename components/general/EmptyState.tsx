@@ -24,12 +24,9 @@ const EmptyState = ({
   href,
 }: EmptyStateProps) => {
   return (
-    <Empty className="w-full max-w-md flex-none rounded-2xl border bg-card/90 shadow-lg shadow-black/5 backdrop-blur-sm dark:bg-card/80 dark:shadow-black/20">
+    <Empty className="border border-dashed">
       <EmptyHeader>
-        <EmptyMedia
-          variant="icon"
-          className="size-12 rounded-xl bg-primary/10 ring-1 ring-primary/15"
-        >
+        <EmptyMedia variant="icon" className="bg-primary/10">
           <Cloud className="size-5 text-primary" />
         </EmptyMedia>
         <EmptyTitle>{title}</EmptyTitle>

@@ -52,13 +52,13 @@ const RichTextEditor = ({
   })
 
   return (
-    <div className="relative flex w-full flex-col overflow-hidden rounded-xl border border-input bg-card shadow-lg shadow-black/5 dark:shadow-black/25">
+    <div className="relative w-full border border-input rounded-lg overflow-hidden dark:bg-input/30 flex flex-col">
       <MenuBar editor={editor} />
       <EditorContent
         editor={editor}
         className="max-h-[200px] overflow-y-auto"
       />
-      <div className="flex items-center justify-between gap-2 border-t border-input bg-muted/35 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-input bg-card">
         <div className="min-h-8 flex items-center">{footerLeft}</div>
         <div className="shrink-0">{sendButton}</div>
       </div>

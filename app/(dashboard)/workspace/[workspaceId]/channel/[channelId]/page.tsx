@@ -41,12 +41,12 @@ const ChannelPageMain = () => {
 
   return (
     <ChannelRealtimeProvider channelId={channelId}>
-      <div className="flex h-screen w-full bg-background">
+      <div className="flex h-screen w-full">
         {/* Main Channel Area */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex flex-col flex-1 min-w-0">
           {/* Fixed Header */}
           {isLoading ? (
-            <div className="flex h-14 items-center justify-between border-b bg-channel-header px-4">
+            <div className="flex items-center justify-between h-14 px-4 border-b">
               <Skeleton className="h-6 w-40" />
               <div className="flex items-center space-x-3">
                 <Skeleton className="h-8 w-28" />
@@ -58,11 +58,11 @@ const ChannelPageMain = () => {
             <ChannelHeader channelName={data?.channelName} />
           )}
           {/* Scrollable Message Area */}
-          <div className="chat-canvas flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden mb-4">
             <MessageList />
           </div>
           {/* Fixed Input */}
-          <div className="border-t border-border bg-background p-4">
+          <div className="border-t bg-background p-4">
             <MessageInputForm
               channelId={channelId}
               user={data?.currentUser as KindeUser<Record<string, unknown>>}

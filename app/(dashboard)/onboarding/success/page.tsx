@@ -33,17 +33,5 @@ export default function OnboardingSuccessPage() {
     completeMutation.mutate()
   }, [isLoading, hasActiveSubscription, completeMutation])
 
-  return (
-    <main className="grid min-h-screen place-items-center bg-background p-6 text-foreground">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-xl shadow-primary/10">
-        <div className="mx-auto mb-5 size-12 rounded-2xl bg-accent" />
-        <p className="text-lg font-semibold">
-          Finishing your TeamFlow setup...
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          We&apos;re getting your workspace ready.
-        </p>
-      </div>
-    </main>
-  )
+  return <div className="p-10">Finishing your TeamFlow Pro setup...</div>
 }

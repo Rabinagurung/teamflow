@@ -18,19 +18,13 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth/auth-client"
-import {
-  getInviteQueryValue,
-  getInviteRedirectPath,
-} from "@/lib/invites/invite-redirect"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { EmailVerification } from "./email-verification"
-import { SocialAuthButtons } from "./social-auth-buttons"
 
 export const registerSchema = z
   .object({
@@ -48,17 +42,6 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 const RegisterForm = () => {
   // const router = useRouter()
-  const searchParams = useSearchParams()
-  const inviteRedirectPath = useMemo(
-    () => getInviteRedirectPath(searchParams.get("inviteURL")),
-    [searchParams],
-  )
-  const callbackURL = inviteRedirectPath ?? "/verify"
-  const inviteQueryValue = getInviteQueryValue(inviteRedirectPath)
-  const loginHref = inviteQueryValue
-    ? `/login?inviteURL=${encodeURIComponent(inviteQueryValue)}`
-    : "/login"
-
   const [confirmState, setConfirmState] = useState(false)
   const [email, setEmail] = useState("")
 
@@ -109,7 +92,7 @@ const RegisterForm = () => {
         name: values.name,
         email: values.email,
         password: values.password,
-        callbackURL,
+        callbackURL: "/verify",
       },
       {
         //fetchOptions
@@ -133,8 +116,8 @@ const RegisterForm = () => {
       ) : (
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl">Get Started</CardTitle>
-            <CardDescription className="text-[18px]">
+            <CardTitle>Get Started</CardTitle>
+            <CardDescription>
               Create your account to get started
             </CardDescription>
           </CardHeader>
@@ -241,7 +224,7 @@ const RegisterForm = () => {
                     />
                     <Button
                       type="submit"
-                      className="text-base w-full"
+                      className="w-full"
                       disabled={isPending}
                     >
                       Sign up
@@ -249,8 +232,8 @@ const RegisterForm = () => {
                     <div className="text-center text-sm">
                       Already have an account ?{" "}
                       <Link
-                        href={loginHref}
-                        className="underline underline-offset-4 text-primary hover:text-primary/90"
+                        href="/login"
+                        className="underline underline-offset-4"
                       >
                         Login
                       </Link>
@@ -259,12 +242,6 @@ const RegisterForm = () => {
                 </div>
               </form>
             </Form>
-
-            <div className="grid grid-cols-2 mt-6 gap-3">
-              <SocialAuthButtons
-                callbackURL={inviteRedirectPath ?? "/app-entry"}
-              />
-            </div>
           </CardContent>
         </Card>
       )}

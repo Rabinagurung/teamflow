@@ -30,9 +30,8 @@ const ChannelList = () => {
             className={buttonVariants({
               variant: "ghost",
               className: cn(
-                "h-7 w-full justify-start px-2 py-1 text-sidebar-foreground/80 hover:bg-white/10 hover:text-white dark:text-sidebar-foreground/80",
-                isActive &&
-                  "bg-sidebar-accent !text-sidebar-accent-foreground shadow-xs hover:bg-sidebar-accent hover:!text-sidebar-accent-foreground [&_svg]:!text-sidebar-accent-foreground",
+                "w-full justify-start px-2 py-1 h-7 text-muted-foreground hover:text-accent-foreground hover:bg-accent",
+                isActive && "text-accent-foreground bg-accent",
               ),
             })}
           >

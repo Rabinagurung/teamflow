@@ -1,5 +1,5 @@
 import SafeContent from "@/components/rich-text-editor/SafeContent"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getAvatar } from "@/lib/utlis/get-avatar"
 import Image from "next/image"
 import { MessageHoverToolbar } from "../toolbar"
 import { useCallback, useState } from "react"
@@ -10,7 +10,6 @@ import { useThread } from "@/providers/ThreadProvider"
 import { orpc } from "@/lib/orpc/orpc"
 import { useQueryClient } from "@tanstack/react-query"
 import ReactionsBar from "../reaction/ReactionsBar"
-import { getAvatar } from "@/lib/utlis/get-avatar"
 
 interface MessageItemProps {
   message: MessageListItem
@@ -37,25 +36,19 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
       .catch(() => {})
   }, [message.id, queryClient])
 
-  const authorInitial = message.authorName.trim().charAt(0).toUpperCase() || "?"
-
   return (
-    <div className="group relative flex gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 transition-colors hover:border-primary/45 hover:bg-card/70">
-      <Avatar className="size-9 rounded-lg ring-1 ring-border">
-        <AvatarImage
-          src={getAvatar(message.authorAvatar, message.authorEmail)}
-          alt={`${message.authorName} avatar`}
-        />
-        <AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">
-          {authorInitial}
-        </AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1 space-y-1">
+    <div className="group flex space-x-3 relative p-3 rounded-lg hover:bg-muted/50">
+      <Image
+        src={getAvatar(message.authorAvatar, message.authorEmail)}
+        alt="User Avatar"
+        width={32}
+        height={32}
+        className="size-8 rounded-lg"
+      />
+      <div className="flex-1 space-y-1 min-w-0">
         <div className="flex items-center gap-x-2">
-          <p className="font-semibold leading-none text-foreground">
-            {message.authorName}
-          </p>
-          <p className="text-xs leading-none text-muted-foreground">
+          <p className="font-medium leading-none">{message.authorName}</p>
+          <p className="text-xs text-muted-foreground leading-none">
             {new Intl.DateTimeFormat("en-GB", {
               day: "numeric",
               month: "short",
@@ -87,7 +80,7 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
                   return ""
                 }
               })()}
-              className="prose max-w-none break-words text-sm text-foreground/90 marker:text-primary dark:prose-invert"
+              className="text-sm break-words prose dark:prose-invert max-w-none marker:text-primary"
             />
 
             {message.imageUrl && (

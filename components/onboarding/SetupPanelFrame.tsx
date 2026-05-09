@@ -8,10 +8,8 @@ export default function SetupPanelFrame({
   className?: string
 }) {
   return (
-    <div className={cn("rounded-2xl border border-border p-4", className)}>
-      <div className="rounded-xl border border-border bg-background">
-        {children}
-      </div>
+    <div className={cn("rounded-[26px] border border-white/10 p-4", className)}>
+      <div className="rounded-[22px] border border-white/10">{children}</div>
     </div>
   )
 }

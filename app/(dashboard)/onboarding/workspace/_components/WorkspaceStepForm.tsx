@@ -1,6 +1,7 @@
 "use client"
 
 import { workspaceSchema } from "@/app/schemas/workspace"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -18,8 +19,6 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import z from "zod"
 import { toast } from "sonner"
-import { LoadingSwap } from "@/components/ui/loading-swap"
-import { Button } from "@/components/ui/button"
 
 const WorkspaceStepForm = () => {
   const { data: onboardingData } = useQuery(
@@ -73,7 +72,7 @@ const WorkspaceStepForm = () => {
 
   return (
     <OnboardingShell
-      step={2}
+      step={1}
       totalSteps={4}
       workspaceName={workspaceName || "New Workspace"}
       title="What’s the name of your group?"
@@ -86,13 +85,13 @@ const WorkspaceStepForm = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base text-foreground">
+                <FormLabel className="text-base text-white/80">
                   Workspace name
                 </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    className="h-14 border-input bg-background text-lg text-foreground placeholder:text-muted-foreground"
+                    className="h-16 border-white/15 bg-transparent text-2xl text-white placeholder:text-white/35"
                     placeholder="TeamFlow Workspace"
                   />
                 </FormControl>
@@ -100,14 +99,12 @@ const WorkspaceStepForm = () => {
               </FormItem>
             )}
           />
-
-          <Button type="submit" size="lg" className="h-12 px-8">
-            <LoadingSwap
-              isLoading={mutation.isPending}
-              className="inline-flex items-center gap-2"
-            >
-              Next
-            </LoadingSwap>
+          <Button
+            type="submit"
+            size="lg"
+            className="bg-[#611f69] px-8 hover:bg-[#4e1755]"
+          >
+            Next
           </Button>
         </form>
       </Form>

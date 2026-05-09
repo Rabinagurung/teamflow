@@ -136,7 +136,7 @@ export default function HeroSection() {
                   as="p"
                   className="mx-auto mt-8 max-w-2xl text-balance text-lg"
                 >
-                  TeamFlow organizes conversations into channels with threads,
+                  TailFlow organizes conversations into channels with threads,
                   is realtime and uses AI to keep teams in sync.
                 </TextEffect>
 
