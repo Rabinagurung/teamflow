@@ -6,7 +6,7 @@ export default function CreateWorkspaceCard() {
   return (
     <Link href="/onboarding/profile">
       <Card className="overflow-hidden rounded-xl border-border bg-card shadow-sm transition hover:border-primary/30 hover:bg-accent/40">
-        <CardContent className="flex items-center justify-between px-6 py-6">
+        <CardContent className="flex items-center justify-between px-4">
           <div className="flex items-center gap-4">
             <div className="grid size-12 place-items-center rounded-xl bg-accent text-primary shadow-sm">
               <Plus className="size-6" />

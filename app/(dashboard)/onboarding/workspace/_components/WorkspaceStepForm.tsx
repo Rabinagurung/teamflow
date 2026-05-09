@@ -1,7 +1,6 @@
 "use client"
 
 import { workspaceSchema } from "@/app/schemas/workspace"
-import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -19,6 +18,8 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import z from "zod"
 import { toast } from "sonner"
+import { LoadingSwap } from "@/components/ui/loading-swap"
+import { Button } from "@/components/ui/button"
 
 const WorkspaceStepForm = () => {
   const { data: onboardingData } = useQuery(
@@ -99,8 +100,14 @@ const WorkspaceStepForm = () => {
               </FormItem>
             )}
           />
+
           <Button type="submit" size="lg" className="h-12 px-8">
-            Next
+            <LoadingSwap
+              isLoading={mutation.isPending}
+              className="inline-flex items-center gap-2"
+            >
+              Next
+            </LoadingSwap>
           </Button>
         </form>
       </Form>

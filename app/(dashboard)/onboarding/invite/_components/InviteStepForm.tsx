@@ -24,6 +24,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 import SkipInviteDialog from "./SkipInviteDialog"
+import { LoadingSwap } from "@/components/ui/loading-swap"
 
 const InviteFormSchema = z.object({
   emails: z.string().trim().min(1, "Add at least one email or skip this step"),
@@ -135,13 +136,13 @@ const InviteStepForm = () => {
           </p>
 
           <div className="flex items-center gap-4">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={isPending}
-              className="h-12 px-8"
-            >
-              {inviteMutation.isPending ? "Sending..." : "Next"}
+            <Button type="submit" size="lg" className="h-12 px-8">
+              <LoadingSwap
+                isLoading={isPending}
+                className="inline-flex items-center gap-2"
+              >
+                Next
+              </LoadingSwap>
             </Button>
 
             <SkipInviteDialog

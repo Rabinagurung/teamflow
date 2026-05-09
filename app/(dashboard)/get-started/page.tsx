@@ -20,40 +20,23 @@ export default async function GetStartedPage() {
   if (workspaces.length === 0) redirect("/no-workspace")
 
   return (
-    <main className="min-h-screen bg-background p-4 text-foreground sm:p-5">
-      <div className="grid min-h-[calc(100vh-32px)] overflow-hidden rounded-2xl border border-border bg-secondary/60 shadow-2xl shadow-primary/10 sm:min-h-[calc(100vh-40px)] lg:grid-cols-[300px_1fr]">
-        <aside className="border-b border-workspace-rail-border bg-workspace-rail p-6 text-sidebar-foreground lg:border-r lg:border-b-0 lg:p-8">
-          <div className="flex items-center gap-3">
-            <div className="grid size-9 place-items-center rounded-xl bg-primary shadow-inner shadow-white/10">
-              <Image
-                src="/logos/teamflow-mark.svg"
-                alt=""
-                width={24}
-                height={24}
-                priority
-                className="size-6"
-              />
-            </div>
-            <p className="text-lg font-semibold text-sidebar-foreground">
-              TeamFlow
-            </p>
-          </div>
-
-          <div className="mt-12 space-y-3 border-t border-white/10 pt-7 text-sm font-medium text-sidebar-foreground/70">
-            <p className="rounded-lg bg-white/10 px-3 py-2 text-sidebar-foreground">
-              Workspaces
-            </p>
-            <p className="px-3 py-2">Channels</p>
-            <p className="px-3 py-2">Direct messages</p>
-          </div>
-        </aside>
-
-        <section className="flex w-full items-start bg-secondary/60 px-6 py-10 sm:px-10 lg:px-16">
+    <main className="min-h-screen bg-background md:p-4  text-foreground sm:p-5">
+      <div className="min-h-[calc(100vh-32px)] overflow-hidden md:rounded-2xl border border-border bg-secondary/60 shadow-2xl shadow-primary/10">
+        <section className="flex justify-center w-full items-start bg-secondary/60 px-4  py-10 sm:px-10 lg:px-16">
           <div className="w-full max-w-3xl">
             <div className="mb-10">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-                TeamFlow
-              </p>
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/logos/teamflow-mark.svg"
+                  alt=""
+                  width={24}
+                  height={24}
+                  priority
+                  className="size-6"
+                />
+
+                <p className="text-lg font-semibold text-primary">TeamFlow</p>
+              </div>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
                 Welcome back
               </h1>

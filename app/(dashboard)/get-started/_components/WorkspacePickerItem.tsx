@@ -51,7 +51,7 @@ export default function WorkspacePickerItem({
       onClick={handleSelect}
       aria-busy={isBusy}
       className={cn(
-        "group flex w-full items-center justify-between bg-transparent px-6 py-5 text-left transition hover:bg-accent/40 disabled:cursor-wait disabled:opacity-60",
+        "cursor-pointer group flex w-full items-center justify-between bg-transparent px-6 py-5 text-left transition hover:bg-accent/40 disabled:cursor-wait disabled:opacity-60",
         isBusy && "bg-accent/30 disabled:opacity-100",
       )}
     >

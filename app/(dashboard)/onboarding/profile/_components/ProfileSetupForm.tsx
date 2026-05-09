@@ -22,6 +22,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import z from "zod"
+import { LoadingSwap } from "@/components/ui/loading-swap"
 
 const ProfileFormSchema = z.object({
   name: z.string().min(2, "Please enter your name"),
@@ -86,13 +87,19 @@ const ProfileSetupForm = () => {
               </FormItem>
             )}
           />
+
           <Button
             type="submit"
             size="lg"
             disabled={mutation.isPending}
             className="h-12 px-8"
           >
-            Next
+            <LoadingSwap
+              isLoading={mutation.isPending}
+              className="inline-flex items-center gap-2"
+            >
+              Next
+            </LoadingSwap>
           </Button>
         </form>
       </Form>
