@@ -1,13 +1,14 @@
 "use client"
 
-import { useInfiniteQuery, useSuspenseQuery } from "@tanstack/react-query"
-import MessageItem from "./message/MessageItem"
+import EmptyState from "@/components/general/EmptyState"
+import { Button } from "@/components/ui/button"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { ChevronDown, Loader2 } from "lucide-react"
 import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { ChevronDown, Loader2 } from "lucide-react"
-import EmptyState from "@/components/general/EmptyState"
+import MessageItem from "./message/MessageItem"
 
 /**
  * Renders a Slack-style message list with reverse infinite scrolling.
@@ -85,10 +86,8 @@ const MessageList = () => {
     refetchOnWindowFocus: false,
   })
 
-  //get current user from server side cache
-  const {
-    data: { user },
-  } = useSuspenseQuery(orpc.workspace.list.queryOptions())
+  //get current user from hook
+  const { user } = useRequiredActiveWorkspace()
 
   /**
    * Default browser behavior:

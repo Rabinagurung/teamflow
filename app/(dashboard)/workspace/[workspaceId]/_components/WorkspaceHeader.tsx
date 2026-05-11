@@ -1,15 +1,13 @@
 "use client"
 
-import { orpc } from "@/lib/orpc/orpc"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 
 export function WorkspaceHeader() {
-  const {
-    data: { currentWorkspace },
-  } = useSuspenseQuery(orpc.channel.list.queryOptions())
+  const { currentWorkspace } = useRequiredActiveWorkspace()
+
   return (
     <h2 className="truncate text-lg font-semibold text-sidebar-foreground">
-      {currentWorkspace.orgName}
+      {currentWorkspace.name}
     </h2>
   )
 }

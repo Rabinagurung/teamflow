@@ -81,7 +81,7 @@ export const listChannel = base
     const [channels, membersData] = await Promise.all([
       prisma.channel.findMany({
         where: {
-          workspaceId: context.workspace.orgCode,
+          workspaceId: context.workspace.id,
         },
         orderBy: {
           createdAt: "desc",
@@ -127,7 +127,7 @@ export const getChannel = base
     const channel = await prisma.channel.findUnique({
       where: {
         id: input.channelId,
-        workspaceId: context.workspace.orgCode,
+        workspaceId: context.workspace.id,
       },
       select: {
         name: true,

@@ -2,14 +2,14 @@
 
 import { UserSchema } from "@/app/schemas/realtime"
 import { Avatar } from "@/components/ui/avatar"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { usePresence } from "@/hooks/use-presence"
-import { getAvatar } from "@/lib/utlis/get-avatar"
 import { orpc } from "@/lib/orpc/orpc"
+import { getAvatar } from "@/lib/utlis/get-avatar"
 import { cn } from "@/lib/utlis/utils"
 import { AvatarFallback } from "@radix-ui/react-avatar"
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import Image from "next/image"
-import { useParams } from "next/navigation"
 import { useMemo } from "react"
 import { z } from "zod"
 
@@ -18,23 +18,19 @@ const WorkspaceMembersList = () => {
     data: { members },
   } = useSuspenseQuery(orpc.channel.list.queryOptions())
 
-  const { data: workspaceData } = useQuery(orpc.workspace.list.queryOptions())
-  const params = useParams<{ workspaceId: string }>()
-  const workspaceId = params.workspaceId
+  const { presenceRoom, user } = useRequiredActiveWorkspace()
 
   const currentUser = useMemo(() => {
-    if (!workspaceData?.user) return null
-
     return {
-      id: workspaceData.user.id,
-      full_name: workspaceData.user.given_name,
-      email: workspaceData.user.email!,
-      picture: workspaceData.user.picture,
+      id: user.id,
+      full_name: user.given_name,
+      email: user.email!,
+      picture: user.picture,
     } satisfies z.infer<typeof UserSchema>
-  }, [workspaceData?.user])
+  }, [user])
 
   const { onlineUsers } = usePresence({
-    room: workspaceId ? `workspace-${workspaceId}` : "",
+    room: presenceRoom,
     currentUser,
   })
 

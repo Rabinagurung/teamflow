@@ -19,27 +19,27 @@ export type InviteEmailChip = {
   error: string | null
 }
 
-export const getInviteEmailDiagnostics = (values: string[]) => {
-  const normalizedValues = values
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean)
+// export const getInviteEmailDiagnostics = (values: string[]) => {
+//   const normalizedValues = values
+//     .map((value) => value.trim().toLowerCase())
+//     .filter(Boolean)
 
-  const chips: InviteEmailChip[] = normalizedValues.map((value) => {
-    const parsed = inviteEmailSchema.safeParse(value)
+//   const chips: InviteEmailChip[] = normalizedValues.map((value) => {
+//     const parsed = inviteEmailSchema.safeParse(value)
 
-    return {
-      value,
-      error: parsed.success ? null : "Invalid email address",
-    }
-  })
+//     return {
+//       value,
+//       error: parsed.success ? null : "Invalid email address",
+//     }
+//   })
 
-  return {
-    chips,
-    validEmails: chips.filter((chip) => !chip.error).map((chip) => chip.value),
-    invalidChips: chips.filter((chip) => chip.error),
-    hasErrors: chips.some((chip) => chip.error),
-  }
-}
+//   return {
+//     chips,
+//     validEmails: chips.filter((chip) => !chip.error).map((chip) => chip.value),
+//     invalidChips: chips.filter((chip) => chip.error),
+//     hasErrors: chips.some((chip) => chip.error),
+//   }
+// }
 
 interface InviteEmailsInputProps {
   value: string
@@ -54,7 +54,7 @@ export default function InviteEmailsTextArea({
 }: InviteEmailsInputProps) {
   const [draft, setDraft] = useState("")
 
-  const diagnostics = useMemo(() => getInviteEmailDiagnostics(value), [value])
+  // const diagnostics = useMemo(() => getInviteEmailDiagnostics(value), [value])
 
   const commitDraft = () => {
     const tokens = splitTokens(draft)
@@ -68,9 +68,9 @@ export default function InviteEmailsTextArea({
     setDraft("")
   }
 
-  const removeChipAt = (index: number) => {
-    onChange(value.filter((_, currentIndex) => currentIndex !== index))
-  }
+  // const removeChipAt = (index: number) => {
+  //   onChange(value.filter((_, currentIndex) => currentIndex !== index))
+  // }
 
   const clearInvalidChips = () => {
     onChange(diagnostics.validEmails)
@@ -105,7 +105,7 @@ export default function InviteEmailsTextArea({
               )}
 
               <span className="max-w-[240px] truncate">{chip.value}</span>
-
+              {/* 
               <button
                 type="button"
                 disabled={disabled}
@@ -113,7 +113,7 @@ export default function InviteEmailsTextArea({
                 className="rounded-sm opacity-70 transition hover:opacity-100 disabled:pointer-events-none"
               >
                 <X className="size-3.5" />
-              </button>
+              </button> */}
             </Badge>
           ))}
           <Textarea

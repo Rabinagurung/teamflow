@@ -43,7 +43,7 @@ export const generateThreadSummary = base
       where: {
         id: input.messageId,
         Channel: {
-          workspaceId: context.workspace.orgCode,
+          workspaceId: context.workspace.id,
         },
       },
       select: {
@@ -67,7 +67,7 @@ export const generateThreadSummary = base
       where: {
         id: parentId,
         Channel: {
-          workspaceId: context.workspace.orgCode,
+          workspaceId: context.workspace.id,
         },
       },
       select: {

@@ -1,3 +1,4 @@
+import { AppWorkspace } from "@/app/schemas/workspace"
 import {
   Collapsible,
   CollapsibleContent,
@@ -5,6 +6,10 @@ import {
 } from "@/components/ui/collapsible"
 import { orpc } from "@/lib/orpc/orpc"
 import { getQueryClient, HydrateClient } from "@/lib/query/hydration"
+import {
+  NoWorkspaceError,
+  requireCurrentWorkspace,
+} from "@/lib/workspace/current-workspace.server"
 import { ChevronUp } from "lucide-react"
 import { redirect } from "next/navigation"
 import React from "react"
@@ -21,71 +26,70 @@ const WorkspaceDetailsLayout = async ({
   params: Promise<{ workspaceId: string }>
 }) => {
   const { workspaceId } = await params
+
+  let currentWorkspace: AppWorkspace | null
+  try {
+    currentWorkspace = await requireCurrentWorkspace()
+  } catch (error) {
+    if (error instanceof NoWorkspaceError) {
+      redirect("/no-workspace")
+    }
+    throw error
+  }
+
+  if (currentWorkspace.id !== workspaceId) {
+    redirect(`/workspace/${currentWorkspace.id}`)
+  }
+
   const queryClient = getQueryClient()
-
-  const { currentWorkspace } = await queryClient.fetchQuery(
-    orpc.workspace.list.queryOptions(),
-  )
-
-  if (!currentWorkspace) {
-    redirect("/no-workspace")
-  }
-
-  if (currentWorkspace && currentWorkspace.orgCode !== workspaceId) {
-    redirect(`/workspace/${currentWorkspace.orgCode}`)
-  }
 
   await queryClient.prefetchQuery(orpc.channel.list.queryOptions())
 
   return (
-    <>
-      <div className="flex h-full w-80 flex-col border-r border-channel-sidebar-border bg-channel-sidebar shadow-sm">
-        {/*Header */}
-        <div className="flex h-14 items-center border-b border-channel-sidebar-border bg-channel-sidebar px-4">
-          <HydrateClient client={queryClient}>
+    <HydrateClient client={queryClient}>
+      <>
+        <div className="flex h-full w-80 flex-col border-r border-channel-sidebar-border bg-channel-sidebar shadow-sm">
+          {/*Header */}
+          <div className="flex h-14 items-center border-b border-channel-sidebar-border bg-channel-sidebar px-4">
             <WorkspaceHeader />
-          </HydrateClient>
-        </div>
-        <div className="px-4 py-2">
-          <CreateNewChannel />
-        </div>
-        {/* Channel List */}
-        <div className="flex-1 overflow-y-auto px-4">
-          <Collapsible defaultOpen>
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between px-2 py-1 text-sm 
+          </div>
+          <div className="px-4 py-2">
+            <CreateNewChannel />
+          </div>
+          {/* Channel List */}
+          <div className="flex-1 overflow-y-auto px-4">
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger
+                className="flex w-full items-center justify-between px-2 py-1 text-sm 
             font-medium text-sidebar-foreground/75 hover:text-white [&[data-state=open]>svg]:rotate-180"
-            >
-              Main
-              <ChevronUp className="size-4 transition-transform duration-200" />
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <HydrateClient client={queryClient}>
+              >
+                Main
+                <ChevronUp className="size-4 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
                 <ChannelList />
-              </HydrateClient>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-        {/* Members List */}
-        <div className="border-t border-channel-sidebar-border px-4 py-2">
-          <Collapsible defaultOpen>
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between px-2 py-1 text-sm
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+          {/* Members List */}
+          <div className="border-t border-channel-sidebar-border px-4 py-2">
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger
+                className="flex w-full items-center justify-between px-2 py-1 text-sm
             font-medium text-sidebar-foreground/75 hover:text-white [&[data-state=open]>svg]:rotate-180"
-            >
-              Members
-              <ChevronUp className="size-4 transition-transform duration-200" />
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <HydrateClient client={queryClient}>
+              >
+                Members
+                <ChevronUp className="size-4 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
                 <WorkspaceMembersList />
-              </HydrateClient>
-            </CollapsibleContent>
-          </Collapsible>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </div>
-      </div>
-      {children}
-    </>
+        {children}
+      </>
+    </HydrateClient>
   )
 }
 

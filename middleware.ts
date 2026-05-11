@@ -1,6 +1,4 @@
 import arcjet, { createMiddleware, detectBot } from "@arcjet/next"
-// import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware"
-import { NextRequest, NextResponse } from "next/server"
 
 const ARCJET_KEY = process.env.ARCJET_KEY
 if (!ARCJET_KEY) {
@@ -22,56 +20,7 @@ const aj = arcjet({
   ],
 })
 
-type KindeLike = {
-  org_code?: string
-  claims?: {
-    org_code?: string
-  }
-}
-
-async function existingMiddleware(request: NextRequest) {
-  const anyRequest = request as {
-    nextUrl: NextRequest["nextUrl"]
-    kindeAuth?: {
-      token?: KindeLike
-      user?: KindeLike
-    }
-  }
-
-  const url = request.nextUrl
-
-  const orgCode =
-    anyRequest.kindeAuth?.user?.org_code ||
-    anyRequest.kindeAuth?.token?.org_code ||
-    anyRequest.kindeAuth?.token?.claims?.org_code
-
-  // const orgCode = undefined
-
-  // if (!orgCode) {
-  //   return NextResponse.redirect(new URL("/", request.url))
-  // }
-
-  if (
-    url.pathname.startsWith("/workspace") &&
-    !url.pathname.includes(orgCode || "")
-  ) {
-    url.pathname = `/workspace/${orgCode}`
-    return NextResponse.redirect(url)
-  }
-
-  return NextResponse.next()
-}
-
-void existingMiddleware
-
-//createMiddleware from arcjet
-// withAuth from Kinde will run on all routes and check user's authentication status and not run on publicPaths
-export default createMiddleware(
-  aj,
-  // withAuth(existingMiddleware, {
-  //   publicPaths: ["/", "/api/uploadthing"],
-  // }) as NextMiddleware,
-)
+export default createMiddleware(aj)
 
 export const config = {
   // matcher tells Next.js which routes to run the middleware on.

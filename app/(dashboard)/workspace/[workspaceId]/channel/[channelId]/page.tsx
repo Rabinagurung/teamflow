@@ -1,16 +1,15 @@
 "use client"
 
+import { Skeleton } from "@/components/ui/skeleton"
+import { orpc } from "@/lib/orpc/orpc"
+import { ChannelRealtimeProvider } from "@/providers/ChannelRealtimeProvider"
+import { ThreadProvider, useThread } from "@/providers/ThreadProvider"
+import { useQuery } from "@tanstack/react-query"
 import { useParams } from "next/navigation"
 import ChannelHeader from "./_components/ChannelHeader"
 import MessageInputForm from "./_components/message/MessageInputForm"
 import MessageList from "./_components/MessageList"
-import { useQuery } from "@tanstack/react-query"
-import { orpc } from "@/lib/orpc/orpc"
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
-import { Skeleton } from "@/components/ui/skeleton"
 import ThreadSidebar from "./_components/thread/ThreadSidebar"
-import { ThreadProvider, useThread } from "@/providers/ThreadProvider"
-import { ChannelRealtimeProvider } from "@/providers/ChannelRealtimeProvider"
 
 const ChannelPageMain = () => {
   const { channelId } = useParams<{ channelId: string }>()
@@ -63,17 +62,10 @@ const ChannelPageMain = () => {
           </div>
           {/* Fixed Input */}
           <div className="border-t border-border bg-background p-4">
-            <MessageInputForm
-              channelId={channelId}
-              user={data?.currentUser as KindeUser<Record<string, unknown>>}
-            />
+            <MessageInputForm channelId={channelId} />
           </div>
         </div>
-        {isThreadOpen && data?.currentUser && (
-          <ThreadSidebar
-            user={data.currentUser as KindeUser<Record<string, unknown>>}
-          />
-        )}
+        {isThreadOpen && <ThreadSidebar />}
       </div>
     </ChannelRealtimeProvider>
   )

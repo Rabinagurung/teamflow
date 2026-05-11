@@ -1,23 +1,18 @@
+import SafeContent from "@/components/rich-text-editor/SafeContent"
 import { Button } from "@/components/ui/button"
+import { orpc } from "@/lib/orpc/orpc"
+import { useThread } from "@/providers/ThreadProvider"
+import { ThreadRealtimeProvider } from "@/providers/ThreadRealtimeProvider"
+import { useQuery } from "@tanstack/react-query"
 import { ChevronDown, MessageSquare, X } from "lucide-react"
 import Image from "next/image"
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import SummarizeThread from "./SummarizeThread"
 import ThreadReply from "./ThreadReply"
 import ThreadReplyForm from "./ThreadReplyForm"
-import { useThread } from "@/providers/ThreadProvider"
-import { useQuery } from "@tanstack/react-query"
-import { orpc } from "@/lib/orpc/orpc"
-import SafeContent from "@/components/rich-text-editor/SafeContent"
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
 import ThreadSidebarSkeleton from "./ThreadSidebarSkeleton"
-import SummarizeThread from "./SummarizeThread"
-import { ThreadRealtimeProvider } from "@/providers/ThreadRealtimeProvider"
 
-interface ThreadSidebarProps {
-  user: KindeUser<Record<string, unknown>>
-}
-
-const ThreadSidebar = ({ user }: ThreadSidebarProps) => {
+const ThreadSidebar = () => {
   const { selectedThreadId, closeThread } = useThread()
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -232,7 +227,7 @@ const ThreadSidebar = ({ user }: ThreadSidebarProps) => {
         {/* Thread Reply Form */}
         {selectedThreadId && (
           <div className="border-t p-4">
-            <ThreadReplyForm threadId={selectedThreadId} user={user} />
+            <ThreadReplyForm threadId={selectedThreadId} />
           </div>
         )}
       </div>

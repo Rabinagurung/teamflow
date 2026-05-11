@@ -2,10 +2,19 @@ import "server-only"
 
 import { auth } from "@/lib/auth/auth"
 import prisma from "@/lib/db"
+
 import type { AppWorkspace } from "@/app/schemas/workspace"
+import { headers as nextHeaders } from "next/headers"
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>
 
+export class NoWorkspaceError extends Error {
+  code = "NO_WORKSPACE" as const
+
+  constructor() {
+    super("NO_WORKSPACE")
+  }
+}
 const toAppWorkspace = (workspace: {
   id: string
   name: string
@@ -14,10 +23,17 @@ const toAppWorkspace = (workspace: {
   metadata: string | null
   createdAt: Date
 }): AppWorkspace => ({
-  ...workspace,
-  orgCode: workspace.id,
-  orgName: workspace.name,
+  id: workspace.id,
+  name: workspace.name,
+  slug: workspace.slug,
+  logo: workspace.logo,
+  metadata: workspace.metadata,
+  createdAt: workspace.createdAt,
 })
+
+const getRequestHeaders = async (input?: HeadersInit) => {
+  return input ? new Headers(input) : new Headers(await nextHeaders())
+}
 
 const findWorkspaceByIdForUser = async ({
   organizationId,
@@ -75,6 +91,25 @@ const findFallbackWorkspaceForUser = async (userId: string) => {
     : null
 }
 
+const trySetActiveOrganization = async ({
+  organizationId,
+  headers,
+}: {
+  organizationId: string
+  headers: Headers
+}) => {
+  try {
+    await auth.api.setActiveOrganization({
+      body: {
+        organizationId,
+      },
+      headers,
+    })
+  } catch (error) {
+    console.error("Failed to heal active organization", error)
+  }
+}
+
 export const resolveWorkspaceForSession = async ({
   session,
   headers,
@@ -102,17 +137,39 @@ export const resolveWorkspaceForSession = async ({
   }
 
   if (fallbackWorkspace.id !== activeOrganizationId) {
-    try {
-      await auth.api.setActiveOrganization({
-        body: {
-          organizationId: fallbackWorkspace.id,
-        },
-        headers,
-      })
-    } catch (error) {
-      console.error("Failed to heal active organization", error)
-    }
+    await trySetActiveOrganization({
+      organizationId: fallbackWorkspace.id,
+      headers,
+    })
   }
 
   return fallbackWorkspace
+}
+
+export const getCurrentWorkspace = async (input?: {
+  headers?: HeadersInit
+}) => {
+  const headers = await getRequestHeaders(input?.headers)
+  const session = await auth.api.getSession({ headers })
+
+  if (!session) {
+    return null
+  }
+
+  return resolveWorkspaceForSession({
+    session: session as AuthSession,
+    headers,
+  })
+}
+
+export const requireCurrentWorkspace = async (input?: {
+  headers?: HeadersInit
+}) => {
+  const workspace = await getCurrentWorkspace(input)
+
+  if (!workspace) {
+    throw new NoWorkspaceError()
+  }
+
+  return workspace
 }

@@ -2,34 +2,34 @@
 
 import { createMessageSchema } from "@/app/schemas/message"
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useParams } from "next/navigation"
-import React, { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import MessageComposer from "../message/MessageComposer"
 import { useAttachmentUpload } from "@/hooks/use-attachment-upload"
-import { z } from "zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { orpc } from "@/lib/orpc/orpc"
-import { toast } from "sonner"
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
-import { getAvatar } from "@/lib/utlis/get-avatar"
 import { InfiniteMessages, MessageListItem } from "@/lib/types"
+import { getAvatar } from "@/lib/utlis/get-avatar"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 import { useThreadRealtime } from "@/providers/ThreadRealtimeProvider"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
+import MessageComposer from "../message/MessageComposer"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 
 interface ThreadReplyFormProps {
   threadId: string
-  user: KindeUser<Record<string, unknown>>
 }
 
-const ThreadReplyForm = ({ threadId, user }: ThreadReplyFormProps) => {
+const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
   const queryClient = useQueryClient()
   const { channelId } = useParams<{ channelId: string }>()
   const { send } = useChannelRealtime()
   const { send: sendThread } = useThreadRealtime()
   const upload = useAttachmentUpload()
   const [editorKey, setEditorKey] = useState(0)
+  const { user } = useRequiredActiveWorkspace()
 
   const form = useForm({
     resolver: zodResolver(createMessageSchema),

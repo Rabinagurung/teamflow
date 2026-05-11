@@ -7,13 +7,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
 import { cn } from "@/lib/utlis/utils"
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { startTransition } from "react"
 
@@ -43,9 +40,8 @@ const WorkspaceList = () => {
   const queryClient = useQueryClient()
 
   const workspaceListQuery = orpc.workspace.list.queryOptions()
-  const {
-    data: { workspaces, currentWorkspace },
-  } = useSuspenseQuery(workspaceListQuery)
+
+  const { workspaces, currentWorkspace } = useRequiredActiveWorkspace()
 
   const switchWorkspace = useMutation(
     orpc.workspace.select.mutationOptions({
@@ -70,7 +66,7 @@ const WorkspaceList = () => {
     <TooltipProvider>
       <div className="flex flex-col gap-2">
         {workspaces.map((workspace) => {
-          const isActive = currentWorkspace?.id === workspace.id
+          const isActive = currentWorkspace.id === workspace.id
           const isSwitching =
             switchWorkspace.isPending &&
             switchWorkspace.variables?.workspaceId === workspace.id

@@ -1,23 +1,20 @@
 "use client"
 
 import { buttonVariants } from "@/components/ui/button"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
 import { cn } from "@/lib/utlis/utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Hash } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import React from "react"
 
 const ChannelList = () => {
   const {
     data: { channels },
   } = useSuspenseQuery(orpc.channel.list.queryOptions())
-
-  const { workspaceId, channelId } = useParams<{
-    workspaceId: string
-    channelId: string
-  }>()
+  const { workspacePath } = useRequiredActiveWorkspace()
+  const { channelId } = useParams<{ channelId: string }>()
 
   return (
     <div className="space-y-0.5 py-1">
@@ -26,7 +23,7 @@ const ChannelList = () => {
         return (
           <Link
             key={channel.id}
-            href={`/workspace/${workspaceId}/channel/${channel.id}`}
+            href={`${workspacePath}/channel/${channel.id}`}
             className={buttonVariants({
               variant: "ghost",
               className: cn(

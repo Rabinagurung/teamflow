@@ -85,3 +85,5 @@ export default async function GetStartedPage() {
     </main>
   )
 }
+
+// Since I already have workspaces, I will get redirected to /get-started route and I have WorkspacePickerList.tsx and CreateWorkspaceCard.tsx rendered

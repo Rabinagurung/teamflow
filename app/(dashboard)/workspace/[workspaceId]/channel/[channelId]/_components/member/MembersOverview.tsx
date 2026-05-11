@@ -1,25 +1,23 @@
+import { UserSchema } from "@/app/schemas/realtime"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Popover,
-  PopoverTrigger,
   PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
+import { usePresence } from "@/hooks/use-presence"
 import { orpc } from "@/lib/orpc/orpc"
 import { useQuery } from "@tanstack/react-query"
 import { Search, UsersIcon } from "lucide-react"
 import { useMemo, useState } from "react"
-import MemberItem from "./MemberItem"
-import { Skeleton } from "@/components/ui/skeleton"
-import { usePresence } from "@/hooks/use-presence"
-import { useParams } from "next/navigation"
 import z from "zod"
-import { UserSchema } from "@/app/schemas/realtime"
+import MemberItem from "./MemberItem"
 
 const MembersOverview = () => {
-  const params = useParams<{ workspaceId: string }>()
-  const workspaceId = params.workspaceId
-  console.log("MembersOverview workspaceId params: ", workspaceId)
+  const { presenceRoom, user } = useRequiredActiveWorkspace()
 
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -29,23 +27,16 @@ const MembersOverview = () => {
     error,
   } = useQuery(orpc.workspace.member.list.queryOptions())
 
-  const { data: workspaceData } = useQuery(orpc.workspace.list.queryOptions())
-
   const currentUser = useMemo(() => {
-    if (!workspaceData?.user) return null
-
     return {
-      id: workspaceData.user.id,
-      full_name: workspaceData.user.given_name,
-      email: workspaceData.user.email!,
-      picture: workspaceData.user.picture,
+      id: user.id,
+      full_name: user.given_name,
+      email: user.email!,
+      picture: user.picture,
     } satisfies z.infer<typeof UserSchema>
-  }, [workspaceData?.user])
+  }, [user])
 
   const members = membersListData ?? []
-
-  console.log("Members: ", members)
-  console.log("WorkspaceData: ", workspaceData)
 
   const query = search.trim().toLowerCase()
 
@@ -59,7 +50,7 @@ const MembersOverview = () => {
     : members
 
   const { onlineUsers } = usePresence({
-    room: workspaceId ? `workspace-${workspaceId}` : "",
+    room: presenceRoom,
     currentUser,
   })
 
