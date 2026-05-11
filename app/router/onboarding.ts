@@ -55,6 +55,7 @@ const mergeMetadata = (
   return JSON.stringify({ ...parsed, ...patch })
 }
 
+//here
 const getOnboardingWorkspace = async (userId: string) => {
   const state = await prisma.onboardingState.findUnique({
     where: { userId },
@@ -77,6 +78,7 @@ const getOnboardingWorkspace = async (userId: string) => {
   })
 }
 
+//here
 export const getAppEntry = base
   .use(requiredAuthMiddleware)
   .use(standardSecurityMiddleware)

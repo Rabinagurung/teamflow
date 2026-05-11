@@ -8,23 +8,22 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import MessageComposer from "./MessageComposer"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
+import { useAttachmentUpload } from "@/hooks/use-attachment-upload"
 import { orpc } from "@/lib/orpc/orpc"
+import { InfiniteMessages, MessageListItem, MessagePage } from "@/lib/types"
+import { getAvatar } from "@/lib/utlis/get-avatar"
+import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
-import { useState } from "react"
-import { useAttachmentUpload } from "@/hooks/use-attachment-upload"
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs"
-import { getAvatar } from "@/lib/utlis/get-avatar"
-import { InfiniteMessages, MessageListItem, MessagePage } from "@/lib/types"
-import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
+import MessageComposer from "./MessageComposer"
 
 interface MessageInputFormProps {
   channelId: string
-  user: KindeUser<Record<string, unknown>>
 }
 
 // type MessagePage = {
@@ -34,11 +33,12 @@ interface MessageInputFormProps {
 
 // type InfiniteMessages = InfiniteData<MessagePage>
 
-const MessageInputForm = ({ channelId, user }: MessageInputFormProps) => {
+const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
   const queryClient = useQueryClient()
   const [editorKey, setEditorKey] = useState(0)
   const upload = useAttachmentUpload()
   const { send } = useChannelRealtime()
+  const { user } = useRequiredActiveWorkspace()
 
   const form = useForm({
     resolver: zodResolver(createMessageSchema),

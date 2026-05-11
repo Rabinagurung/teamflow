@@ -69,7 +69,7 @@ export const createMessage = base
     const channel = await prisma.channel.findFirst({
       where: {
         id: input.channelId,
-        workspaceId: context.workspace.orgCode,
+        workspaceId: context.workspace.id,
       },
     })
 
@@ -83,7 +83,7 @@ export const createMessage = base
         where: {
           id: input.threadId,
           Channel: {
-            workspaceId: context.workspace.orgCode,
+            workspaceId: context.workspace.id,
           },
         },
       })
@@ -146,7 +146,7 @@ export const listMessages = base
     const channel = await prisma.channel.findFirst({
       where: {
         id: input.channelId,
-        workspaceId: context.workspace.orgCode,
+        workspaceId: context.workspace.id,
       },
     })
 
@@ -233,7 +233,7 @@ export const updateMessage = base
       where: {
         id: input.messageId,
         Channel: {
-          workspaceId: context.workspace.orgCode,
+          workspaceId: context.workspace.id,
         },
       },
       select: {
@@ -293,7 +293,7 @@ export const listThreadReplies = base
       where: {
         id: input.messageId,
         Channel: {
-          workspaceId: context.workspace.orgCode,
+          workspaceId: context.workspace.id,
         },
       },
       include: {
@@ -311,7 +311,7 @@ export const listThreadReplies = base
       where: {
         threadId: input.messageId,
         Channel: {
-          workspaceId: context.workspace.orgCode,
+          workspaceId: context.workspace.id,
         },
         // Optional (stronger): keep replies in the same channel as the parent
         channelId: parentRow.channelId,
@@ -379,7 +379,7 @@ export const toggleReaction = base
       where: {
         id: input.messageId,
         Channel: {
-          workspaceId: context.workspace.orgCode,
+          workspaceId: context.workspace.id,
         },
       },
       select: { id: true },

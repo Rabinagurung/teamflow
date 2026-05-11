@@ -19,23 +19,24 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
 import { normalizeChannelName } from "@/lib/utlis/normalize-channel-name"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isDefinedError } from "@orpc/client"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
-import { useParams, useRouter } from "next/navigation"
-import React, { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
 const CreateNewChannel = () => {
+  const { workspacePath } = useRequiredActiveWorkspace()
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
   const router = useRouter()
-  const { workspaceId } = useParams<{ workspaceId: string }>()
 
   const form = useForm({
     resolver: zodResolver(ChannelNameSchema),
@@ -49,14 +50,14 @@ const CreateNewChannel = () => {
       onSuccess: (newChannel) => {
         toast.success(`Channel ${newChannel.name} created Successfully!`)
 
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: orpc.channel.list.queryKey(),
         })
 
         form.reset()
         setOpen(false)
 
-        router.push(`/workspace/${workspaceId}/channel/${newChannel.id}`)
+        router.push(`${workspacePath}/channel/${newChannel.id}`)
       },
       onError: (error) => {
         if (isDefinedError(error)) {

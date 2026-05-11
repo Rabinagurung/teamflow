@@ -156,13 +156,13 @@ const InviteStepForm = () => {
                 </FormLabel>
 
                 <FormControl>
-                  <InviteEmailsInput
+                  {/* <InviteEmailsInput
                     value={field.value}
                     onChange={field.onChange}
                     disabled={isPending}
                     className="min-h-40 w-full rounded-xl border border-input bg-background p-4 text-lg text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="alex@company.com, maria@company.com"
-                  />
+                  /> */}
                 </FormControl>
 
                 <FormMessage />

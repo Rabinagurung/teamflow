@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth/auth"
-import { resolveWorkspaceForSession } from "@/lib/workspace/current-workspace.server"
+import { getCurrentWorkspace } from "@/lib/workspace/current-workspace.server"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
@@ -53,19 +53,15 @@ export const listWorkspaces = base
   .handler(async ({ context }) => {
     const headers = new Headers(context.request.headers as HeadersInit)
 
-    const session = await auth.api.getSession({ headers })
-
     const organizations = await auth.api.listOrganizations({
       headers,
     })
 
-    console.log("WORKSPACE PROCEDURE: ", organizations)
+    // console.log("WORKSPACE PROCEDURE: ", organizations)
 
-    const currentWorkspace = session
-      ? await resolveWorkspaceForSession({ session, headers })
-      : null
+    const currentWorkspace = await getCurrentWorkspace({ headers })
 
-    console.log("CurrentWorkspace", currentWorkspace)
+    // console.log("CurrentWorkspace", currentWorkspace)
 
     return {
       workspaces: organizations.map((org) => ({
@@ -161,7 +157,7 @@ export const selectWorkspace = base
         organizationId: input.workspaceId,
       },
 
-      headers: new Headers(context.request.headers as HeadersInit),
+      headers,
     })
 
     return {

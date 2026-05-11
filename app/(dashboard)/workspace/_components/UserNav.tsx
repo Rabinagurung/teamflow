@@ -5,22 +5,19 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { getAvatar } from "@/lib/utlis/get-avatar"
-import { orpc } from "@/lib/orpc/orpc"
 import { LogoutLink, PortalLink } from "@kinde-oss/kinde-auth-nextjs/components"
-import { useSuspenseQuery } from "@tanstack/react-query"
 import { CreditCardIcon, LogOut, User } from "lucide-react"
 
 const UserNav = () => {
-  const {
-    data: { user },
-  } = useSuspenseQuery(orpc.workspace.list.queryOptions())
+  const { user } = useRequiredActiveWorkspace()
 
   return (
     <DropdownMenu>

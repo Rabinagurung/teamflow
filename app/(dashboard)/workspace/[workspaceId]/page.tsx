@@ -8,16 +8,13 @@ import {
 } from "@/components/ui/empty"
 import { orpc } from "@/lib/orpc/orpc"
 import { getQueryClient } from "@/lib/query/hydration"
+import { requireCurrentWorkspace } from "@/lib/workspace/current-workspace.server"
 import { Cloud } from "lucide-react"
 import { redirect } from "next/navigation"
 import CreateNewChannel from "./_components/CreateNewChannel"
 
-interface WorkspaceIdPageParams {
-  params: Promise<{ workspaceId: string }>
-}
-
-const WorkspaceIdPage = async ({ params }: WorkspaceIdPageParams) => {
-  const { workspaceId } = await params
+const WorkspaceIdPage = async () => {
+  const currentWorkspace = await requireCurrentWorkspace()
   const queryClient = getQueryClient()
 
   const { channels } = await queryClient.fetchQuery(
@@ -28,7 +25,9 @@ const WorkspaceIdPage = async ({ params }: WorkspaceIdPageParams) => {
     channels.find((channel) => channel.name === "general") ?? channels[0]
 
   if (initialChannel) {
-    return redirect(`/workspace/${workspaceId}/channel/${initialChannel.id}`)
+    return redirect(
+      `/workspace/${currentWorkspace.id}/channel/${initialChannel.id}`,
+    )
   }
 
   return (

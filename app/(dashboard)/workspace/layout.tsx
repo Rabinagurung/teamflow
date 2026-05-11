@@ -15,39 +15,39 @@ const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
   await queryClient.prefetchQuery(orpc.workspace.list.queryOptions())
 
   return (
-    <div className="flex h-screen w-full">
-      <aside
-        className="flex h-full w-16 flex-col items-center border-r border-workspace-rail-border bg-workspace-rail px-2 py-3"
-        role="navigation"
-        aria-label="Workspace navigation"
-      >
-        <Link
-          href="/app-entry"
-          className="mb-4 flex size-10 items-center justify-center rounded-lg border border-workspace-rail-border bg-workspace-rail-accent shadow-xs transition-colors hover:bg-sidebar-accent"
-          aria-label="TeamFlow home"
+    <HydrateClient client={queryClient}>
+      <div className="flex h-screen w-full">
+        <aside
+          className="flex h-full w-16 flex-col items-center border-r border-workspace-rail-border bg-workspace-rail px-2 py-3"
+          role="navigation"
+          aria-label="Workspace navigation"
         >
-          <Image
-            src="/logos/teamflow-mark.svg"
-            alt=""
-            width={28}
-            height={28}
-            priority
-          />
-        </Link>
-        <HydrateClient client={queryClient}>
+          <Link
+            href="/app-entry"
+            className="mb-4 flex size-10 items-center justify-center rounded-lg border border-workspace-rail-border bg-workspace-rail-accent shadow-xs transition-colors hover:bg-sidebar-accent"
+            aria-label="TeamFlow home"
+          >
+            <Image
+              src="/logos/teamflow-mark.svg"
+              alt=""
+              width={28}
+              height={28}
+              priority
+            />
+          </Link>
+
           <WorkspaceList />
-        </HydrateClient>
-        <div className="mt-4">
-          <CreateWorkspace />
-        </div>
-        <div className="mt-auto">
-          <HydrateClient client={queryClient}>
+
+          <div className="mt-4">
+            <CreateWorkspace />
+          </div>
+          <div className="mt-auto">
             <UserNav />
-          </HydrateClient>
-        </div>
-      </aside>
-      {children}
-    </div>
+          </div>
+        </aside>
+        {children}
+      </div>
+    </HydrateClient>
   )
 }
 

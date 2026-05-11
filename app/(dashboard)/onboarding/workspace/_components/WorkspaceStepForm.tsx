@@ -1,6 +1,8 @@
 "use client"
 
 import { workspaceSchema } from "@/app/schemas/workspace"
+import OnboardingShell from "@/components/onboarding/OnboardingShell"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -10,26 +12,16 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import OnboardingShell from "@/components/onboarding/OnboardingShell"
+import { LoadingSwap } from "@/components/ui/loading-swap"
 import { orpc } from "@/lib/orpc/orpc"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
-import z from "zod"
 import { toast } from "sonner"
-import { LoadingSwap } from "@/components/ui/loading-swap"
-import { Button } from "@/components/ui/button"
+import z from "zod"
 
 const WorkspaceStepForm = () => {
-  const { data: onboardingData } = useQuery(
-    orpc.onboarding.state.queryOptions(),
-  )
-
-  const { data: workspaceListData } = useQuery(
-    orpc.workspace.list.queryOptions(),
-  )
-
   const queryClient = useQueryClient()
   const router = useRouter()
 
@@ -61,15 +53,14 @@ const WorkspaceStepForm = () => {
     },
   })
 
+  const workspaceName = form.watch("name")
+
+  // console.log("WorkspaceStepForm")
+  // console.log("onBoardingData, ", onboardingData)
+
   function onSubmit(values: z.infer<typeof workspaceSchema>) {
     mutation.mutate(values)
   }
-
-  const workspaceName = form.watch("name")
-
-  console.log("WorkspaceStepForm")
-  console.log("onBoardingData, ", onboardingData)
-  console.log(" workspaceListData, ", workspaceListData)
 
   return (
     <OnboardingShell

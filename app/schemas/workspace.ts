@@ -15,8 +15,6 @@ export const appWorkspaceSchema = z.object({
   logo: z.string().nullable(),
   metadata: z.string().nullable(),
   createdAt: z.date(),
-  orgCode: z.string(),
-  orgName: z.string(),
 })
 
 export type AppWorkspace = z.infer<typeof appWorkspaceSchema>
