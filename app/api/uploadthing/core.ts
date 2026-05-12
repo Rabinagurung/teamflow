@@ -1,4 +1,4 @@
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
+import { auth } from "@/lib/auth/auth"
 import { createUploadthing, type FileRouter } from "uploadthing/next"
 import { UploadThingError } from "uploadthing/server"
 
@@ -14,18 +14,19 @@ export const ourFileRouter = {
     },
   })
     // Set permissions and file types for this FileRoute(imageUploader)
-    .middleware(async () => {
+    .middleware(async ({ req }) => {
       // This code runs on your server before upload and authorization logic is written
-      const { getUser } = getKindeServerSession()
-      const user = await getUser()
+      const session = await auth.api.getSession({
+        headers: new Headers(req.headers),
+      })
 
       // If you throw, the user will not be able to upload
-      if (!user) throw new UploadThingError("Unauthorized")
+      if (!session?.user) throw new UploadThingError("Unauthorized")
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: user.id }
+      return { userId: session.user.id }
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ metadata }) => {
       // This code RUNS ON YOUR SERVER after upload
       // console.log("Upload complete for userId:", metadata.userId)
 

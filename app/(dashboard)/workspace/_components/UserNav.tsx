@@ -12,12 +12,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
+import { authClient } from "@/lib/auth/auth-client"
 import { getAvatar } from "@/lib/utlis/get-avatar"
-import { LogoutLink, PortalLink } from "@kinde-oss/kinde-auth-nextjs/components"
+import { PortalLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { CreditCardIcon, LogOut, User } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const UserNav = () => {
   const { user } = useRequiredActiveWorkspace()
+
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await authClient.signOut()
+    router.push("/login")
+    router.refresh()
+  }
 
   return (
     <DropdownMenu>
@@ -80,11 +90,9 @@ const UserNav = () => {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <LogoutLink>
-            <LogOut />
-            Log out
-          </LogoutLink>
+        <DropdownMenuItem onClick={() => void handleSignOut()}>
+          <LogOut className="mr-2 size-4" />
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

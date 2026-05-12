@@ -14,86 +14,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Channel {
-  id String @id @default(uuid())
-
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  //Foreign keys (kinde IDS) 
-  workspaceId String //Kinde organization ID
-  createdById String //Kinde user ID
-
-  messages Message[]
-
-  @@unique([workspaceId, name])
-}
-
-model Message {
-  id        String   @id @default(uuid())
-  content   String
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  authorId     String // Kinde user ID
-  authorEmail  String // User's email
-  authorName   String // Display name
-  authorAvatar String // Avatar URL
-  Channel      Channel? @relation(fields: [channelId], references: [id])
-  channelId    String?
-
-  // Thread relations
-  parentMessage Message?  @relation("MessageThread", fields: [threadId], references: [id], onDelete: Cascade)
-  threadId      String?
-  replies       Message[] @relation("MessageThread")
-
-  MessageReaction MessageReaction[]
-
-}
-
-model MessageReaction {
-  id    String @id @default(uuid())
-  emoji String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId     String // Kinde user ID
-  userEmail  String // User's email
-  userName   String // Display name
-  userAvatar String // Avatar URL
-
-  Message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  messageId String
-
-  //one reaction per user  per emoji per message
-
-  @@unique([messageId, userId, emoji])
-}
 
 model User {
-  id            String    @id @default(uuid())
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  family_name   String?
-  given_name    String?
-  picture       String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  name              String
+  email             String
+  emailVerified     Boolean   @default(false)
+  image             String?
+  family_name       String?
+  given_name        String?    
+  picture           String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  sessions      Session[]
-  accounts      Account[]
-  members     Member[]
-  invitations Invitation[]
-  onboardingState  OnboardingState?
+  sessions          Session[]
+  accounts          Account[]
+  members           Member[]
+  invitations       Invitation[]
+  onboardingState   OnboardingState?
+  createdChannels   Channel[] @relation("CreatedChannels")
 
   @@unique([email])
   @@map("user")
 }
+
 
 model Session {
   id          String   @id @default(uuid())
@@ -150,10 +94,14 @@ model Organization {
   name          String
   slug          String
   logo          String?
-  createdAt     DateTime @default(now())
   metadata      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   members       Member[]
   invitations   Invitation[]
+  channels      Channel[]
+  onboardingStates OnboardingState[]
 
   @@unique([slug])
   @@map("organization")
@@ -192,10 +140,13 @@ model Invitation {
 }
 
 model OnboardingState {
-  id                    String   @id @default(uuid())
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspaceId           String?
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  organizationId      String?
+  organization        Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
   hasCompletedProfile   Boolean @default(false)
   hasCreatedWorkspace   Boolean @default(false)
   hasInvitedMembers     Boolean @default(false)
@@ -203,4 +154,77 @@ model OnboardingState {
   currentStep           String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+
+model Channel {
+  id                String @id @default(uuid())
+
+  name              String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdById       String?
+  createdBy         User? @relation("CreatedChannels", fields: [createdById], references: [id], onDelete: SetNull)
+
+  messages          Message[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([createdById])
+}
+
+
+model Message {
+  id              String      @id @default(uuid())
+  content         String
+  imageUrl        String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  authorId        String // user ID
+  authorEmail     String // User's email
+  authorName      String // Display name
+  authorAvatar    String // Avatar URL
+
+  channelId       String
+  channel         Channel    @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+
+  // Thread relations
+  parentMessage   Message?    @relation("MessageThread", fields: [threadId], references: [id], onDelete: Cascade)
+  threadId        String?
+  replies         Message[]   @relation("MessageThread")
+
+  reactions       MessageReaction[]
+
+  @@index([channelId])
+  @@index([threadId])
+
+}
+
+model MessageReaction {
+  id          String @id @default(uuid())
+  emoji       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String //User Id
+  userEmail   String // User's email
+  userName    String // Display name
+  userAvatar  String // Avatar URL
+
+  messageId   String
+  message     Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+
+  //one reaction per user  per emoji per message
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
 }

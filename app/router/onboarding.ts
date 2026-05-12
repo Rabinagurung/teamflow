@@ -55,18 +55,17 @@ const mergeMetadata = (
   return JSON.stringify({ ...parsed, ...patch })
 }
 
-//here
 const getOnboardingWorkspace = async (userId: string) => {
   const state = await prisma.onboardingState.findUnique({
     where: { userId },
-    select: { workspaceId: true },
+    select: { organizationId: true },
   })
 
-  if (!state?.workspaceId) return null
+  if (!state?.organizationId) return null
 
   return prisma.organization.findFirst({
     where: {
-      id: state.workspaceId,
+      id: state.organizationId,
       members: { some: { userId } },
     },
 
@@ -78,7 +77,6 @@ const getOnboardingWorkspace = async (userId: string) => {
   })
 }
 
-//here
 export const getAppEntry = base
   .use(requiredAuthMiddleware)
   .use(standardSecurityMiddleware)
@@ -142,10 +140,10 @@ export const getOnboardingState = base
 
     console.log("getOnboardingState", { row })
 
-    const workspace = row?.workspaceId
+    const workspace = row?.organizationId
       ? await prisma.organization.findUnique({
           where: {
-            id: row.workspaceId,
+            id: row.organizationId,
           },
           select: {
             id: true,
@@ -159,7 +157,7 @@ export const getOnboardingState = base
     return {
       user: context.user,
       state: {
-        workspaceId: row?.workspaceId ?? null,
+        workspaceId: row?.organizationId ?? null,
         workspaceName: workspace?.name ?? null,
         hasCompletedProfile: row?.hasCompletedProfile ?? false,
         hasCreatedWorkspace: row?.hasCreatedWorkspace ?? false,
@@ -248,13 +246,13 @@ export const createOnboardingWorkspace = base
         },
         create: {
           userId: context.user.id,
-          workspaceId: organizationId,
+          organizationId: organizationId,
           hasCompletedProfile: true,
           hasCreatedWorkspace: true,
           currentStep: "invite",
         },
         update: {
-          workspaceId: organizationId,
+          organizationId: organizationId,
           hasCreatedWorkspace: true,
           currentStep: "invite",
         },

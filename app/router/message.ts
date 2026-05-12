@@ -69,7 +69,7 @@ export const createMessage = base
     const channel = await prisma.channel.findFirst({
       where: {
         id: input.channelId,
-        workspaceId: context.workspace.id,
+        organizationId: context.workspace.id,
       },
     })
 
@@ -82,8 +82,8 @@ export const createMessage = base
       const parentMessage = await prisma.message.findFirst({
         where: {
           id: input.threadId,
-          Channel: {
-            workspaceId: context.workspace.id,
+          channel: {
+            organizationId: context.workspace.id,
           },
         },
       })
@@ -146,7 +146,7 @@ export const listMessages = base
     const channel = await prisma.channel.findFirst({
       where: {
         id: input.channelId,
-        workspaceId: context.workspace.id,
+        organizationId: context.workspace.id,
       },
     })
 
@@ -175,7 +175,7 @@ export const listMessages = base
       //created "desc": get new message first and if timestamps are identical then id is used as tie breaker
       include: {
         _count: { select: { replies: true } },
-        MessageReaction: {
+        reactions: {
           select: { emoji: true, userId: true },
         },
       },
@@ -185,7 +185,7 @@ export const listMessages = base
       ...m,
       repliesCount: m._count.replies,
       reactions: groupReactions(
-        (m.MessageReaction ?? []).map((reaction) => ({
+        (m.reactions ?? []).map((reaction) => ({
           emoji: reaction.emoji,
           userId: reaction.userId,
         })),
@@ -232,8 +232,8 @@ export const updateMessage = base
     const message = await prisma.message.findFirst({
       where: {
         id: input.messageId,
-        Channel: {
-          workspaceId: context.workspace.id,
+        channel: {
+          organizationId: context.workspace.id,
         },
       },
       select: {
@@ -292,13 +292,13 @@ export const listThreadReplies = base
     const parentRow = await prisma.message.findFirst({
       where: {
         id: input.messageId,
-        Channel: {
-          workspaceId: context.workspace.id,
+        channel: {
+          organizationId: context.workspace.id,
         },
       },
       include: {
         _count: { select: { replies: true } },
-        MessageReaction: { select: { emoji: true, userId: true } },
+        reactions: { select: { emoji: true, userId: true } },
       },
     })
 
@@ -310,15 +310,15 @@ export const listThreadReplies = base
     const messagesQuery = await prisma.message.findMany({
       where: {
         threadId: input.messageId,
-        Channel: {
-          workspaceId: context.workspace.id,
+        channel: {
+          organizationId: context.workspace.id,
         },
         // Optional (stronger): keep replies in the same channel as the parent
         channelId: parentRow.channelId,
       },
       include: {
         _count: { select: { replies: true } },
-        MessageReaction: { select: { emoji: true, userId: true } },
+        reactions: { select: { emoji: true, userId: true } },
       },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     })
@@ -327,7 +327,7 @@ export const listThreadReplies = base
       ...parentRow,
       repliesCount: parentRow._count.replies,
       reactions: groupReactions(
-        parentRow.MessageReaction.map((reaction) => ({
+        parentRow.reactions.map((reaction) => ({
           emoji: reaction.emoji,
           userId: reaction.userId,
         })),
@@ -339,7 +339,7 @@ export const listThreadReplies = base
       ...message,
       repliesCount: message._count.replies,
       reactions: groupReactions(
-        message.MessageReaction.map((reaction) => ({
+        message.reactions.map((reaction) => ({
           emoji: reaction.emoji,
           userId: reaction.userId,
         })),
@@ -378,8 +378,8 @@ export const toggleReaction = base
     const message = await prisma.message.findFirst({
       where: {
         id: input.messageId,
-        Channel: {
-          workspaceId: context.workspace.id,
+        channel: {
+          organizationId: context.workspace.id,
         },
       },
       select: { id: true },
@@ -426,7 +426,7 @@ export const toggleReaction = base
         id: input.messageId,
       },
       include: {
-        MessageReaction: { select: { emoji: true, userId: true } },
+        reactions: { select: { emoji: true, userId: true } },
         _count: { select: { replies: true } },
       },
     })
@@ -438,7 +438,7 @@ export const toggleReaction = base
     return {
       messageId: updated.id,
       reactions: groupReactions(
-        (updated.MessageReaction ?? []).map((reaction) => ({
+        (updated.reactions ?? []).map((reaction) => ({
           emoji: reaction.emoji,
           userId: reaction.userId,
         })),

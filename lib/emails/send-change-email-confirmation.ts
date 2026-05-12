@@ -1,13 +1,12 @@
-import transporter from "../auth/nodemailer";
-import { sendEmail } from "./send-email";
+import { sendEmail } from "./send-email"
 
 interface EmailVerificationData {
   user: {
-    name: string;
-    email: string;
-  };
-  link: string;
-  newEmail: string;
+    name: string
+    email: string
+  }
+  link: string
+  newEmail: string
 }
 
 export async function sendChangeEmailConfirmation({
@@ -31,5 +30,5 @@ export async function sendChangeEmailConfirmation({
       
     `,
     text: `Hello ${user.name},\n\nClick the link to approve the change to ${newEmail} : ${link}\n\nIf you didn't create an account, please ignore this email.\n\nThis link will expire in 24 hours.\n\nBest regards,\nYour App Team`,
-  });
+  })
 }

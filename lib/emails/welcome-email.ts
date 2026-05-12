@@ -1,4 +1,4 @@
-import { sendEmail } from "./send-email";
+import { sendEmail } from "./send-email"
 
 export async function sendWelcomeEmail(user: { name: string; email: string }) {
   await sendEmail({
@@ -15,5 +15,5 @@ export async function sendWelcomeEmail(user: { name: string; email: string }) {
         </div>
       `,
     text: `Hello ${user.name},\n\nThank you for signing up for our app! We're excited to have you on board.\n\nBest regards,\nYour App Team`,
-  });
+  })
 }

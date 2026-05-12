@@ -42,8 +42,8 @@ export const generateThreadSummary = base
     const baseMessage = await prisma.message.findFirst({
       where: {
         id: input.messageId,
-        Channel: {
-          workspaceId: context.workspace.id,
+        channel: {
+          organizationId: context.workspace.id,
         },
       },
       select: {
@@ -66,8 +66,8 @@ export const generateThreadSummary = base
     const parent = await prisma.message.findFirst({
       where: {
         id: parentId,
-        Channel: {
-          workspaceId: context.workspace.id,
+        channel: {
+          organizationId: context.workspace.id,
         },
       },
       select: {
