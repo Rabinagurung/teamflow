@@ -53,7 +53,7 @@ export async function createWorkspaceWithDefaultChannels({
   await prisma.channel.createMany({
     data: channelNames.map((name) => ({
       name,
-      workspaceId: organization.id,
+      organizationId: organization.id,
       createdById: userId,
     })),
     skipDuplicates: true,

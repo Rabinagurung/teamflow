@@ -1,14 +1,19 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { WorkspaceItem } from "@/lib/app-entry"
 import { useState } from "react"
 import WorkspacePickerItem from "./WorkspacePickerItem"
+
+type WorkspacePickerListItem = {
+  id: string
+  name: string
+  memberCount: number
+}
 
 export default function WorkspacePickerList({
   workspaces,
 }: {
-  workspaces: WorkspaceItem[]
+  workspaces: WorkspacePickerListItem[]
 }) {
   const [pendingWorkspaceId, setPendingWorkspaceId] = useState<string | null>(
     null,

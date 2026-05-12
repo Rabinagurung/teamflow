@@ -1,10 +1,10 @@
-import transporter from "../auth/nodemailer";
+import transporter from "../auth/nodemailer"
 
 interface SendEmailProps {
-  to: string;
-  subject: string;
-  html: string;
-  text: string;
+  to: string
+  subject: string
+  html: string
+  text: string
 }
 
 export function sendEmail({ to, subject, html, text }: SendEmailProps) {
@@ -15,9 +15,9 @@ export function sendEmail({ to, subject, html, text }: SendEmailProps) {
       subject,
       html,
       text,
-    });
+    })
   } catch (error) {
-    console.error("sendEmailAction", error);
-    return { success: false };
+    console.error("sendEmailAction", error)
+    return { success: false }
   }
 }
