@@ -1,13 +1,21 @@
 import { auth } from "@/lib/auth/auth"
+import prisma from "@/lib/db"
 import { getCurrentWorkspace } from "@/lib/workspace/current-workspace.server"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
 import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
+import { writeSecurityMiddleware } from "../middlewares/arcjet/write"
 import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
+import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
 import { appUserSchema } from "../schemas/user"
-import { appWorkspaceSchema, workspaceSchema } from "../schemas/workspace"
+import {
+  appWorkspaceSchema,
+  updateWorkspaceSchema,
+  workspaceMemberRoleSchema,
+  workspaceSchema,
+} from "../schemas/workspace"
 import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
 
 //This file defines what happens when the route is called
@@ -48,6 +56,7 @@ export const listWorkspaces = base
       ),
       user: appUserSchema,
       currentWorkspace: appWorkspaceSchema.nullable(),
+      currentWorkspaceRole: workspaceMemberRoleSchema.nullable(),
     }),
   )
   .handler(async ({ context }) => {
@@ -60,6 +69,22 @@ export const listWorkspaces = base
     // console.log("WORKSPACE PROCEDURE: ", organizations)
 
     const currentWorkspace = await getCurrentWorkspace({ headers })
+    const currentWorkspaceMembership = currentWorkspace
+      ? await prisma.member.findUnique({
+          where: {
+            organizationId_userId: {
+              organizationId: currentWorkspace.id,
+              userId: context.user.id,
+            },
+          },
+          select: {
+            role: true,
+          },
+        })
+      : null
+    const currentWorkspaceRoleResult = currentWorkspaceMembership
+      ? workspaceMemberRoleSchema.safeParse(currentWorkspaceMembership.role)
+      : null
 
     // console.log("CurrentWorkspace", currentWorkspace)
 
@@ -71,6 +96,9 @@ export const listWorkspaces = base
       })),
       user: context.user,
       currentWorkspace,
+      currentWorkspaceRole: currentWorkspaceRoleResult?.success
+        ? currentWorkspaceRoleResult.data
+        : null,
     }
   })
 
@@ -162,5 +190,75 @@ export const selectWorkspace = base
 
     return {
       workspaceId: input.workspaceId,
+    }
+  })
+
+export const editWorkspace = base
+  .use(requiredAuthMiddleware)
+  .use(requiredWorkspaceMiddleware)
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .route({
+    method: "POST",
+    path: "/workspace/udate",
+    summary: "Update the workspace",
+    tags: ["workspace"],
+  })
+  .input(updateWorkspaceSchema)
+  .output(z.object({ workspaceId: z.string(), workspaceName: z.string() }))
+  .handler(async ({ context, input, errors }) => {
+    const membership = await prisma.member.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: context.workspace.id,
+          userId: context.user.id,
+        },
+      },
+      select: {
+        role: true,
+      },
+    })
+
+    if (!membership) {
+      throw errors.FORBIDDEN({
+        message: "NO_WORKSPACE",
+      })
+    }
+
+    const roleResult = workspaceMemberRoleSchema.safeParse(membership.role)
+
+    if (
+      !roleResult.success ||
+      (roleResult.data !== "owner" && roleResult.data !== "admin")
+    ) {
+      throw errors.FORBIDDEN({
+        message: "WORKSPACE_ADMIN_REQUIRED",
+      })
+    }
+
+    try {
+      const result = await auth.api.updateOrganization({
+        body: {
+          organizationId: context.workspace.id,
+          data: {
+            name: input.newWorkspaceName,
+          },
+        },
+        headers: new Headers(context.request.headers as HeadersInit),
+      })
+
+      if (!result?.id) {
+        throw new Error("Failed to edit organization")
+      }
+
+      return {
+        workspaceId: result.id,
+        workspaceName: result.name,
+      }
+    } catch (error) {
+      console.error("Failed to create organizaiton: ", error)
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to create workspace",
+      })
     }
   })

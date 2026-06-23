@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth/auth"
 import { polarClient } from "@/lib/auth/polar"
 import prisma from "@/lib/db"
-import { splitUserName } from "@/lib/onboarding/split-user-name"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
@@ -185,13 +184,10 @@ export const saveOnboardingProfile = base
     }),
   )
   .handler(async ({ context, input }) => {
-    const { given_name, family_name } = splitUserName(input.name)
     await prisma.user.update({
       where: { id: context.user.id },
       data: {
         name: input.name,
-        given_name,
-        family_name,
       },
     })
 

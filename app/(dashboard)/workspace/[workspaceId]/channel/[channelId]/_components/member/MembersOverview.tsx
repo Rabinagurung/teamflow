@@ -30,9 +30,9 @@ const MembersOverview = () => {
   const currentUser = useMemo(() => {
     return {
       id: user.id,
-      full_name: user.given_name,
+      full_name: user.name,
       email: user.email!,
-      picture: user.picture,
+      picture: user.image,
     } satisfies z.infer<typeof UserSchema>
   }, [user])
 

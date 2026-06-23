@@ -39,11 +39,6 @@ export const inviteMember = base
     // await Users.createUser({
     //   requestBody: {
     //     organization_code: context.workspace.id,
-    //     profile: {
-    //       given_name: input.name,
-    //       picture: getAvatar(null, input.email!),
-    //     },
-
     //     //how will user login ? using email identity
     //     identities: [
     //       {

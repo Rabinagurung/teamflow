@@ -1,11 +1,11 @@
 "use client"
 
 import { orpc } from "@/lib/orpc/orpc"
+import { getWorkspaceColor } from "@/lib/utlis/get-workspace-color"
 import { cn } from "@/lib/utlis/utils"
 import { useMutation } from "@tanstack/react-query"
 import { ArrowRight, LoaderCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { getWorkspaceColor } from "../../workspace/_components/WorkspaceList"
 
 type WorkspacePickerItemProps = {
   id: string

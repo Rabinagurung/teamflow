@@ -8,6 +8,14 @@ export const workspaceSchema = z.object({
     .max(50, "Workspace name cannot exceed 50 characters"),
 })
 
+export const updateWorkspaceSchema = z.object({
+  newWorkspaceName: z
+    .string()
+    .trim()
+    .min(2, "Workspace name must be at least 2 characters")
+    .max(50, "Workspace name cannot exceed 50 characters"),
+})
+
 export const appWorkspaceSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -17,4 +25,7 @@ export const appWorkspaceSchema = z.object({
   createdAt: z.date(),
 })
 
+export const workspaceMemberRoleSchema = z.enum(["owner", "admin", "member"])
+
 export type AppWorkspace = z.infer<typeof appWorkspaceSchema>
+export type WorkspaceMemberRole = z.infer<typeof workspaceMemberRoleSchema>

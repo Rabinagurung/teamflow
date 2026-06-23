@@ -104,8 +104,11 @@ export const createMessage = base
         channelId: input.channelId,
         authorId: context.user.id,
         authorEmail: context.user.email!,
-        authorName: context.user.given_name ?? "John Doe",
-        authorAvatar: getAvatar(context.user.picture, context.user.email!),
+        authorName: context.user.name ?? "John Doe",
+        authorAvatar: getAvatar(
+          context.user.image,
+          context.user.name ?? context.user.email!,
+        ),
         threadId: input.threadId, //threadId: undefined(parent message) , //threadId: defined(thread reply to a parent message)
       },
     })
@@ -396,8 +399,11 @@ export const toggleReaction = base
           emoji: input.emoji,
           messageId: input.messageId,
           userId: context.user.id,
-          userName: context.user.given_name ?? "John Doe",
-          userAvatar: getAvatar(context.user.picture, context.user.email!),
+          userName: context.user.name ?? "John Doe",
+          userAvatar: getAvatar(
+            context.user.image,
+            context.user.name ?? context.user.email!,
+          ),
           userEmail: context.user.email!,
         },
       ],

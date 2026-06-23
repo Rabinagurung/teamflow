@@ -7,6 +7,7 @@ import UserNav from "./_components/UserNav"
 import { orpc } from "@/lib/orpc/orpc"
 import { getQueryClient, HydrateClient } from "@/lib/query/hydration"
 import { requireAuth } from "@/lib/auth/auth-utils"
+import AdminTools from "./_components/AdminTools"
 
 const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
   await requireAuth()
@@ -42,6 +43,7 @@ const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
             <CreateWorkspace />
           </div>
           <div className="mt-auto">
+            <AdminTools />
             <UserNav />
           </div>
         </aside>
