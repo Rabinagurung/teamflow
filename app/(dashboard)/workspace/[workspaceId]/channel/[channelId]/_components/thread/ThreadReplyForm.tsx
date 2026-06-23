@@ -82,8 +82,8 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
           updatedAt: new Date(),
           authorId: user.id,
           authorEmail: user.email!,
-          authorName: user.given_name ?? "John Doe",
-          authorAvatar: getAvatar(user.picture, user.email!),
+          authorName: user.name ?? "John Doe",
+          authorAvatar: getAvatar(user.image, user.email!),
           repliesCount: 0, //no replies count for initial reply
           reactions: [], //no reactions for initial reply
         }

@@ -8,7 +8,4 @@ export const appUserSchema = z.object({
   emailVerified: z.boolean(),
   name: z.string(),
   image: z.string().nullable(),
-  family_name: z.string().nullable(),
-  given_name: z.string().nullable(),
-  picture: z.string().nullable(),
 })

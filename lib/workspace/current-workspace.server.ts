@@ -1,9 +1,8 @@
 import "server-only"
 
+import { appWorkspaceSchema, type AppWorkspace } from "@/app/schemas/workspace"
 import { auth } from "@/lib/auth/auth"
 import prisma from "@/lib/db"
-
-import type { AppWorkspace } from "@/app/schemas/workspace"
 import { headers as nextHeaders } from "next/headers"
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>
@@ -15,21 +14,9 @@ export class NoWorkspaceError extends Error {
     super("NO_WORKSPACE")
   }
 }
-const toAppWorkspace = (workspace: {
-  id: string
-  name: string
-  slug: string
-  logo: string | null
-  metadata: string | null
-  createdAt: Date
-}): AppWorkspace => ({
-  id: workspace.id,
-  name: workspace.name,
-  slug: workspace.slug,
-  logo: workspace.logo,
-  metadata: workspace.metadata,
-  createdAt: workspace.createdAt,
-})
+
+const parseAppWorkspace = (workspace: unknown): AppWorkspace =>
+  appWorkspaceSchema.parse(workspace)
 
 const getRequestHeaders = async (input?: HeadersInit) => {
   return input ? new Headers(input) : new Headers(await nextHeaders())
@@ -61,7 +48,7 @@ const findWorkspaceByIdForUser = async ({
     },
   })
 
-  return organization ? toAppWorkspace(organization) : null
+  return organization ? parseAppWorkspace(organization) : null
 }
 
 const findFallbackWorkspaceForUser = async (userId: string) => {
@@ -87,7 +74,7 @@ const findFallbackWorkspaceForUser = async (userId: string) => {
   })
 
   return membership?.organization
-    ? toAppWorkspace(membership.organization)
+    ? parseAppWorkspace(membership.organization)
     : null
 }
 

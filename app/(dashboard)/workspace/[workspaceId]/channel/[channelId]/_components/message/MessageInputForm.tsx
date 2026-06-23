@@ -87,9 +87,9 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
           createdAt: new Date(),
           updatedAt: new Date(),
           authorId: user.id,
-          authorName: user.given_name ?? "John Doe",
+          authorName: user.name ?? "John Doe",
           authorEmail: user.email!,
-          authorAvatar: getAvatar(user.picture, user.email!),
+          authorAvatar: getAvatar(user.image, user.email!),
           channelId,
           repliesCount: 0, // new messages start with no replies
           reactions: [], // new messages start with no reactions

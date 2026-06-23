@@ -43,7 +43,7 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
     <div className="group relative flex gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 transition-colors hover:border-primary/45 hover:bg-card/70">
       <Avatar className="size-9 rounded-lg ring-1 ring-border">
         <AvatarImage
-          src={getAvatar(message.authorAvatar, message.authorEmail)}
+          src={getAvatar(message.authorAvatar, message.authorEmail!)}
           alt={`${message.authorName} avatar`}
         />
         <AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">

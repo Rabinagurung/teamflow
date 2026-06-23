@@ -3,33 +3,19 @@ import { ArcjetNextRequest } from "@arcjet/next"
 import { redirect } from "next/navigation"
 import { base } from "./base"
 
-type AuthSession = Awaited<ReturnType<typeof auth.api.getSession>>
-type AuthUser = NonNullable<AuthSession>["user"]
+type AuthenticatedSession = typeof auth.$Infer.Session
+type AuthSession = AuthenticatedSession | null
+type AuthUser = AuthenticatedSession["user"]
 
-export type AppUser = Omit<
-  AuthUser,
-  "image" | "family_name" | "given_name" | "picture"
-> & {
+export type AppUser = Omit<AuthUser, "image"> & {
   image: string | null
-  family_name: string | null
-  given_name: string | null
-  picture: string | null
 }
-
-const toAppUser = (user: AuthUser): AppUser => ({
-  ...user,
-  image: user.image ?? null,
-  family_name: user.family_name ?? null,
-  given_name: user.given_name ?? null,
-  picture:
-    (user as AuthUser & { picture?: string }).picture ?? user.image ?? null,
-})
 
 /**
  * Authentication middleware built on top of the shared base procedure configuration.
  *
  * This middleware ensures that a user is authenticated before a procedure
- * continues execution. It integrates with Kinde for session retrieval and
+ * continues execution. It integrates with Better Auth for session retrieval and
  * injects the authenticated user into the execution context.
  *
  * Notes:
@@ -42,7 +28,7 @@ const toAppUser = (user: AuthUser): AppUser => ({
  * - The initial context may include an optional `session` object
  *   with an optional `user`.
  * - If no session is present, the middleware fetches the user
- *   from the Kinde server session.
+ *   from the Better Auth server session.
  *
  * Execution behavior:
  * - If no authenticated user is found, the request is redirected
@@ -68,7 +54,10 @@ export const requiredAuthMiddleware = base
 
     return next({
       context: {
-        user: toAppUser(session.user),
+        user: {
+          ...session.user,
+          image: session.user.image ?? null,
+        } satisfies AppUser,
       },
     })
   })

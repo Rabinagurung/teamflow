@@ -18,7 +18,12 @@ import {
   startOnboardingFreePlan,
   completeOnboardingProPlan,
 } from "./onboarding"
-import { createWorkspace, listWorkspaces, selectWorkspace } from "./workspace"
+import {
+  createWorkspace,
+  editWorkspace,
+  listWorkspaces,
+  selectWorkspace,
+} from "./workspace"
 
 /** This is just an object that organizes procedures into namespaces:
  * workspace.list points to the procedure listWorkspaces
@@ -34,6 +39,7 @@ export const router = {
     list: listWorkspaces,
     create: createWorkspace,
     select: selectWorkspace,
+    update: editWorkspace,
     member: {
       list: listMembers,
       invite: inviteMember,

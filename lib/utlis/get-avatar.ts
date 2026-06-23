@@ -1,3 +1,5 @@
-export function getAvatar(userPicture: string | null, userEmail: string) {
-  return userPicture ?? `https://avatar.vercel.sh/${userEmail}`
+export function getAvatar(userImage: string | null, userEmail: string) {
+  return (
+    userImage ?? `https://avatar.vercel.sh/${encodeURIComponent(userEmail)}`
+  )
 }

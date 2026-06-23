@@ -6,10 +6,16 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 // hooks/use-active-workspace.ts
 export function useActiveWorkspace() {
   const { data } = useSuspenseQuery(orpc.workspace.list.queryOptions())
+
   const currentWorkspace = data.currentWorkspace
+  const currentWorkspaceRole = data.currentWorkspaceRole
+  const canManageWorkspace =
+    currentWorkspaceRole === "owner" || currentWorkspaceRole === "admin"
 
   return {
     currentWorkspace,
+    currentWorkspaceRole,
+    canManageWorkspace,
     workspaceId: currentWorkspace?.id ?? null,
     workspacePath: currentWorkspace
       ? `/workspace/${currentWorkspace.id}`
@@ -31,6 +37,8 @@ export function useRequiredActiveWorkspace() {
 
   return {
     currentWorkspace: workspace.currentWorkspace,
+    currentWorkspaceRole: workspace.currentWorkspaceRole,
+    canManageWorkspace: workspace.canManageWorkspace,
     workspaceId: workspace.currentWorkspace.id,
     workspacePath: `/workspace/${workspace.currentWorkspace.id}`,
     presenceRoom: `workspace-${workspace.currentWorkspace.id}`,

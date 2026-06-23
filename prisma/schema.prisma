@@ -14,16 +14,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
   id                String    @id @default(uuid())
   name              String
   email             String
   emailVerified     Boolean   @default(false)
   image             String?
-  family_name       String?
-  given_name        String?    
-  picture           String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -37,7 +33,6 @@ model User {
   @@unique([email])
   @@map("user")
 }
-
 
 model Session {
   id          String   @id @default(uuid())
@@ -114,7 +109,7 @@ model Member {
   userId              String
   user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   role                String       @default("member")
-  createdAt           DateTime @default(now())
+  createdAt           DateTime    @default(now())
 
   @@unique([organizationId, userId])
   @@index([organizationId])
@@ -222,9 +217,7 @@ model MessageReaction {
   messageId   String
   message     Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
-
   //one reaction per user  per emoji per message
-
   @@unique([messageId, userId, emoji])
   @@index([messageId])
 }
