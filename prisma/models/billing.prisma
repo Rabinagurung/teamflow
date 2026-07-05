@@ -1,0 +1,49 @@
+// prisma/models/billing.prisma
+
+enum BillingPlan {
+  free
+  pro
+}
+
+enum BillingStatus {
+  free
+  active
+  trailing
+  canceled
+}
+
+model OrganizationBilling {
+  organizationId String       @id
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  plan   BillingPlan   @default(free)
+  status BillingStatus @default(free)
+
+  polarCustomerId         String?
+  polarCustomerExternalId String?
+
+  polarSubscriptionId String?
+  polarProductId      String?
+
+  billingManagerUserId String?
+  billingManager       User?   @relation("BillingManager", fields: [billingManagerUserId], references: [id], onDelete: SetNull)
+
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plan])
+  @@index([status])
+  @@map("organization_billing")
+}
+
+model PolarWebhookEvent {
+  id          String   @id
+  type        String
+  payload     Json
+  processedAt DateTime @default(now())
+
+  @@map("polar_webhook_event")
+}

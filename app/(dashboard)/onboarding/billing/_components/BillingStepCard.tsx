@@ -3,17 +3,17 @@
 import OnboardingShell from "@/components/onboarding/OnboardingShell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { authClient } from "@/lib/auth/auth-client"
 import { orpc } from "@/lib/orpc/orpc"
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import {
   ArrowUpRight,
+  BotMessageSquare,
   Check,
   ChevronRight,
+  FileText,
   History,
+  PenLine,
   Sparkles,
-  Users,
-  Video,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
@@ -24,25 +24,37 @@ const FEATURES = [
     id: "history",
     title: "Unlimited message history",
     description:
-      "Search and view all of your team's public messages and files.",
+      "Keep every channel conversation searchable as your workspace grows.",
     icon: History,
   },
+
   {
-    id: "meetings",
-    title: "Group meetings with AI notes",
-    description: "Use huddles in channels and keep automatic notes.",
-    icon: Video,
+    id: "echo-assistant",
+    title: "Echo AI Q&A assistant",
+    description:
+      "Give customers quick answers about Teamflow, plans, services, and policies.",
+    icon: BotMessageSquare,
+  },
+
+  {
+    id: "thread-summaries",
+    title: "AI-powered thread summaries",
+    description:
+      "Turn long discussions into concise takeaways, decisions, and next steps.",
+    icon: FileText,
   },
   {
-    id: "cross-org",
-    title: "Work with people at other organizations",
-    description: "Collaborate with external partners in shared spaces.",
-    icon: Users,
+    id: "message-polishing",
+    title: "AI-powered message polishing",
+    description:
+      "Rewrite messages for clarity, tone, and structure before you send them.",
+    icon: PenLine,
   },
   {
-    id: "ai",
-    title: "AI conversation summaries",
-    description: "Get up to speed in any channel or thread with one click.",
+    id: "thread-polishing",
+    title: "AI-powered thread polishing",
+    description:
+      "Refine thread replies into clearer updates that are easier for teammates to follow.",
     icon: Sparkles,
   },
 ] as const
@@ -51,7 +63,7 @@ const BillingStepCard = () => {
   const { data } = useSuspenseQuery(orpc.onboarding.state.queryOptions())
   const router = useRouter()
   const [selectedFeature, setSelectedFeature] =
-    useState<(typeof FEATURES)[number]["id"]>("ai")
+    useState<(typeof FEATURES)[number]["id"]>("history")
 
   const freeMutation = useMutation(
     orpc.onboarding.billing.startFree.mutationOptions({
@@ -70,30 +82,30 @@ const BillingStepCard = () => {
       FEATURES.find((feature) => feature.id === selectedFeature) ?? FEATURES[3],
     [selectedFeature],
   )
-  const startPro = async () => {
-    if (!data.state.workspaceId) {
-      toast.error("Create a workspace before starting checkout")
-      return
-    }
+  // const startPro = async () => {
+  //   if (!data.state.workspaceId) {
+  //     toast.error("Create a workspace before starting checkout")
+  //     return
+  //   }
 
-    setStartingCheckout(true)
+  //   setStartingCheckout(true)
 
-    try {
-      await authClient.checkout({
-        slug: "pro",
-        referenceId: data.state.workspaceId,
-        metadata: {
-          workspaceId: data.state.workspaceId,
-          flow: "onboarding",
-        },
-      })
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Unable to start checkout",
-      )
-      setStartingCheckout(false)
-    }
-  }
+  //   try {
+  //     await authClient.checkout({
+  //       slug: "pro",
+  //       referenceId: data.state.workspaceId,
+  //       metadata: {
+  //         workspaceId: data.state.workspaceId,
+  //         flow: "onboarding",
+  //       },
+  //     })
+  //   } catch (error) {
+  //     toast.error(
+  //       error instanceof Error ? error.message : "Unable to start checkout",
+  //     )
+  //     setStartingCheckout(false)
+  //   }
+  // }
 
   return (
     <OnboardingShell
@@ -145,16 +157,15 @@ const BillingStepCard = () => {
             <Card className="w-full rounded-2xl border-primary/20 bg-primary text-primary-foreground shadow-xl shadow-primary/20">
               <CardContent className="space-y-5 p-5">
                 <div>
-                  <p className="text-2xl font-semibold">50% off 3 months</p>
+                  <p className="text-2xl font-semibold">$25 USD/month</p>
                   <p className="text-base text-primary-foreground/75">
-                    <span className="font-semibold">$4.38 USD</span> per
-                    person/month
+                    per person, billed monthly
                   </p>
                 </div>
                 <Button
                   size="lg"
                   disabled={freeMutation.isPending || startingCheckout}
-                  onClick={startPro}
+                  onClick={() => "StartPro"}
                   className="h-12 w-full rounded-xl bg-accent text-base font-semibold text-accent-foreground hover:bg-accent/90"
                 >
                   {startingCheckout ? "Opening checkout..." : "Start with Pro"}

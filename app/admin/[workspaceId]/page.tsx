@@ -3,7 +3,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getWorkspaceColor } from "@/lib/utlis/get-workspace-color"
 import { cn } from "@/lib/utlis/utils"
-import { ChevronRight, CreditCard, Mail, Settings, Users } from "lucide-react"
+import {
+  BotMessageSquare,
+  ChevronRight,
+  CreditCard,
+  FileText,
+  History,
+  Mail,
+  PenLine,
+  Settings,
+  Sparkles,
+  Users,
+} from "lucide-react"
 import Link from "next/link"
 import type { ComponentType } from "react"
 import AdminPageShell from "./_components/AdminPageShell"
@@ -177,12 +188,27 @@ const AdminWorkspacePage = async ({ params }: AdminWorkspacePageProps) => {
                       Upgrade to unlock additional features, including:
                     </p>
 
-                    <ul className="list-disc space-y-1 pl-5 text-sm leading-6 text-foreground">
-                      <li>Unlimited access to messages and files</li>
-                      <li>Unlimited apps and workflows</li>
-                      <li>Premium support</li>
-                      <li>Slack Connect channels</li>
-                      <li>Unlimited voice-first huddles</li>
+                    <ul className="space-y-1 text-sm leading-6 text-foreground">
+                      <li className="flex items-center gap-2">
+                        <History className="size-4 shrink-0" />
+                        <span>Unlimited message history</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <BotMessageSquare className="size-4 shrink-0" />
+                        <span>Echo AI Q&amp;A assistant</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <FileText className="size-4 shrink-0" />
+                        <span>AI-powered thread summaries</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <PenLine className="size-4 shrink-0" />
+                        <span>AI-powered message polishing</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Sparkles className="size-4 shrink-0" />
+                        <span>AI-powered thread polishing</span>
+                      </li>
                     </ul>
 
                     <div className="flex flex-wrap gap-3 pt-1">

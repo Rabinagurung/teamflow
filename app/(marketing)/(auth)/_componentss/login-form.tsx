@@ -109,7 +109,7 @@ const LoginForm = () => {
       {
         onError: (error) => {
           if (error.error.code === "EMAIL_NOT_VERIFIED") {
-            console.log("Here error")
+            // console.log("Here error")
             setEmail(values.email)
             setConfirmState(true)
           }

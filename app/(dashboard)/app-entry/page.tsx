@@ -10,7 +10,7 @@ export default async function AppEntryPage() {
     orpc.onboarding.entry.queryOptions(),
   )
 
-  console.log("App ENTREY PAGE: ", { result })
+  // console.log("App ENTREY PAGE: ", { result })
 
   if (result.kind === "no-workspace") redirect("/no-workspace")
   if (result.kind === "onboarding") redirect(`/onboarding/${result.step}`)

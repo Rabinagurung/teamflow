@@ -1,0 +1,64 @@
+model Channel {
+  id String @id @default(uuid())
+
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User?   @relation("CreatedChannels", fields: [createdById], references: [id], onDelete: SetNull)
+
+  messages Message[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([createdById])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId     String // user ID
+  authorEmail  String // User's email
+  authorName   String // Display name
+  authorAvatar String // Avatar URL
+
+  channelId String
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  // Thread relations
+  parentMessage Message?  @relation("MessageThread", fields: [threadId], references: [id], onDelete: Cascade)
+  threadId      String?
+  replies       Message[] @relation("MessageThread")
+
+  reactions MessageReaction[]
+
+  @@index([channelId])
+  @@index([threadId])
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  emoji     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId     String //User Id
+  userEmail  String // User's email
+  userName   String // Display name
+  userAvatar String // Avatar URL
+
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  //one reaction per user  per emoji per message
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+}
