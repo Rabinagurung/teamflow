@@ -53,8 +53,8 @@ export default function ResetPasswordPage() {
 
   const { isSubmitting } = form.formState
 
-  console.log("TOKEN::::::", token)
-  console.log("ERROR::::::", error)
+  // console.log("TOKEN::::::", token)
+  // console.log("ERROR::::::", error)
   async function handleResetPassword(data: ResetPasswordSchemaType) {
     if (token == null) redirect("/login")
 

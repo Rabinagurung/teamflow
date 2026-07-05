@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth/auth"
-import { polarClient } from "@/lib/auth/polar"
 import prisma from "@/lib/db"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
@@ -17,6 +16,7 @@ import {
 } from "../schemas/onboarding"
 import { workspaceSchema } from "../schemas/workspace"
 import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
+import { polarClient } from "@/lib/billing/polar"
 
 const resolveCurrentStep = (
   state: {
@@ -38,13 +38,9 @@ const mergeMetadata = (
   current: string | null,
   patch: Record<string, unknown>,
 ) => {
-  console.log("submitOnboardingInvites procedures current org metadata: ", {
-    current,
-  })
+  // console.log("submitOnboardingInvites procedures current org metadata: ", {current})
 
-  console.log("submitOnboardingInvites procedures mergeMetada patch : ", {
-    patch,
-  })
+  // console.log("submitOnboardingInvites procedures mergeMetada patch : ", {patch,})
 
   const parsed =
     current && current.trim().length > 0
@@ -89,7 +85,7 @@ export const getAppEntry = base
   .input(z.void())
   .output(appEntryResultSchema)
   .handler(async ({ context }) => {
-    console.log(context.user.id)
+    // console.log(context.user.id)
     const row = await prisma.onboardingState.findUnique({
       where: { userId: context.user.id },
       select: {
@@ -100,11 +96,11 @@ export const getAppEntry = base
       },
     })
 
-    console.log("GET APP ENTRY PROCEDURE: ", { row })
+    // console.log("GET APP ENTRY PROCEDURE: ", { row })
 
     const step = resolveCurrentStep(row)
 
-    console.log("GET APP ENTRY PROCEDURE: ", { step })
+    // console.log("GET APP ENTRY PROCEDURE: ", { step })
 
     if (row && step) return { kind: "onboarding", step }
 
@@ -112,7 +108,7 @@ export const getAppEntry = base
       headers: new Headers(context.request.headers as HeadersInit),
     })
 
-    console.log("GET APP ENTRY PROCEDURE: ", { organizations })
+    // console.log("GET APP ENTRY PROCEDURE: ", { organizations })
     return organizations.length === 0
       ? { kind: "no-workspace" }
       : { kind: "get-started" }
@@ -137,7 +133,7 @@ export const getOnboardingState = base
       },
     })
 
-    console.log("getOnboardingState", { row })
+    // console.log("getOnboardingState", { row })
 
     const workspace = row?.organizationId
       ? await prisma.organization.findUnique({
@@ -151,7 +147,7 @@ export const getOnboardingState = base
         })
       : null
 
-    console.log("getOnboardingState workspace", { workspace })
+    // console.log("getOnboardingState workspace", { workspace })
 
     return {
       user: context.user,
@@ -301,7 +297,7 @@ export const submitOnboardingInvites = base
       new Set(input.emails.map((email) => email.trim().toLowerCase())),
     )
 
-    console.log("submitOnboardingInvites procedures: ", { normalizedEmails })
+    // console.log("submitOnboardingInvites procedures: ", { normalizedEmails })
 
     const selfEmail = context.user.email.trim().toLowerCase()
 
@@ -316,7 +312,7 @@ export const submitOnboardingInvites = base
       headers,
     })
 
-    console.log("submitOnboardingInvites: ", membersList)
+    // console.log("submitOnboardingInvites: ", membersList)
 
     const existingMemberEmails = new Set(
       membersList.members
@@ -324,7 +320,7 @@ export const submitOnboardingInvites = base
         .filter(Boolean),
     )
 
-    console.log("submitOnboardingInvites: ", { existingMemberEmails })
+    // console.log("submitOnboardingInvites: ", { existingMemberEmails })
 
     const pendingInvitations = await prisma.invitation.findMany({
       where: {
@@ -335,14 +331,14 @@ export const submitOnboardingInvites = base
       select: { email: true },
     })
 
-    console.log("submitOnboardingInvites: ", { pendingInvitations })
+    // console.log("submitOnboardingInvites: ", { pendingInvitations })
 
     const alreadyInvitedEmails = new Set(
       pendingInvitations.map((invitation) =>
         invitation.email.trim().toLowerCase(),
       ),
     )
-    console.log("submitOnboardingInvites: ", { alreadyInvitedEmails })
+    // console.log("submitOnboardingInvites: ", { alreadyInvitedEmails })
 
     const selfEmails: string[] = []
     const blockedExistingMembers: string[] = []
@@ -396,13 +392,13 @@ export const submitOnboardingInvites = base
       result.status === "fulfilled" ? [sendableEmails[index]!] : [],
     )
 
-    console.log("submitOnboardingInvites: ", { invitedEmails })
+    // console.log("submitOnboardingInvites: ", { invitedEmails })
 
     const failedEmails = results.flatMap((result, index) =>
       result.status === "rejected" ? [sendableEmails[index]!] : [],
     )
 
-    console.log("submitOnboardingInvites: ", { failedEmails })
+    // console.log("submitOnboardingInvites: ", { failedEmails })
 
     //const failedEmails = normalizedEmails.filter((email) => email === selfEmail)
 
@@ -523,9 +519,9 @@ export const startOnboardingFreePlan = base
     }
 
     const now = new Date()
-    console.log("startOnboardingFreePlan procedure: ", { now })
+    // console.log("startOnboardingFreePlan procedure: ", { now })
     const trialEndsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-    console.log("startOnboardingFreePlan procedure : ", { trialEndsAt })
+    // console.log("startOnboardingFreePlan procedure : ", { trialEndsAt })
 
     await prisma.$transaction([
       prisma.organization.update({

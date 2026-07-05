@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Check, Sparkles } from "lucide-react"
 import AdminPageShell from "../_components/AdminPageShell"
+import { SubscriptionsTab } from "../_components/subscriptions-tab"
 
 const AdminBillingPage = () => {
   return (
@@ -10,7 +8,7 @@ const AdminBillingPage = () => {
       description="Review your current plan and see what unlocks when you upgrade."
       framed={false}
     >
-      <div className="flex min-h-[calc(100vh-16rem)] items-center justify-center py-2">
+      {/* <div className="flex min-h-[calc(100vh-16rem)] items-center justify-center py-2">
         <Card className="w-full max-w-4xl overflow-hidden rounded-[32px] border-border/80 py-0 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.38)]">
           <CardContent className="px-6 py-8 md:px-10 md:py-10">
             <div className="mx-auto max-w-2xl text-center">
@@ -69,7 +67,9 @@ const AdminBillingPage = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
+
+      <SubscriptionsTab />
     </AdminPageShell>
   )
 }

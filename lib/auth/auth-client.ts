@@ -1,5 +1,4 @@
 import { createAuthClient } from "better-auth/react"
-import { polarClient } from "@polar-sh/better-auth/client"
 import {
   inferAdditionalFields,
   organizationClient,
@@ -7,5 +6,5 @@ import {
 
 // All Polar plugins, etc. should be attached to BetterAuth server
 export const authClient = createAuthClient({
-  plugins: [polarClient(), inferAdditionalFields(), organizationClient()],
+  plugins: [inferAdditionalFields(), organizationClient()],
 })

@@ -1,12 +1,28 @@
 import prisma from "@/lib/db"
-import { betterAuth } from "better-auth"
+import { polar, webhooks } from "@polar-sh/better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { organization } from "better-auth/plugins"
 import { sendEmailVerificationEmail } from "../emails/send-email-verification"
 import { sendPasswordResetEmail } from "../emails/send-password-reset-email"
-// import { checkout, portal, polar } from "@polar-sh/better-auth"
-// import { polarClient } from "./polar"
 import { sendOrganizationInviteEmail } from "../emails/organization-invite-email"
+import { polarClient } from "../billing/polar"
+import { betterAuth } from "better-auth"
+import {
+  shouldSyncBillingForPolarWebhook,
+  getPolarWebhookEventID,
+} from "../billing/polar-webhooks"
+import { markPolarWebhookProcessed } from "../billing/polar-webhooks.repository"
+import { syncOrganizationBillingFromPolar } from "../billing/sync"
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractOrganizationId(payload: any): string | null {
+  return (
+    payload?.data?.externalCustomerId ??
+    payload?.data?.customer?.externalId ??
+    payload?.data?.metadata?.organizationId ??
+    null
+  )
+}
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -19,8 +35,8 @@ export const auth = betterAuth({
     // autoSignIn: true, //automatically sign in when user registers
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
-      console.log("SET RESET PASSWORD")
-      console.log({ user, url })
+      // console.log("SET RESET PASSWORD")
+      // console.log({ user, url })
 
       await sendPasswordResetEmail({ user, link: `${new URL(url)}` })
     },
@@ -56,41 +72,58 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    // polar({
-    //   client: polarClient,
-    //   createCustomerOnSignUp: true,
-    //   use: [
-    //     checkout({
-    //       products: [
-    //         {
-    //           productId: "dc317ca4-c483-41f3-b2b9-9a2733ea0a42", // ID of Product from Polar Dashboard
-    //           slug: "pro", // Custom slug for easy reference in Checkout URL, e.g. /checkout/pro
-    //         },
-    //       ],
-    //       successUrl: process.env.POLAR_SUCCESS_URL,
-    //       authenticatedUsersOnly: true, //only authenticated better auth users can initiate checkouts
-    //     }),
-    //     portal(),
-    //   ],
-    // }),
+    polar({
+      client: polarClient,
+      use: [
+        webhooks({
+          secret: process.env.POLAR_WEBHOOK_SECRET!,
+          onPayload: async (payload) => {
+            console.log("HHHHHHHHHHHHHHHHHHHH")
+            console.log({ payload })
+            if (!shouldSyncBillingForPolarWebhook(payload)) {
+              return
+            }
 
-    // polar({
-    //   client: polarClient,
-    //   createCustomerOnSignUp: true,
-    //   use: [
-    //     checkout({
-    //       products: [
-    //         {
-    //           productId: "dc317ca4-c483-41f3-b2b9-9a2733ea0a42", // ID of Product from Polar Dashboard
-    //           slug: "pro",
-    //         },
-    //       ],
-    //       successUrl: process.env.POLAR_SUCCESS_URL,
-    //       authenticatedUsersOnly: true,
-    //     }),
-    //     portal(),
-    //   ],
-    // }),
+            console.log("should Sync billing passed")
+
+            const organizationId = extractOrganizationId(payload)
+
+            if (!organizationId) {
+              return
+            }
+
+            console.log("Organization PRESENT")
+            const eventId = getPolarWebhookEventID(payload)
+            console.log("onPayload eventId", eventId)
+
+            if (eventId) {
+              /**
+                The purpose is to avoid running this twice for the same webhook retry:
+
+                processed === true: 
+                This webhook event was not seen before.
+                We saved it into polar_webhook_event.
+                Continue syncing billing.
+
+                processed === false: 
+                This webhook event was already saved before.
+                It is a duplicate retry from Polar.
+                return early: Stop and do nothing.
+            */
+              const processed = await markPolarWebhookProcessed({
+                id: eventId,
+                type: payload.type,
+                payload,
+              })
+
+              if (!processed) return
+            }
+
+            await syncOrganizationBillingFromPolar(organizationId)
+          },
+        }),
+      ],
+    }),
 
     organization({
       sendInvitationEmail: async ({
@@ -99,7 +132,7 @@ export const auth = betterAuth({
         inviter,
         invitation,
       }) => {
-        console.log("Send invitaiton email called: ", { email }, { inviter })
+        //console.log("Send invitaiton email called: ", { email }, { inviter })
         const inviteLink = `${process.env.BETTER_AUTH_URL}/invites/${invitation.id}`
         await sendOrganizationInviteEmail({
           inviter: inviter.user,
