@@ -266,9 +266,7 @@ export default async function AdminSettingsPage() {
     >
       <SettingsPageFocusRefresh />
 
-      <div className="max-w-4xl mx-auto my-6 px-4">
-        {/* page content */}
-      </div>
+      <div className="max-w-4xl mx-auto my-6 px-4">{/* page content */}</div>
     </AdminPageShell>
   )
 }

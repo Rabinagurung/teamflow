@@ -1,7 +1,6 @@
 import prisma from "@/lib/db"
 
 //This file owns the organization_billing table reads/writes.
-
 export async function organizationExists(organizationId: string) {
   const existing = await prisma.organization.findUnique({
     where: { id: organizationId },
@@ -55,15 +54,6 @@ export async function updateOrganizationBillingCustomer(params: {
   organizationId: string
   polarCustomerId: string
 }) {
-  // await db
-  //   .update(organizationBilling)
-  //   .set({
-  //     polarCustomerId: params.polarCustomerId,
-  //     polarCustomerExternalId: params.organizationId,
-  //     updatedAt: new Date(),
-  //   })
-  //   .where(eq(organizationBilling.organizationId, params.organizationId))
-
   return prisma.organizationBilling.update({
     where: { organizationId: params.organizationId },
     data: {
@@ -71,10 +61,6 @@ export async function updateOrganizationBillingCustomer(params: {
       polarCustomerExternalId: params.organizationId,
     },
   })
-
-  // return db.query.organizationBilling.findFirst({
-  //   where: eq(organizationBilling.organizationId, params.organizationId),
-  // })
 }
 
 export async function updateOrganizationBillingManager(params: {

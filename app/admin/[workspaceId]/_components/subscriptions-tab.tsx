@@ -13,6 +13,8 @@ import {
 import { authClient } from "@/lib/auth/auth-client"
 
 import { PlanKey, POLAR_PLANS } from "@/lib/billing/plans"
+import { orpc } from "@/lib/orpc/orpc"
+import { useQuery } from "@tanstack/react-query"
 
 import {
   BotMessageSquare,
@@ -21,18 +23,18 @@ import {
   PenLine,
   Sparkles,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { toast } from "sonner"
 
-type BillingStatus = "free" | "active" | "trailing" | "canceled"
+// type BillingStatus = "free" | "active" | "trailing" | "canceled"
 
-type OrganizationBillingResponse = {
-  organizationId: string
-  plan: PlanKey
-  status: BillingStatus
-  currentPeriodEnd: string | null
-  cancelAtPeriodEnd: boolean
-}
+// type OrganizationBillingResponse = {
+//   organizationId: string
+//   plan: PlanKey
+//   status: BillingStatus
+//   currentPeriodEnd: string | null
+//   cancelAtPeriodEnd: boolean
+// }
 
 const PLAN_ORDER: PlanKey[] = ["free", "pro"]
 
@@ -123,11 +125,25 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 
 export const SubscriptionsTab = () => {
   const { data: activeOrganization } = authClient.useActiveOrganization()
+
+  const billingQuery = useQuery({
+    ...orpc.workspace.billing.get.queryOptions({
+      input: {
+        workspaceId: activeOrganization?.id ?? "",
+      },
+    }),
+    enabled: !!activeOrganization?.id,
+  })
+
   //console.log({ activeOrganization });
-  const [billing, setBilling] = useState<OrganizationBillingResponse | null>(
-    null,
-  )
-  const [isLoading, setIsLoading] = useState(false)
+
+  // const [billing, setBilling] = useState<OrganizationBillingResponse | null>(
+  //   null,
+  // )
+  // const [isLoading, setIsLoading] = useState(false)
+
+  const billing = billingQuery.data ?? null
+  const isLoading = billingQuery.isLoading
 
   /**
    * create org
@@ -140,59 +156,51 @@ export const SubscriptionsTab = () => {
     -> insert free billing row
     -> return free billing row
    */
+  // useEffect(() => {
+  //   if (!activeOrganization) {
+  //     setBilling(null)
+  //     setIsLoading(false)
+  //     return
+  //   }
+  //   let cancelled = false
+  //   setIsLoading(true)
+
+  //   void fetch(`/api/organizations/${activeOrganization.id}/billing`)
+  //     .then(async (response) => {
+  //       const data = await readJsonSafely<OrganizationBillingResponse>(response)
+  //       if (!response.ok || !data) {
+  //         throw new Error("Failed to load billing")
+  //       }
+
+  //       //console.log({ data })
+
+  //       if (!cancelled) {
+  //         setBilling(data)
+  //         //console.log({ data })
+  //       }
+  //     })
+  //     .catch(() => {
+  //       if (!cancelled) {
+  //         setBilling(null)
+  //         toast.error("Failed to load billing")
+  //       }
+  //     })
+  //     .finally(() => {
+  //       if (!cancelled) {
+  //         setIsLoading(false)
+  //       }
+  //     })
+
+  //   return () => {
+  //     cancelled = true
+  //   }
+  // }, [activeOrganization])
+
   useEffect(() => {
-    if (!activeOrganization) {
-      setBilling(null)
-      setIsLoading(false)
-      return
+    if (billingQuery.error) {
+      toast.error("Failed to load billing")
     }
-    let cancelled = false
-    setIsLoading(true)
-
-    /**
-    get list of all subscriptions
-    authClient.customer.state().then((result) => {
-      if (result.error) {
-        setSubscriptions([]);
-        toast.error("Failed to load subscriptions");
-        return;
-      }
-//console.log({ result });
-
-      // const activeSubcriptions = result.data.activeSubscriptions
-      setSubscriptions(result.data.activeSubscriptions);
-    });
-    */
-    void fetch(`/api/organizations/${activeOrganization.id}/billing`)
-      .then(async (response) => {
-        const data = await readJsonSafely<OrganizationBillingResponse>(response)
-        if (!response.ok || !data) {
-          throw new Error("Failed to load billing")
-        }
-
-        //console.log({ data })
-
-        if (!cancelled) {
-          setBilling(data)
-          //console.log({ data })
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setBilling(null)
-          toast.error("Failed to load billing")
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [activeOrganization])
+  }, [billingQuery.error])
 
   const currentPlanKey: PlanKey = billing?.plan ?? "free"
   const currentPlan = POLAR_PLANS[currentPlanKey]

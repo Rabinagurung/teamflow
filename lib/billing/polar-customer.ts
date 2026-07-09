@@ -5,7 +5,12 @@ import {
 } from "./organization-billing.repository"
 import { polarClient } from "./polar"
 
-//This file owns the tricky Polar team customer logic.
+/**
+ polar-customer.ts owns Polar team customer creation/recovery. 
+ That is the right place for the tricky logic. 
+ It checks the local billing row first, then checks Polar by externalId = organizationId, 
+ then creates the team customer only if needed. That matches your Slack-style model.
+ */
 function getErrorStatusCode(error: unknown) {
   if (
     typeof error === "object" &&
@@ -64,13 +69,8 @@ async function getOrganizationOwner(organizationId: string) {
   return { org, owner }
 }
 
-/**
- polar-customer.ts owns Polar team customer creation/recovery. 
- That is the right place for the tricky logic. 
- It checks the local billing row first, then checks Polar by externalId = organizationId, 
- then creates the team customer only if needed. That matches your Slack-style model.
- */
 export async function ensurePolarTeamCustomer(organizationId: string) {
+  console.log("ensurePolarTeamCustomer called ")
   const billing = await ensureOrganizationBillingRow(organizationId)
 
   /**
@@ -92,7 +92,7 @@ export async function ensurePolarTeamCustomer(organizationId: string) {
         }
 
     */
-  console.log("ensureOrganizationBillingRow billing:  ", { billing })
+  // console.log("ensureOrganizationBillingRow billing:  ", { billing })
 
   if (billing?.polarCustomerId) {
     return billing
@@ -101,7 +101,7 @@ export async function ensurePolarTeamCustomer(organizationId: string) {
   const existingPolarCustomer =
     await getPolarTeamCustomerByExternalId(organizationId)
 
-  console.log("getPolarTeamCustomerByExternalId: ", { existingPolarCustomer })
+  //console.log("getPolarTeamCustomerByExternalId : ", { existingPolarCustomer })
 
   //If polar customer using orgId has already been created then upgrade the org-billing row.
   if (existingPolarCustomer) {
@@ -113,7 +113,7 @@ export async function ensurePolarTeamCustomer(organizationId: string) {
 
   //if polar customer for this orgId has not been created yet then create new polar customer using orgId
   const { org, owner } = await getOrganizationOwner(organizationId)
-  console.log("getOrganizationOwner", { org, owner })
+  //console.log("getOrganizationOwner: ", { org, owner })
 
   try {
     const customer = await polarClient.customers.create({
@@ -135,7 +135,7 @@ export async function ensurePolarTeamCustomer(organizationId: string) {
     const recoverdCustomer =
       await getPolarTeamCustomerByExternalId(organizationId)
 
-    console.log({ recoverdCustomer })
+    //console.log({ recoverdCustomer })
 
     if (recoverdCustomer) {
       return updateOrganizationBillingCustomer({

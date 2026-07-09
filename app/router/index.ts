@@ -1,4 +1,5 @@
 import { generateCompose, generateThreadSummary } from "./ai"
+import { getWorkspaceBilling } from "./billing"
 import { createChannel, getChannel, listChannel } from "./channel"
 import { inviteMember, listMembers } from "./member"
 import {
@@ -40,11 +41,45 @@ export const router = {
     create: createWorkspace,
     select: selectWorkspace,
     update: editWorkspace,
-    member: {
-      list: listMembers,
-      invite: inviteMember,
+    billing: {
+      get: getWorkspaceBilling,
     },
   },
+
+  member: {
+    list: listMembers,
+    invite: inviteMember,
+  },
+
+  channel: {
+    create: createChannel,
+    list: listChannel,
+    get: getChannel,
+  },
+
+  message: {
+    create: createMessage,
+    list: listMessages,
+    update: updateMessage,
+    reaction: {
+      toggle: toggleReaction,
+    },
+    thread: {
+      list: listThreadReplies,
+    },
+  },
+
+  ai: {
+    compose: {
+      generate: generateCompose,
+    },
+    thread: {
+      summary: {
+        generate: generateThreadSummary,
+      },
+    },
+  },
+
   onboarding: {
     entry: getAppEntry,
     state: getOnboardingState,
@@ -57,32 +92,6 @@ export const router = {
     billing: {
       startFree: startOnboardingFreePlan,
       completePro: completeOnboardingProPlan,
-    },
-  },
-  channel: {
-    create: createChannel,
-    list: listChannel,
-    get: getChannel,
-  },
-  message: {
-    create: createMessage,
-    list: listMessages,
-    update: updateMessage,
-    reaction: {
-      toggle: toggleReaction,
-    },
-    thread: {
-      list: listThreadReplies,
-    },
-  },
-  ai: {
-    compose: {
-      generate: generateCompose,
-    },
-    thread: {
-      summary: {
-        generate: generateThreadSummary,
-      },
     },
   },
 }
