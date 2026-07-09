@@ -32,7 +32,7 @@ import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
 //  chain.output: is what the handler will return.
 //  In handler,  query logic will be written and what we fetched is returned
 //  So, the shape returned from handler will be passed into .output.
-// chain .handler: destructure params , get input and log the input and make the fun async
+//  chain .handler: destructure params , get input and log the input and make the fun async
 export const listWorkspaces = base
   .use(requiredAuthMiddleware)
   .use(standardSecurityMiddleware)
@@ -67,8 +67,8 @@ export const listWorkspaces = base
     })
 
     // console.log("WORKSPACE PROCEDURE: ", organizations)
-
     const currentWorkspace = await getCurrentWorkspace({ headers })
+
     const currentWorkspaceMembership = currentWorkspace
       ? await prisma.member.findUnique({
           where: {
@@ -82,6 +82,7 @@ export const listWorkspaces = base
           },
         })
       : null
+
     const currentWorkspaceRoleResult = currentWorkspaceMembership
       ? workspaceMemberRoleSchema.safeParse(currentWorkspaceMembership.role)
       : null

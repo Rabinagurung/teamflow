@@ -25,7 +25,7 @@ const MembersOverview = () => {
     data: membersListData,
     isLoading,
     error,
-  } = useQuery(orpc.workspace.member.list.queryOptions())
+  } = useQuery(orpc.member.list.queryOptions())
 
   const currentUser = useMemo(() => {
     return {

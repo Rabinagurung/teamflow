@@ -25,18 +25,15 @@ export async function getOrganizationBillingState(organizationId: string) {
 export async function createOrganizationCheckout(organizationId: string) {
   //Ensures the current user is owner/admim of this organization.
   const session = await requireOrganizationBillingManager(organizationId)
-  console.log({ session })
-
-  console.log("requireOrganizationBillingManager passed")
+  // console.log({ session })
+  // console.log("requireOrganizationBillingManager passed")
 
   //Enusres polar team customer exists -> returns orgBilligRow with polar.customer.id.
   //Or creates new polar team customer for this orgId -> Updates -> returns orgBilligRow with polar customer Id
-  const orgBillingRowAfterPolarTeamCustomer =
-    await ensurePolarTeamCustomer(organizationId)
-
-  console.log({ orgBillingRowAfterPolarTeamCustomer })
-
-  console.log("ensurePolarTeamCustomer passed")
+  // const orgBillingRowAfterPolarTeamCustomer =
+  await ensurePolarTeamCustomer(organizationId)
+  // console.log({ orgBillingRowAfterPolarTeamCustomer })
+  // console.log("ensurePolarTeamCustomer passed")
 
   const billing = await syncOrganizationBillingFromPolar(organizationId)
 

@@ -19,7 +19,7 @@ export const inviteMember = base
   .use(heavyWriteSecurityMiddleware)
   .route({
     method: "POST",
-    path: "/workspace/members/invite",
+    path: "/members/invite",
     summary: "Invite Member",
     tags: ["Members"],
   })
@@ -59,7 +59,7 @@ export const listMembers = base
   .use(readSecurityMiddleware)
   .route({
     method: "GET",
-    path: "/workspace/members",
+    path: "/members",
     summary: "List all members",
     tags: ["Members"],
   })

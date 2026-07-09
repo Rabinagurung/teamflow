@@ -48,7 +48,7 @@ const InviteMember = () => {
   })
 
   const inviteMutation = useMutation(
-    orpc.workspace.member.invite.mutationOptions({
+    orpc.member.invite.mutationOptions({
       onSuccess: () => {
         toast.success("Invitation sent successfully!")
         form.reset()
