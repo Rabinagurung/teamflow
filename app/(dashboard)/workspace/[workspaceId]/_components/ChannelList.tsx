@@ -3,6 +3,7 @@
 import { buttonVariants } from "@/components/ui/button"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { cn } from "@/lib/utlis/utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Hash } from "lucide-react"
@@ -10,10 +11,15 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 
 const ChannelList = () => {
+  const { workspaceId, workspacePath } = useRequiredActiveWorkspace()
+
   const {
     data: { channels },
-  } = useSuspenseQuery(orpc.channel.list.queryOptions())
-  const { workspacePath } = useRequiredActiveWorkspace()
+  } = useSuspenseQuery({
+    ...orpc.channel.list.queryOptions(),
+    queryKey: workspaceQueryKeys.channelList(workspaceId),
+  })
+
   const { channelId } = useParams<{ channelId: string }>()
 
   return (

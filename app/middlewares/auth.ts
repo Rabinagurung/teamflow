@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth/auth"
 import { ArcjetNextRequest } from "@arcjet/next"
-import { redirect } from "next/navigation"
+// import { redirect } from "next/navigation"
 import { base } from "./base"
 
 type AuthenticatedSession = typeof auth.$Infer.Session
@@ -41,7 +41,7 @@ export const requiredAuthMiddleware = base
     request: Request | ArcjetNextRequest
     session?: AuthSession
   }>()
-  .middleware(async ({ context, next }) => {
+  .middleware(async ({ context, next, errors }) => {
     const session =
       context.session ??
       (await auth.api.getSession({
@@ -49,7 +49,7 @@ export const requiredAuthMiddleware = base
       }))
 
     if (!session?.user) {
-      return redirect("/login")
+      throw errors.UNAUTHORIZED()
     }
 
     return next({
