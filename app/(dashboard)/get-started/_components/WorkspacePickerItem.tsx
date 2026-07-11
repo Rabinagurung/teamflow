@@ -3,7 +3,7 @@
 import { orpc } from "@/lib/orpc/orpc"
 import { getWorkspaceColor } from "@/lib/utlis/get-workspace-color"
 import { cn } from "@/lib/utlis/utils"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { ArrowRight, LoaderCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -25,10 +25,23 @@ export default function WorkspacePickerItem({
   onPendingChange,
 }: WorkspacePickerItemProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const mutation = useMutation(
     orpc.workspace.select.mutationOptions({
-      onSuccess: ({ workspaceId }) => {
+      onSuccess: async ({ workspaceId }) => {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: orpc.workspace.list.queryKey(),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["channel.list"],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["member.list"],
+          }),
+        ])
+
         router.push(`/workspace/${workspaceId}`)
         router.refresh()
       },

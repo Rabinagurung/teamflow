@@ -36,7 +36,11 @@ const WorkspaceList = () => {
         })
 
         void queryClient.invalidateQueries({
-          queryKey: orpc.channel.list.queryKey(),
+          queryKey: ["channel.list"],
+        })
+
+        void queryClient.invalidateQueries({
+          queryKey: ["member.list"],
         })
       },
     }),

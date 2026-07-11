@@ -5,6 +5,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { usePresence } from "@/hooks/use-presence"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { getAvatar } from "@/lib/utlis/get-avatar"
 import { cn } from "@/lib/utlis/utils"
 import { AvatarFallback } from "@radix-ui/react-avatar"
@@ -14,11 +15,13 @@ import { useMemo } from "react"
 import { z } from "zod"
 
 const WorkspaceMembersList = () => {
+  const { presenceRoom, user, workspaceId } = useRequiredActiveWorkspace()
   const {
     data: { members },
-  } = useSuspenseQuery(orpc.channel.list.queryOptions())
-
-  const { presenceRoom, user } = useRequiredActiveWorkspace()
+  } = useSuspenseQuery({
+    ...orpc.channel.list.queryOptions(),
+    queryKey: workspaceQueryKeys.channelList(workspaceId),
+  })
 
   const currentUser = useMemo(() => {
     return {

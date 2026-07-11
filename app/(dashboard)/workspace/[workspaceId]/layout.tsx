@@ -17,6 +17,7 @@ import ChannelList from "./_components/ChannelList"
 import CreateNewChannel from "./_components/CreateNewChannel"
 import WorkspaceHeader from "./_components/WorkspaceHeader"
 import WorkspaceMembersList from "./_components/WorkspaceMembersList"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 const WorkspaceDetailsLayout = async ({
   children,
@@ -43,7 +44,10 @@ const WorkspaceDetailsLayout = async ({
 
   const queryClient = getQueryClient()
 
-  await queryClient.prefetchQuery(orpc.channel.list.queryOptions())
+  await queryClient.prefetchQuery({
+    ...orpc.channel.list.queryOptions(),
+    queryKey: workspaceQueryKeys.channelList(currentWorkspace.id),
+  })
 
   return (
     <HydrateClient client={queryClient}>

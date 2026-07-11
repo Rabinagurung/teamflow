@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { normalizeChannelName } from "@/lib/utlis/normalize-channel-name"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { isDefinedError } from "@orpc/client"
@@ -33,7 +34,7 @@ import { toast } from "sonner"
 import z from "zod"
 
 const CreateNewChannel = () => {
-  const { workspacePath } = useRequiredActiveWorkspace()
+  const { workspacePath, workspaceId } = useRequiredActiveWorkspace()
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -51,7 +52,7 @@ const CreateNewChannel = () => {
         toast.success(`Channel ${newChannel.name} created Successfully!`)
 
         void queryClient.invalidateQueries({
-          queryKey: orpc.channel.list.queryKey(),
+          queryKey: workspaceQueryKeys.channelList(workspaceId),
         })
 
         form.reset()

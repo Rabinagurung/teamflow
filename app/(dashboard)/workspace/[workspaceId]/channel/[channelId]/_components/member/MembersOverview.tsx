@@ -15,9 +15,10 @@ import { Search, UsersIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import z from "zod"
 import MemberItem from "./MemberItem"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 const MembersOverview = () => {
-  const { presenceRoom, user } = useRequiredActiveWorkspace()
+  const { presenceRoom, user, workspaceId } = useRequiredActiveWorkspace()
 
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -25,7 +26,10 @@ const MembersOverview = () => {
     data: membersListData,
     isLoading,
     error,
-  } = useQuery(orpc.member.list.queryOptions())
+  } = useQuery({
+    ...orpc.member.list.queryOptions(),
+    queryKey: workspaceQueryKeys.memberList(workspaceId),
+  })
 
   const currentUser = useMemo(() => {
     return {

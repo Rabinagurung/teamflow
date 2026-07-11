@@ -12,14 +12,16 @@ import { requireCurrentWorkspace } from "@/lib/workspace/current-workspace.serve
 import { Cloud } from "lucide-react"
 import { redirect } from "next/navigation"
 import CreateNewChannel from "./_components/CreateNewChannel"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 const WorkspaceIdPage = async () => {
   const currentWorkspace = await requireCurrentWorkspace()
   const queryClient = getQueryClient()
 
-  const { channels } = await queryClient.fetchQuery(
-    orpc.channel.list.queryOptions(),
-  )
+  const { channels } = await queryClient.fetchQuery({
+    ...orpc.channel.list.queryOptions(),
+    queryKey: workspaceQueryKeys.channelList(currentWorkspace.id),
+  })
 
   const initialChannel =
     channels.find((channel) => channel.name === "general") ?? channels[0]

@@ -73,7 +73,7 @@ const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
         })
 
         void queryClient.invalidateQueries({
-          queryKey: orpc.channel.list.queryKey(),
+          queryKey: ["channel.list"],
         })
       },
 
