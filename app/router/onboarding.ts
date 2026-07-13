@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth/auth"
+import { polarClient } from "@/lib/billing/polar"
 import prisma from "@/lib/db"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
@@ -15,8 +16,16 @@ import {
   onboardingStepSchema,
 } from "../schemas/onboarding"
 import { workspaceSchema } from "../schemas/workspace"
-import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
-import { polarClient } from "@/lib/billing/polar"
+import {
+  completeWorkspaceCreationResultSchema,
+  createWorkspaceWithSetup,
+  partialWorkspaceCreationResultSchema,
+  WorkspaceCreationResult,
+} from "./_shared/workspace"
+
+type OnboardingWorkspaceCreationResult = z.infer<
+  typeof onboardingWorkspaceCreationResultSchema
+>
 
 const resolveCurrentStep = (
   state: {
@@ -70,6 +79,48 @@ const getOnboardingWorkspace = async (userId: string) => {
       metadata: true,
     },
   })
+}
+
+const onboardingWorkspaceNextStepSchema = z.union([
+  z.literal("workspace"),
+  z.literal("invite"),
+])
+
+const onboardingWorkspaceCreationResultSchema = z.discriminatedUnion("status", [
+  completeWorkspaceCreationResultSchema.extend({
+    nextStep: z.literal("invite"),
+  }),
+  partialWorkspaceCreationResultSchema.extend({
+    nextStep: onboardingWorkspaceNextStepSchema,
+  }),
+])
+
+const toOnboardingWorkspaceResult = ({
+  creationResult,
+  onboardingStateSaved,
+}: {
+  creationResult: WorkspaceCreationResult
+  onboardingStateSaved: boolean
+}): OnboardingWorkspaceCreationResult => {
+  if (creationResult.status === "complete" && onboardingStateSaved) {
+    return {
+      ...creationResult,
+      nextStep: "invite",
+    }
+  }
+
+  return {
+    status: "partial" as const,
+    workspaceId: creationResult.workspaceId,
+    workspaceName: creationResult.workspaceName,
+    initialization: creationResult.initialization,
+    message: onboardingStateSaved
+      ? creationResult.status === "partial"
+        ? creationResult.message
+        : `Workspace "${creationResult.workspaceName}" was created, but onboarding setup did not finish completely.`
+      : `Workspace "${creationResult.workspaceName}" was created, but onboarding progress could not be saved.`,
+    nextStep: onboardingStateSaved ? "invite" : "workspace",
+  }
 }
 
 export const getAppEntry = base
@@ -216,45 +267,16 @@ export const createOnboardingWorkspace = base
     tags: ["onboarding"],
   })
   .input(workspaceSchema)
-  .output(
-    z.object({
-      workspaceId: z.string(),
-      workspaceName: z.string(),
-      nextStep: onboardingStepSchema,
-    }),
-  )
+  .output(onboardingWorkspaceCreationResultSchema)
   .handler(async ({ context, input, errors }) => {
+    let creationResult: WorkspaceCreationResult
+
     try {
-      const { organizationId, organizationName } =
-        await createWorkspaceWithDefaultChannels({
-          organizationName: input.name,
-          userId: context.user.id,
-          headers: new Headers(context.request.headers as HeadersInit),
-        })
-
-      await prisma.onboardingState.upsert({
-        where: {
-          userId: context.user.id,
-        },
-        create: {
-          userId: context.user.id,
-          organizationId: organizationId,
-          hasCompletedProfile: true,
-          hasCreatedWorkspace: true,
-          currentStep: "invite",
-        },
-        update: {
-          organizationId: organizationId,
-          hasCreatedWorkspace: true,
-          currentStep: "invite",
-        },
+      creationResult = await createWorkspaceWithSetup({
+        organizationName: input.name,
+        userId: context.user.id,
+        headers: new Headers(context.request.headers as HeadersInit),
       })
-
-      return {
-        workspaceId: organizationId,
-        workspaceName: organizationName,
-        nextStep: "invite",
-      }
     } catch (error) {
       console.error("Failed to create onboarding workspace", error)
 
@@ -262,7 +284,140 @@ export const createOnboardingWorkspace = base
         message: "Failed to create workspace",
       })
     }
+
+    let onboardingStateSaved = false
+
+    try {
+      await prisma.onboardingState.upsert({
+        where: {
+          userId: context.user.id,
+        },
+        create: {
+          userId: context.user.id,
+          organizationId: creationResult.workspaceId,
+          hasCompletedProfile: true,
+          hasCreatedWorkspace: true,
+          currentStep: "invite",
+        },
+        update: {
+          organizationId: creationResult.workspaceId,
+          hasCompletedProfile: true,
+          hasCreatedWorkspace: true,
+          currentStep: "invite",
+        },
+      })
+
+      onboardingStateSaved = true
+    } catch (error) {
+      console.error("Failed to persist onboarding workspace state", error)
+    }
+
+    return toOnboardingWorkspaceResult({
+      creationResult,
+      onboardingStateSaved,
+    })
+
+    // try {
+    //   const { organizationId, organizationName } =
+    //     await createWorkspaceWithDefaultChannels({
+    //       organizationName: input.name,
+    //       userId: context.user.id,
+    //       headers: new Headers(context.request.headers as HeadersInit),
+    //     })
+
+    //   await prisma.onboardingState.upsert({
+    //     where: {
+    //       userId: context.user.id,
+    //     },
+    //     create: {
+    //       userId: context.user.id,
+    //       organizationId: organizationId,
+    //       hasCompletedProfile: true,
+    //       hasCreatedWorkspace: true,
+    //       currentStep: "invite",
+    //     },
+    //     update: {
+    //       organizationId: organizationId,
+    //       hasCreatedWorkspace: true,
+    //       currentStep: "invite",
+    //     },
+    //   })
+
+    //   return {
+    //     workspaceId: organizationId,
+    //     workspaceName: organizationName,
+    //     nextStep: "invite",
+    //   }
+    // } catch (error) {
+    //   console.error("Failed to create onboarding workspace", error)
+
+    //   throw errors.INTERNAL_SERVER_ERROR({
+    //     message: "Failed to create workspace",
+    //   })
+    // }
   })
+
+// export const createOnboardingWorkspaces = base
+//   .use(requiredAuthMiddleware)
+//   .use(standardSecurityMiddleware)
+//   .use(heavyWriteSecurityMiddleware)
+//   .route({
+//     method: "POST",
+//     path: "/onboarding/workspace",
+//     summary: "Create workspace during onboarding",
+//     tags: ["onboarding"],
+//   })
+//   .input(workspaceSchema)
+//   .output(onboardingWorkspaceCreationResultSchema)
+//   .handler(async ({ context, input, errors }) => {
+//     let creationResult: WorkspaceCreationResult
+
+//     try {
+//       creationResult = await createWorkspaceWithSetup({
+//         organizationName: input.name,
+//         userId: context.user.id,
+//         headers: new Headers(context.request.headers as HeadersInit),
+//       })
+//     } catch (error) {
+//       console.error("Failed to create onboarding workspace", error)
+
+//       throw errors.INTERNAL_SERVER_ERROR({
+//         message: "Failed to create workspace",
+//       })
+//     }
+
+//     let onboardingStateSaved = false
+
+//     try {
+//       await prisma.onboardingState.upsert({
+//         where: {
+//           userId: context.user.id,
+//         },
+//         create: {
+//           userId: context.user.id,
+//           organizationId: creationResult.workspaceId,
+//           hasCompletedProfile: true,
+//           hasCreatedWorkspace: true,
+//           currentStep: "invite",
+//         },
+//         update: {
+//           organizationId: creationResult.workspaceId,
+//           hasCompletedProfile: true,
+//           hasCreatedWorkspace: true,
+//           currentStep: "invite",
+//         },
+//       })
+
+//       onboardingStateSaved = true
+//     } catch (error) {
+//       console.error("Failed to persist onboarding workspace state", error)
+//     }
+
+//     return toOnboardingWorkspaceResult({
+//       creationResult,
+//       onboardingStateSaved,
+//     })
+//   })
 
 export const submitOnboardingInvites = base
   .use(requiredAuthMiddleware)
