@@ -16,7 +16,10 @@ import {
   workspaceMemberRoleSchema,
   workspaceSchema,
 } from "../schemas/workspace"
-import { createWorkspaceWithDefaultChannels } from "./_shared/workspace"
+import {
+  createWorkspaceWithSetup,
+  workspaceCreationResultSchema,
+} from "./_shared/workspace"
 
 //This file defines what happens when the route is called
 //This file will stores all procedures for workspace category.
@@ -124,31 +127,39 @@ export const createWorkspace = base
     tags: ["workspace"],
   })
   .input(workspaceSchema)
-  .output(
-    z.object({
-      workspaceId: z.string(),
-      workspaceName: z.string(),
-    }),
-  )
+  .output(workspaceCreationResultSchema)
   .handler(async ({ context, errors, input }) => {
     try {
-      const { organizationId, organizationName } =
-        await createWorkspaceWithDefaultChannels({
-          organizationName: input.name,
-          userId: context.user.id,
-          headers: new Headers(context.request.headers as HeadersInit),
-        })
-
-      return {
-        workspaceId: organizationId,
-        workspaceName: organizationName,
-      }
+      return await createWorkspaceWithSetup({
+        organizationName: input.name,
+        userId: context.user.id,
+        headers: new Headers(context.request.headers as HeadersInit),
+      })
     } catch (error) {
-      console.error("Failed to create organizaiton: ", error)
+      console.error("Failed to create workspace", error)
+
       throw errors.INTERNAL_SERVER_ERROR({
         message: "Unable to create workspace",
       })
     }
+    // try {
+    //   const { organizationId, organizationName } =
+    //     await createWorkspaceWithDefaultChannels({
+    //       organizationName: input.name,
+    //       userId: context.user.id,
+    //       headers: new Headers(context.request.headers as HeadersInit),
+    //     })
+
+    //   return {
+    //     workspaceId: organizationId,
+    //     workspaceName: organizationName,
+    //   }
+    // } catch (error) {
+    //   console.error("Failed to create organizaiton: ", error)
+    //   throw errors.INTERNAL_SERVER_ERROR({
+    //     message: "Unable to create workspace",
+    //   })
+    // }
   })
 
 export const selectWorkspace = base

@@ -27,7 +27,7 @@ const WorkspaceStepForm = () => {
 
   const mutation = useMutation(
     orpc.onboarding.workspace.create.mutationOptions({
-      onSuccess: async ({ nextStep }) => {
+      onSuccess: async (result) => {
         await Promise.all([
           queryClient.invalidateQueries({
             queryKey: orpc.onboarding.state.queryKey(),
@@ -35,9 +35,32 @@ const WorkspaceStepForm = () => {
           queryClient.invalidateQueries({
             queryKey: orpc.workspace.list.queryKey(),
           }),
+          queryClient.invalidateQueries({
+            queryKey: ["channel.list"],
+          }),
         ])
 
-        router.push(`/onboarding/${nextStep}`)
+        if (result.status === "complete") {
+          router.push(`/onboarding/${result.nextStep}`)
+          router.refresh()
+          return
+        }
+
+        toast.warning(result.message)
+
+        if (result.nextStep === "invite") {
+          router.push(`/onboarding/${result.nextStep}`)
+          router.refresh()
+          return
+        }
+
+        if (result.initialization.activeWorkspaceSet) {
+          router.push(`/workspace/${result.workspaceId}`)
+          router.refresh()
+          return
+        }
+
+        router.push("/get-started")
         router.refresh()
       },
       onError: (error) => {

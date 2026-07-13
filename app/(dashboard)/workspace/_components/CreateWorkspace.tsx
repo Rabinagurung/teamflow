@@ -55,26 +55,44 @@ const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
 
   const createWorkspaceMutation = useMutation(
     orpc.workspace.create.mutationOptions({
-      onSuccess: (newWorkspace) => {
-        toast.success(
-          `Workspace ${newWorkspace.workspaceName} created successfully`,
-        )
+      onSuccess: async (result) => {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: orpc.workspace.list.queryKey(),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["channel.list"],
+          }),
+        ])
 
         form.reset()
         setOpen(false)
 
-        startTransition(() => {
-          router.push(`/workspace/${newWorkspace.workspaceId}`)
-          router.refresh()
-        })
+        if (result.status === "complete") {
+          toast.success(
+            `Workspace ${result.workspaceName} created successfully`,
+          )
 
-        void queryClient.invalidateQueries({
-          queryKey: orpc.workspace.list.queryKey(),
-        })
+          startTransition(() => {
+            router.push(`/workspace/${result.workspaceId}`)
+            router.refresh()
+          })
 
-        void queryClient.invalidateQueries({
-          queryKey: ["channel.list"],
-        })
+          return
+        }
+
+        toast.warning(result.message)
+
+        if (result.initialization.activeWorkspaceSet) {
+          startTransition(() => {
+            router.push(`/workspace/${result.workspaceId}`)
+            router.refresh()
+          })
+
+          return
+        }
+
+        router.refresh()
       },
 
       onError: (error) => {
@@ -83,9 +101,11 @@ const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
             toast.error(error.message)
             return
           }
+
           toast.error(error.message)
           return
         }
+
         toast.error("Failed to create workspace, try again!")
       },
     }),
