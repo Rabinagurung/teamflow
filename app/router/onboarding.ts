@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth/auth"
 import { polarClient } from "@/lib/billing/polar"
+
 import prisma from "@/lib/db"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
@@ -16,12 +17,64 @@ import {
   onboardingStepSchema,
 } from "../schemas/onboarding"
 import { workspaceSchema } from "../schemas/workspace"
+import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./_shared/better-auth-organization-errors"
+import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 import {
   completeWorkspaceCreationResultSchema,
   createWorkspaceWithSetup,
   partialWorkspaceCreationResultSchema,
   WorkspaceCreationResult,
 } from "./_shared/workspace"
+
+const onboardingInviteFailureReasonSchema = z.enum([
+  "permission_denied",
+  "workspace_not_found",
+  "invite_limit_reached",
+  "already_member",
+  "already_invited",
+  "unknown",
+])
+
+type OnboardingInviteFailureReason = z.infer<
+  typeof onboardingInviteFailureReasonSchema
+>
+
+const classifyOnboardingInviteFailure = (
+  error: unknown,
+): OnboardingInviteFailureReason => {
+  if (!(error instanceof Error)) {
+    return "unknown"
+  }
+
+  if (
+    error.message === BETTER_AUTH_ORGANIZATION_ERRORS.INVITE_FORBIDDEN ||
+    error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_NOT_MEMBER
+  ) {
+    return "permission_denied"
+  }
+
+  if (
+    error.message === BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_NOT_FOUND
+  ) {
+    return "workspace_not_found"
+  }
+
+  if (
+    error.message === BETTER_AUTH_ORGANIZATION_ERRORS.INVITATION_LIMIT_REACHED
+  ) {
+    return "invite_limit_reached"
+  }
+
+  if (error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_ALREADY_MEMBER) {
+    return "already_member"
+  }
+
+  if (error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_ALREADY_INVITED) {
+    return "already_invited"
+  }
+
+  return "unknown"
+}
 
 type OnboardingWorkspaceCreationResult = z.infer<
   typeof onboardingWorkspaceCreationResultSchema
@@ -135,7 +188,7 @@ export const getAppEntry = base
   })
   .input(z.void())
   .output(appEntryResultSchema)
-  .handler(async ({ context }) => {
+  .handler(async ({ context, errors }) => {
     // console.log(context.user.id)
     const row = await prisma.onboardingState.findUnique({
       where: { userId: context.user.id },
@@ -155,9 +208,27 @@ export const getAppEntry = base
 
     if (row && step) return { kind: "onboarding", step }
 
-    const organizations = await auth.api.listOrganizations({
-      headers: new Headers(context.request.headers as HeadersInit),
-    })
+    let organizations: Awaited<ReturnType<typeof auth.api.listOrganizations>>
+
+    try {
+      organizations = await auth.api.listOrganizations({
+        headers: new Headers(context.request.headers as HeadersInit),
+      })
+    } catch (error) {
+      rethrowORPCError(error)
+
+      if (error instanceof Error && error.message === "Not authenticated") {
+        throw errors.UNAUTHORIZED({
+          message: "Authentication required",
+        })
+      }
+
+      console.error("Failed to resolve app entry organizations", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to resolve app entry.",
+      })
+    }
 
     // console.log("GET APP ENTRY PROCEDURE: ", { organizations })
     return organizations.length === 0
@@ -278,10 +349,43 @@ export const createOnboardingWorkspace = base
         headers: new Headers(context.request.headers as HeadersInit),
       })
     } catch (error) {
+      rethrowORPCError(error)
+
+      if (
+        error instanceof Error &&
+        (error.message ===
+          BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_ALREADY_EXISTS ||
+          error.message ===
+            BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_SLUG_ALREADY_TAKEN ||
+          error.message === BETTER_AUTH_ORGANIZATION_ERRORS.SLUG_TAKEN_LEGACY)
+      )
+        throw errors.BAD_REQUEST({
+          message: "A workspace with that name already exists.",
+        })
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.CREATE_FORBIDDEN
+      ) {
+        throw errors.FORBIDDEN({
+          message: "You do not have permission to create a workspace",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message ===
+          BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_LIMIT_REACHED
+      ) {
+        throw errors.FORBIDDEN({
+          message: "You have reached the maximum number of workspaces.",
+        })
+      }
+
       console.error("Failed to create onboarding workspace", error)
 
       throw errors.INTERNAL_SERVER_ERROR({
-        message: "Failed to create workspace",
+        message: "Failed to create workspace.",
       })
     }
 
@@ -316,108 +420,7 @@ export const createOnboardingWorkspace = base
       creationResult,
       onboardingStateSaved,
     })
-
-    // try {
-    //   const { organizationId, organizationName } =
-    //     await createWorkspaceWithDefaultChannels({
-    //       organizationName: input.name,
-    //       userId: context.user.id,
-    //       headers: new Headers(context.request.headers as HeadersInit),
-    //     })
-
-    //   await prisma.onboardingState.upsert({
-    //     where: {
-    //       userId: context.user.id,
-    //     },
-    //     create: {
-    //       userId: context.user.id,
-    //       organizationId: organizationId,
-    //       hasCompletedProfile: true,
-    //       hasCreatedWorkspace: true,
-    //       currentStep: "invite",
-    //     },
-    //     update: {
-    //       organizationId: organizationId,
-    //       hasCreatedWorkspace: true,
-    //       currentStep: "invite",
-    //     },
-    //   })
-
-    //   return {
-    //     workspaceId: organizationId,
-    //     workspaceName: organizationName,
-    //     nextStep: "invite",
-    //   }
-    // } catch (error) {
-    //   console.error("Failed to create onboarding workspace", error)
-
-    //   throw errors.INTERNAL_SERVER_ERROR({
-    //     message: "Failed to create workspace",
-    //   })
-    // }
   })
-
-// export const createOnboardingWorkspaces = base
-//   .use(requiredAuthMiddleware)
-//   .use(standardSecurityMiddleware)
-//   .use(heavyWriteSecurityMiddleware)
-//   .route({
-//     method: "POST",
-//     path: "/onboarding/workspace",
-//     summary: "Create workspace during onboarding",
-//     tags: ["onboarding"],
-//   })
-//   .input(workspaceSchema)
-//   .output(onboardingWorkspaceCreationResultSchema)
-//   .handler(async ({ context, input, errors }) => {
-//     let creationResult: WorkspaceCreationResult
-
-//     try {
-//       creationResult = await createWorkspaceWithSetup({
-//         organizationName: input.name,
-//         userId: context.user.id,
-//         headers: new Headers(context.request.headers as HeadersInit),
-//       })
-//     } catch (error) {
-//       console.error("Failed to create onboarding workspace", error)
-
-//       throw errors.INTERNAL_SERVER_ERROR({
-//         message: "Failed to create workspace",
-//       })
-//     }
-
-//     let onboardingStateSaved = false
-
-//     try {
-//       await prisma.onboardingState.upsert({
-//         where: {
-//           userId: context.user.id,
-//         },
-//         create: {
-//           userId: context.user.id,
-//           organizationId: creationResult.workspaceId,
-//           hasCompletedProfile: true,
-//           hasCreatedWorkspace: true,
-//           currentStep: "invite",
-//         },
-//         update: {
-//           organizationId: creationResult.workspaceId,
-//           hasCompletedProfile: true,
-//           hasCreatedWorkspace: true,
-//           currentStep: "invite",
-//         },
-//       })
-
-//       onboardingStateSaved = true
-//     } catch (error) {
-//       console.error("Failed to persist onboarding workspace state", error)
-//     }
-
-//     return toOnboardingWorkspaceResult({
-//       creationResult,
-//       onboardingStateSaved,
-//     })
-//   })
 
 export const submitOnboardingInvites = base
   .use(requiredAuthMiddleware)
@@ -438,6 +441,12 @@ export const submitOnboardingInvites = base
       alreadyInvitedEmails: z.array(z.string()),
       selfEmails: z.array(z.string()),
       failedEmails: z.array(z.string()),
+      failedInvitations: z.array(
+        z.object({
+          email: z.string(),
+          reason: onboardingInviteFailureReasonSchema,
+        }),
+      ),
       nextStep: onboardingStepSchema,
     }),
   )
@@ -455,19 +464,52 @@ export const submitOnboardingInvites = base
     // console.log("submitOnboardingInvites procedures: ", { normalizedEmails })
 
     const selfEmail = context.user.email.trim().toLowerCase()
-
     const headers = new Headers(context.request.headers as HeadersInit)
 
-    const membersList = await auth.api.listMembers({
-      query: {
-        organizationId: workspace.id,
-        sortBy: "createdAt",
-        sortDirection: "desc",
-      },
-      headers,
-    })
+    let membersList: Awaited<ReturnType<typeof auth.api.listMembers>>
 
-    // console.log("submitOnboardingInvites: ", membersList)
+    try {
+      membersList = await auth.api.listMembers({
+        query: {
+          organizationId: workspace.id,
+          sortBy: "createdAt",
+          sortDirection: "desc",
+        },
+        headers,
+      })
+    } catch (error) {
+      rethrowORPCError(error)
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_NOT_FOUND
+      ) {
+        throw errors.NOT_FOUND({
+          message: "Onboarding workspace not found",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_NOT_MEMBER
+      ) {
+        throw errors.FORBIDDEN({
+          message: "No onboarding workspace found",
+        })
+      }
+
+      console.error("Failed to load onboading workspace members", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to load onboarding workspace members.",
+      })
+    }
+
+    if (!membersList.members) {
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to load onboarding workspace members.",
+      })
+    }
 
     const existingMemberEmails = new Set(
       membersList.members
@@ -526,6 +568,7 @@ export const submitOnboardingInvites = base
         alreadyInvitedEmails: blockedAlreadyInvited,
         selfEmails,
         failedEmails: [],
+        failedInvitations: [],
         nextStep: "invite",
       }
     }
@@ -549,32 +592,23 @@ export const submitOnboardingInvites = base
 
     // console.log("submitOnboardingInvites: ", { invitedEmails })
 
-    const failedEmails = results.flatMap((result, index) =>
-      result.status === "rejected" ? [sendableEmails[index]!] : [],
+    // const failedEmails = results.flatMap((result, index) =>
+    //   result.status === "rejected" ? [sendableEmails[index]!] : [],
+    // )
+    const failedInvitations = results.flatMap((result, index) =>
+      result.status === "rejected"
+        ? [
+            {
+              email: sendableEmails[index]!,
+              reason: classifyOnboardingInviteFailure(result.reason),
+            },
+          ]
+        : [],
     )
 
-    // console.log("submitOnboardingInvites: ", { failedEmails })
-
-    //const failedEmails = normalizedEmails.filter((email) => email === selfEmail)
-
-    // const results = await Promise.allSettled(
-    //   inviteableEmails.map((email) =>
-    //     auth.api.createInvitation({
-    //       body: {
-    //         email,
-    //         role: "member",
-    //         organizationId: workspace.id,
-    //       },
-    //       headers,
-    //     }),
-    //   ),
-    // )
-
-    // failedEmails.push(
-    //   ...results.flatMap((result, index) =>
-    //     result.status === "rejected" ? [inviteableEmails[index]!] : [],
-    //   ),
-    // )
+    const failedEmails = failedInvitations.map(
+      (failedInvitation) => failedInvitation.email,
+    )
 
     if (invitedEmails.length > 0) {
       await prisma.$transaction([
@@ -609,6 +643,7 @@ export const submitOnboardingInvites = base
       alreadyInvitedEmails: blockedAlreadyInvited,
       selfEmails,
       failedEmails,
+      failedInvitations,
       nextStep: invitedEmails.length > 0 ? "billing" : "invite",
     }
   })
@@ -729,9 +764,21 @@ export const completeOnboardingProPlan = base
       throw errors.FORBIDDEN({ message: "No onboarding workspace found" })
     }
 
-    const customerState = await polarClient.customers.getStateExternal({
-      externalId: context.user.id,
-    })
+    let customerState: Awaited<
+      ReturnType<typeof polarClient.customers.getStateExternal>
+    >
+
+    try {
+      customerState = await polarClient.customers.getStateExternal({
+        externalId: context.user.id,
+      })
+    } catch (error) {
+      console.error("Failed to load Polar customer state", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to verify Polar subscription.",
+      })
+    }
 
     const activeSubscription = customerState.activeSubscriptions[0]
 

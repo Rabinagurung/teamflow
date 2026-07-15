@@ -12,6 +12,8 @@ import { ChannelNameSchema } from "../schemas/channel"
 import { appUserSchema } from "../schemas/user"
 import { appWorkspaceSchema } from "../schemas/workspace"
 import { organization_user } from "../schemas/organization-user"
+import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
+import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./_shared/better-auth-organization-errors"
 
 type WorkspaceMember = Awaited<
   ReturnType<typeof auth.api.listMembers>
@@ -75,28 +77,62 @@ export const listChannel = base
       currentWorkspace: appWorkspaceSchema.nullable(),
     }),
   )
-  .handler(async ({ context }) => {
+  .handler(async ({ context, errors }) => {
     const headers = new Headers(context.request.headers as HeadersInit)
 
-    const [channels, membersData] = await Promise.all([
-      prisma.channel.findMany({
-        where: {
-          organizationId: context.workspace.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
+    const channels = await prisma.channel.findMany({
+      where: {
+        organizationId: context.workspace.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
 
-      auth.api.listMembers({
+    let membersData: Awaited<ReturnType<typeof auth.api.listMembers>>
+
+    try {
+      membersData = await auth.api.listMembers({
         query: {
           organizationId: context.workspace.id,
           sortBy: "createdAt",
           sortDirection: "desc",
         },
         headers,
-      }),
-    ])
+      })
+    } catch (error) {
+      rethrowORPCError(error)
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_NOT_FOUND
+      ) {
+        throw errors.NOT_FOUND({
+          message: "Workspace not found",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_NOT_MEMBER
+      ) {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      }
+
+      console.error("Failed to load channels members", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to load workspace members.",
+      })
+    }
+
+    if (!membersData.members) {
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to load workspace members.",
+      })
+    }
 
     return {
       channels,

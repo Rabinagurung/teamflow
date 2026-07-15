@@ -8,6 +8,7 @@ import { streamText } from "ai"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import { streamToEventIterator } from "@orpc/client"
 import { aiSecurityMiddleware } from "../middlewares/arcjet/ai-middleware"
+import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 
 const LLM_KEY = process.env.LLM_KEY
 if (!LLM_KEY) {
@@ -19,6 +20,7 @@ if (!LLM_KEY) {
 const openrouter = createOpenRouter({
   apiKey: LLM_KEY,
 })
+
 const MODEL_ID = "z-ai/glm-4.5-air:free"
 
 const model = openrouter.chat(MODEL_ID)
@@ -54,7 +56,9 @@ export const generateThreadSummary = base
     })
 
     if (!baseMessage) {
-      throw errors.NOT_FOUND()
+      throw errors.NOT_FOUND({
+        message: "Thread message not found.",
+      })
     }
 
     // If parent message id is passed then baseMessage.threadid will be null and we have baseMessage.id defined.
@@ -90,7 +94,15 @@ export const generateThreadSummary = base
     })
 
     if (!parent) {
-      throw errors.NOT_FOUND()
+      throw errors.NOT_FOUND({
+        message: "Thread root message not found.",
+      })
+    }
+
+    if (!LLM_KEY) {
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "AI features are unavailable right now.",
+      })
     }
 
     const replies = parent.replies.slice().reverse()
@@ -130,18 +142,28 @@ export const generateThreadSummary = base
       "If the context is insufficient, return a single-sentence summary and omit the bullet list.",
     ].join("\n")
 
-    /** stream AI summary given by AI model back to client.
-     * temperature: 0.2: lower temp more consistent summary becomes
-     */
-    const result = streamText({
-      model,
-      system,
-      messages: [{ role: "user", content: complied }],
-      temperature: 0.2,
-    })
+    try {
+      /** stream AI summary given by AI model back to client.
+       * temperature: 0.2: lower temp more consistent summary becomes
+       */
 
-    //streamToEventIterator:
-    return streamToEventIterator(result.toUIMessageStream())
+      const result = streamText({
+        model,
+        system,
+        messages: [{ role: "user", content: complied }],
+        temperature: 0.2,
+      })
+      //streamToEventIterator:
+      return streamToEventIterator(result.toUIMessageStream())
+    } catch (error) {
+      rethrowORPCError(error)
+
+      console.error("Failed to generate thread summary", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to generate thread summary",
+      })
+    }
   })
 
 export const generateCompose = base
@@ -159,7 +181,13 @@ export const generateCompose = base
       content: z.string(),
     }),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, errors }) => {
+    if (!LLM_KEY) {
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "AI features are unavailable right now.",
+      })
+    }
+
     const markdownContent = await tipTapJsonToMarkdown(input.content)
 
     // Focused system prompt for deterministic rewrite (non-conversational)
@@ -172,18 +200,26 @@ export const generateCompose = base
       "Return ONLY the rewritten content. No preamble, headings, or closing remarks.",
     ].join("\n")
 
-    const result = streamText({
-      model,
-      system,
-      messages: [
-        {
-          role: "user",
-          content: `Please rewrite and improve the following content:\n\n${markdownContent}`,
-        },
-      ],
-      temperature: 0,
-    })
+    try {
+      const result = streamText({
+        model,
+        system,
+        messages: [
+          {
+            role: "user",
+            content: `Please rewrite and improve the following content:\n\n${markdownContent}`,
+          },
+        ],
+        temperature: 0,
+      })
 
-    //stream result to UI: result.toUIMessageStream()
-    return streamToEventIterator(result.toUIMessageStream())
+      return streamToEventIterator(result.toUIMessageStream())
+    } catch (error) {
+      rethrowORPCError(error)
+
+      console.error("Failed to generate compose suggestion", error)
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to generate compose suggestion.",
+      })
+    }
   })
