@@ -16,6 +16,8 @@ import {
   workspaceMemberRoleSchema,
   workspaceSchema,
 } from "../schemas/workspace"
+import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./_shared/better-auth-organization-errors"
+import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 import {
   createWorkspaceWithSetup,
   workspaceCreationResultSchema,
@@ -62,15 +64,45 @@ export const listWorkspaces = base
       currentWorkspaceRole: workspaceMemberRoleSchema.nullable(),
     }),
   )
-  .handler(async ({ context }) => {
+  .handler(async ({ context, errors }) => {
     const headers = new Headers(context.request.headers as HeadersInit)
 
-    const organizations = await auth.api.listOrganizations({
-      headers,
-    })
+    let organizations: Awaited<ReturnType<typeof auth.api.listOrganizations>>
+
+    try {
+      organizations = await auth.api.listOrganizations({
+        headers,
+      })
+    } catch (error) {
+      rethrowORPCError(error)
+
+      if (error instanceof Error && error.message === "Not authenticated") {
+        throw errors.UNAUTHORIZED({
+          message: "Authentication required.",
+        })
+      }
+
+      console.error("Failed to load workspace list", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to load workspaces.",
+      })
+    }
 
     // console.log("WORKSPACE PROCEDURE: ", organizations)
-    const currentWorkspace = await getCurrentWorkspace({ headers })
+    let currentWorkspace: z.infer<typeof appWorkspaceSchema> | null
+
+    try {
+      currentWorkspace = await getCurrentWorkspace({ headers })
+    } catch (error) {
+      rethrowORPCError(error)
+
+      console.error("Failed to resolve current workspace", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to resolve current workspace.",
+      })
+    }
 
     const currentWorkspaceMembership = currentWorkspace
       ? await prisma.member.findUnique({
@@ -136,30 +168,46 @@ export const createWorkspace = base
         headers: new Headers(context.request.headers as HeadersInit),
       })
     } catch (error) {
+      rethrowORPCError(error)
+
+      if (
+        error instanceof Error &&
+        (error.message ===
+          BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_ALREADY_EXISTS ||
+          error.message ===
+            BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_SLUG_ALREADY_TAKEN ||
+          error.message === BETTER_AUTH_ORGANIZATION_ERRORS.SLUG_TAKEN_LEGACY)
+      ) {
+        throw errors.BAD_REQUEST({
+          message: "A workspace with that name already exists.",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.CREATE_FORBIDDEN
+      ) {
+        throw errors.FORBIDDEN({
+          message: "You do not have permission to create a workspace.",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message ===
+          BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_LIMIT_REACHED
+      ) {
+        throw errors.FORBIDDEN({
+          message: "You have reached the maximum number of workspaces",
+        })
+      }
+
       console.error("Failed to create workspace", error)
 
       throw errors.INTERNAL_SERVER_ERROR({
         message: "Unable to create workspace",
       })
     }
-    // try {
-    //   const { organizationId, organizationName } =
-    //     await createWorkspaceWithDefaultChannels({
-    //       organizationName: input.name,
-    //       userId: context.user.id,
-    //       headers: new Headers(context.request.headers as HeadersInit),
-    //     })
-
-    //   return {
-    //     workspaceId: organizationId,
-    //     workspaceName: organizationName,
-    //   }
-    // } catch (error) {
-    //   console.error("Failed to create organizaiton: ", error)
-    //   throw errors.INTERNAL_SERVER_ERROR({
-    //     message: "Unable to create workspace",
-    //   })
-    // }
   })
 
 export const selectWorkspace = base
@@ -192,13 +240,41 @@ export const selectWorkspace = base
       })
     }
 
-    await auth.api.setActiveOrganization({
-      body: {
-        organizationId: input.workspaceId,
-      },
+    try {
+      await auth.api.setActiveOrganization({
+        body: {
+          organizationId: input.workspaceId,
+        },
 
-      headers,
-    })
+        headers,
+      })
+    } catch (error) {
+      rethrowORPCError(error)
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_NOT_FOUND
+      ) {
+        throw errors.NOT_FOUND({
+          message: "Workspace not found",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_NOT_MEMBER
+      ) {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      }
+
+      console.error("Failed to select workspace", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to switch workspace",
+      })
+    }
 
     return {
       workspaceId: input.workspaceId,
@@ -212,7 +288,7 @@ export const editWorkspace = base
   .use(writeSecurityMiddleware)
   .route({
     method: "POST",
-    path: "/workspace/udate",
+    path: "/workspace/update",
     summary: "Update the workspace",
     tags: ["workspace"],
   })
@@ -260,7 +336,9 @@ export const editWorkspace = base
       })
 
       if (!result?.id) {
-        throw new Error("Failed to edit organization")
+        throw errors.INTERNAL_SERVER_ERROR({
+          message: "Workspace update did not complete.",
+        })
       }
 
       return {
@@ -268,9 +346,41 @@ export const editWorkspace = base
         workspaceName: result.name,
       }
     } catch (error) {
-      console.error("Failed to create organizaiton: ", error)
+      rethrowORPCError(error)
+
+      if (
+        error instanceof Error &&
+        (error.message ===
+          BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_SLUG_ALREADY_TAKEN ||
+          error.message === BETTER_AUTH_ORGANIZATION_ERRORS.SLUG_TAKEN_LEGACY)
+      ) {
+        throw errors.BAD_REQUEST({
+          message: "A workspace with that name already exists.",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.ORGANIZATION_NOT_FOUND
+      ) {
+        throw errors.NOT_FOUND({
+          message: "Workspace not found",
+        })
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.UPDATE_FORBIDDEN
+      ) {
+        throw errors.FORBIDDEN({
+          message: "WORKSPACE_ADMIN_REQUIRED",
+        })
+      }
+
+      console.error("Failed to update workspace", error)
+
       throw errors.INTERNAL_SERVER_ERROR({
-        message: "Unable to create workspace",
+        message: "Unable to update workspace",
       })
     }
   })
