@@ -23,6 +23,8 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import z from "zod"
 import { LoadingSwap } from "@/components/ui/loading-swap"
+import { toast } from "sonner"
+import { getOnboardingErrorMessage } from "../../_components/get-onboarding-error-message"
 
 const ProfileFormSchema = z.object({
   name: z.string().min(2, "Please enter your name"),
@@ -33,7 +35,7 @@ const ProfileSetupForm = () => {
   const queryClient = useQueryClient()
   const router = useRouter()
 
-  console.log("Profile SetUp Form, ONBOARDING STATE: ", { data })
+  // console.log("Profile SetUp Form, ONBOARDING STATE: ", { data })
 
   const form = useForm<z.infer<typeof ProfileFormSchema>>({
     resolver: zodResolver(ProfileFormSchema),
@@ -51,6 +53,15 @@ const ProfileSetupForm = () => {
 
         router.push(`/onboarding/${nextStep}`)
         router.refresh()
+      },
+
+      onError: (error) => {
+        toast.error(
+          getOnboardingErrorMessage(
+            error,
+            "We couldn't save your profile right now. Please try again.",
+          ),
+        )
       },
     }),
   )
