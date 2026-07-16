@@ -14,6 +14,9 @@ import { cn } from "@/lib/utlis/utils"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { startTransition } from "react"
+import { toast } from "sonner"
+import { getWorkspaceSwitchErrorMessage } from "./get-workspace-switch-error-message"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 const WorkspaceList = () => {
   const router = useRouter()
@@ -36,12 +39,16 @@ const WorkspaceList = () => {
         })
 
         void queryClient.invalidateQueries({
-          queryKey: ["channel.list"],
+          queryKey: workspaceQueryKeys.channelList(workspaceId),
         })
 
         void queryClient.invalidateQueries({
-          queryKey: ["member.list"],
+          queryKey: workspaceQueryKeys.memberList(workspaceId),
         })
+      },
+
+      onError: (error) => {
+        toast.error(getWorkspaceSwitchErrorMessage(error))
       },
     }),
   )

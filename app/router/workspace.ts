@@ -228,9 +228,27 @@ export const selectWorkspace = base
   .handler(async ({ context, input, errors }) => {
     const headers = new Headers(context.request.headers as HeadersInit)
 
-    const organizations = await auth.api.listOrganizations({
-      headers,
-    })
+    let organizations: Awaited<ReturnType<typeof auth.api.listOrganizations>>
+
+    try {
+      organizations = await auth.api.listOrganizations({
+        headers,
+      })
+    } catch (error) {
+      rethrowORPCError(error)
+
+      if (error instanceof Error && error.message === "Not authenticated") {
+        throw errors.UNAUTHORIZED({
+          message: "Authentication required.",
+        })
+      }
+
+      console.error("Failed to load workspace list before switching", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to switch workspace",
+      })
+    }
 
     const hasAccess = organizations.some((org) => org.id === input.workspaceId)
 
@@ -266,6 +284,12 @@ export const selectWorkspace = base
       ) {
         throw errors.FORBIDDEN({
           message: "NO_WORKSPACE",
+        })
+      }
+
+      if (error instanceof Error && error.message === "Not authenticated") {
+        throw errors.UNAUTHORIZED({
+          message: "Authentication required.",
         })
       }
 

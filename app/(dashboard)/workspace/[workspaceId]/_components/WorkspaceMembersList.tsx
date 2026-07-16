@@ -16,11 +16,9 @@ import { z } from "zod"
 
 const WorkspaceMembersList = () => {
   const { presenceRoom, user, workspaceId } = useRequiredActiveWorkspace()
-  const {
-    data: { members },
-  } = useSuspenseQuery({
-    ...orpc.channel.list.queryOptions(),
-    queryKey: workspaceQueryKeys.channelList(workspaceId),
+  const { data: members } = useSuspenseQuery({
+    ...orpc.member.list.queryOptions(),
+    queryKey: workspaceQueryKeys.memberList(workspaceId),
   })
 
   const currentUser = useMemo(() => {
@@ -52,14 +50,14 @@ const WorkspaceMembersList = () => {
           <div className="relative">
             <Avatar className="size-8">
               <Image
-                src={getAvatar(member.picture ?? null, member.email!)}
+                src={getAvatar(member.user.image ?? null, member.user.email)}
                 alt="User Image"
                 className="object-cover"
                 fill
                 sizes="32px"
               />
               <AvatarFallback>
-                {member.full_name?.charAt(0).toUpperCase() ?? ""}
+                {member.user.name?.charAt(0).toUpperCase() ?? ""}
               </AvatarFallback>
             </Avatar>
             {/* Online/offline status */}
@@ -71,10 +69,10 @@ const WorkspaceMembersList = () => {
             ></div>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{member.full_name}</p>
-            {member.email && (
+            <p className="truncate text-sm font-medium">{member.user.name}</p>
+            {member.user.email && (
               <p className="truncate text-xs text-sidebar-foreground/65">
-                {member.email}
+                {member.user.email}
               </p>
             )}
           </div>

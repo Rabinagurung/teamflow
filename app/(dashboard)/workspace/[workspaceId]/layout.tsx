@@ -49,6 +49,11 @@ const WorkspaceDetailsLayout = async ({
     queryKey: workspaceQueryKeys.channelList(currentWorkspace.id),
   })
 
+  await queryClient.prefetchQuery({
+    ...orpc.member.list.queryOptions(),
+    queryKey: workspaceQueryKeys.memberList(currentWorkspace.id),
+  })
+
   return (
     <HydrateClient client={queryClient}>
       <>

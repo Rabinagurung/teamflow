@@ -1,11 +1,12 @@
-"use client"
-
 import { orpc } from "@/lib/orpc/orpc"
 import { getWorkspaceColor } from "@/lib/utlis/get-workspace-color"
 import { cn } from "@/lib/utlis/utils"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { ArrowRight, LoaderCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { getWorkspaceSwitchErrorMessage } from "../../workspace/_components/get-workspace-switch-error-message"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 type WorkspacePickerItemProps = {
   id: string
@@ -35,17 +36,23 @@ export default function WorkspacePickerItem({
             queryKey: orpc.workspace.list.queryKey(),
           }),
           queryClient.invalidateQueries({
-            queryKey: ["channel.list"],
+            queryKey: workspaceQueryKeys.channelList(workspaceId),
           }),
           queryClient.invalidateQueries({
-            queryKey: ["member.list"],
+            queryKey: workspaceQueryKeys.memberList(workspaceId),
           }),
         ])
 
         router.push(`/workspace/${workspaceId}`)
         router.refresh()
       },
-      onError: () => onPendingChange(null),
+
+      onError: (error) => {
+        toast.error(getWorkspaceSwitchErrorMessage(error))
+      },
+      onSettled: () => {
+        onPendingChange(null)
+      },
     }),
   )
 
