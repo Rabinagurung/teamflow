@@ -80,6 +80,7 @@ const MessageList = () => {
     isFetchingNextPage,
     isLoading,
     error,
+    refetch,
   } = useInfiniteQuery({
     ...infinitOptions,
     staleTime: 30_000,
@@ -241,7 +242,8 @@ const MessageList = () => {
     return data?.items ?? []
   }, [data])
 
-  const isEmpty = !isLoading && !error && items.length === 0
+  const hasInitialLoadError = !data && !!error
+  const isEmpty = !isLoading && !hasInitialLoadError && items.length === 0
 
   /**
    * Detects newly appended messages and adjusts scroll behavior accordingly.
@@ -291,6 +293,31 @@ const MessageList = () => {
 
     setNewMessages(false)
     setIsAtBottom(true)
+  }
+
+  if (hasInitialLoadError) {
+    return (
+      <div className="flex h-full items-center justify-center p-6">
+        <div className="max-w-sm text-center">
+          <p className="text-lg font-semibold">Failed to load messages</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {error instanceof Error
+              ? error.message
+              : "Unable to load this conversation right now."}
+          </p>
+
+          <div className="mt-4 flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              disabled={isFetching}
+            >
+              {isFetching ? "Retrying..." : "Try again"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
