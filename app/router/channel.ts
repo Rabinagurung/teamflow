@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth/auth"
 import prisma from "@/lib/db"
-import { Channel } from "@/lib/generated/prisma/client"
+import { Channel, Prisma } from "@/lib/generated/prisma/client"
 import z from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
@@ -9,11 +9,11 @@ import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
 import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
 import { ChannelNameSchema } from "../schemas/channel"
+import { organization_user } from "../schemas/organization-user"
 import { appUserSchema } from "../schemas/user"
 import { appWorkspaceSchema } from "../schemas/workspace"
-import { organization_user } from "../schemas/organization-user"
-import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./_shared/better-auth-organization-errors"
+import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 
 type WorkspaceMember = Awaited<
   ReturnType<typeof auth.api.listMembers>
@@ -48,16 +48,35 @@ export const createChannel = base
   })
   .input(ChannelNameSchema)
   .output(z.custom<Channel>())
-  .handler(async ({ input, context }) => {
-    const channel = await prisma.channel.create({
-      data: {
-        name: input.name,
-        organizationId: context.workspace.id,
-        createdById: context.user.id,
-      },
-    })
+  .handler(async ({ input, context, errors }) => {
+    try {
+      const channel = await prisma.channel.create({
+        data: {
+          name: input.name,
+          organizationId: context.workspace.id,
+          createdById: context.user.id,
+        },
+      })
 
-    return channel
+      return channel
+    } catch (error) {
+      rethrowORPCError(error)
+
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw errors.BAD_REQUEST({
+          message: "A channel with that name already exists.",
+        })
+      }
+
+      console.error("Failed to create channel", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Unable to create channel.",
+      })
+    }
   })
 
 export const listChannel = base
