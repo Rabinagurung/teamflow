@@ -33,6 +33,8 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
+const DUPLICATE_CHANNEL_MESSAGE = "A channel with that name already exists."
+
 const CreateNewChannel = () => {
   const { workspacePath, workspaceId } = useRequiredActiveWorkspace()
   const [open, setOpen] = useState(false)
@@ -62,6 +64,17 @@ const CreateNewChannel = () => {
       },
       onError: (error) => {
         if (isDefinedError(error)) {
+          if (
+            error.code === "BAD_REQUEST" &&
+            error.message === DUPLICATE_CHANNEL_MESSAGE
+          ) {
+            form.setError("name", {
+              type: "server",
+              message: error.message,
+            })
+            return
+          }
+
           toast.error(error.message)
           return
         }
@@ -72,6 +85,7 @@ const CreateNewChannel = () => {
   )
 
   const onSubmit = (values: z.infer<typeof ChannelNameSchema>) => {
+    form.clearErrors("name")
     createChannelMutation.mutate(values)
   }
 
@@ -79,7 +93,13 @@ const CreateNewChannel = () => {
   const transformedName = watchedName ? normalizeChannelName(watchedName) : ""
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        setOpen(open)
+        form.reset()
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -123,7 +143,7 @@ const CreateNewChannel = () => {
             <Button disabled={createChannelMutation.isPending} type="submit">
               {createChannelMutation.isPending
                 ? "Creating..."
-                : " Create New Channel"}
+                : "Create New Channel"}
             </Button>
           </form>
         </Form>
