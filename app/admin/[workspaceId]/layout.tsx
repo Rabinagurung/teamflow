@@ -1,7 +1,6 @@
-import { requireAuth } from "@/lib/auth/auth-utils"
 import {
   AdminWorkspaceAccessError,
-  requireAdminWorkspace,
+  requireRouteAdminWorkspace,
 } from "@/lib/workspace/admin-workspace.server"
 import { redirect } from "next/navigation"
 import React from "react"
@@ -14,17 +13,17 @@ const AdminWorkspaceLayout = async ({
   children: React.ReactNode
   params: Promise<{ workspaceId: string }>
 }) => {
-  const session = await requireAuth()
   const { workspaceId } = await params
 
   let access
   try {
-    access = await requireAdminWorkspace({
-      workspaceId,
-      session,
-    })
+    access = await requireRouteAdminWorkspace(workspaceId)
   } catch (error) {
     if (error instanceof AdminWorkspaceAccessError) {
+      if (error.code === "UNAUTHENTICATED") {
+        redirect("/login")
+      }
+
       if (error.code === "WORKSPACE_ADMIN_REQUIRED") {
         redirect(`/workspace/${workspaceId}`)
       }
@@ -40,12 +39,7 @@ const AdminWorkspaceLayout = async ({
       <AdminSidebar
         workspace={access.workspace}
         workspaceHomeHref={access.workspaceHomeHref}
-        adminUser={{
-          id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
-          image: session.user.image ?? null,
-        }}
+        adminUser={access.user}
       />
       <div className="flex min-w-0 flex-1 flex-col bg-background/80">
         <main className="min-h-0 flex-1 overflow-y-auto">

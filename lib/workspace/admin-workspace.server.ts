@@ -4,12 +4,28 @@ import type { AppWorkspace } from "@/app/schemas/workspace"
 import { auth } from "@/lib/auth/auth"
 import prisma from "@/lib/db"
 import { headers as nextHeaders } from "next/headers"
+import { cache } from "react"
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>
 
 export type AdminWorkspaceRole = "owner" | "admin"
 
+export type AdminWorkspaceUser = {
+  id: string
+  name: string
+  email: string
+  image: string | null
+}
+
+export type AdminWorkspaceAccess = {
+  workspace: AppWorkspace
+  memberRole: AdminWorkspaceRole
+  workspaceHomeHref: string
+  user: AdminWorkspaceUser
+}
+
 type AdminWorkspaceAccessErrorCode =
+  | "UNAUTHENTICATED"
   | "WORKSPACE_NOT_FOUND"
   | "WORKSPACE_MEMBER_REQUIRED"
   | "WORKSPACE_ADMIN_REQUIRED"
@@ -39,20 +55,29 @@ const toAppWorkspace = (workspace: {
   createdAt: workspace.createdAt,
 })
 
+const toAdminWorkspaceUser = (
+  user: AuthSession["user"],
+): AdminWorkspaceUser => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  image: user.image ?? null,
+})
+
 const getRequestHeaders = async (input?: HeadersInit) => {
   return input ? new Headers(input) : new Headers(await nextHeaders())
 }
 
 const syncActiveOrganization = async ({
   workspaceId,
-  session,
+  activeOrganizationId,
   headers,
 }: {
   workspaceId: string
-  session: AuthSession
+  activeOrganizationId: string | null
   headers: Headers
 }) => {
-  if (session.session.activeOrganizationId === workspaceId) {
+  if (activeOrganizationId === workspaceId) {
     return
   }
 
@@ -68,15 +93,15 @@ const syncActiveOrganization = async ({
   }
 }
 
-export const requireAdminWorkspace = async ({
+const resolveAdminWorkspaceAccess = async ({
   workspaceId,
   session,
-  headers: inputHeaders,
+  headers,
 }: {
   workspaceId: string
   session: AuthSession
-  headers?: HeadersInit
-}) => {
+  headers: Headers
+}): Promise<AdminWorkspaceAccess> => {
   const membership = await prisma.member.findUnique({
     where: {
       organizationId_userId: {
@@ -119,10 +144,9 @@ export const requireAdminWorkspace = async ({
     throw new AdminWorkspaceAccessError("WORKSPACE_ADMIN_REQUIRED", workspaceId)
   }
 
-  const headers = await getRequestHeaders(inputHeaders)
   await syncActiveOrganization({
     workspaceId,
-    session,
+    activeOrganizationId: session.session.activeOrganizationId ?? null,
     headers,
   })
 
@@ -152,10 +176,47 @@ export const requireAdminWorkspace = async ({
   const defaultChannelId = generalChannel?.id ?? firstChannel?.id ?? null
 
   return {
+    user: toAdminWorkspaceUser(session.user),
     workspace: toAppWorkspace(membership.organization),
     memberRole: membership.role as AdminWorkspaceRole,
     workspaceHomeHref: defaultChannelId
       ? `/workspace/${workspaceId}/channel/${defaultChannelId}`
       : `/workspace/${workspaceId}`,
   }
+}
+const requireAdminWorkspaceForRequest = cache(async (workspaceId: string) => {
+  const headers = await getRequestHeaders()
+  const session = await auth.api.getSession({ headers })
+
+  if (!session?.user) {
+    throw new AdminWorkspaceAccessError("UNAUTHENTICATED", workspaceId)
+  }
+
+  return resolveAdminWorkspaceAccess({
+    workspaceId,
+    session: session as AuthSession,
+    headers,
+  })
+})
+
+export const requireRouteAdminWorkspace = async (workspaceId: string) => {
+  return requireAdminWorkspaceForRequest(workspaceId)
+}
+
+export const requireAdminWorkspace = async ({
+  workspaceId,
+  session,
+  headers: inputHeaders,
+}: {
+  workspaceId: string
+  session: AuthSession
+  headers?: HeadersInit
+}) => {
+  const headers = await getRequestHeaders(inputHeaders)
+
+  return resolveAdminWorkspaceAccess({
+    workspaceId,
+    session,
+    headers,
+  })
 }
