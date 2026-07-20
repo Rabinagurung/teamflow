@@ -34,6 +34,7 @@ Everything else is derived from that.
 
    - Use `getCurrentWorkspace()` when optional
    - Use `requireCurrentWorkspace()` when mandatory
+   - No-arg server-component calls are request-cached, so repeated calls in the same request reuse the same resolved workspace
 
 5. **Client components trust query-derived current workspace**
 
@@ -60,6 +61,7 @@ This file owns:
 - fallback workspace selection
 - best-effort session healing
 - mapping DB organization to `AppWorkspace`
+- request-scoped memoization for no-arg server-component reads
 
 ### Public server API
 
@@ -135,12 +137,18 @@ This file owns:
 - validate against membership
 - fallback safely
 - optionally heal active org
+- memoize no-arg reads per request for server components
 
 ### Must not do
 
 - page redirects
 - route param logic
 - UI logic
+
+### Caching rule
+
+- `getCurrentWorkspace()` and `requireCurrentWorkspace()` without explicit `headers` may reuse a request-cached result
+- explicit `headers` calls still resolve normally and are not forced through the server-component cache path
 
 ---
 
@@ -179,16 +187,19 @@ This file owns:
 - list workspaces
 - create workspace
 - select workspace
+- update workspace
 
 ### Rules
 
 - `workspace.list` may use `getCurrentWorkspace({ headers })`
 - `workspace.select` validates membership before switching
 - `workspace.create` creates and returns workspace identity
+- `workspace.update` acts only on the validated active workspace context
 
 ### Must not do
 
 - duplicate workspace resolution logic inline
+- trust raw route params as workspace authority
 
 ---
 
@@ -230,6 +241,7 @@ context.workspace.id
 
 - canonicalize workspace route
 - reconcile URL against authoritative workspace
+- prefetch workspace-scoped shell data
 
 ### Rule
 
@@ -246,6 +258,7 @@ if (workspace.id !== workspaceId) {
 ### Why
 
 This is the single place where URL and current workspace meet.
+This is where route canonicalization belongs
 
 ---
 
@@ -325,18 +338,14 @@ useActiveWorkspace()
 
 ### Should return
 
-- `currentWorkspace`
-- `workspaceId`
-- `workspacePath`
-- `presenceRoom`
-- `user`
-- `workspaces`
-
-### Example
-
-```ts
-const { workspaceId, workspacePath, presenceRoom } = useActiveWorkspace()
-```
+currentWorkspace
+currentWorkspaceRole
+canManageWorkspace
+workspaceId
+workspacePath
+presenceRoom
+user
+workspaces
 
 ### Why
 
@@ -352,12 +361,14 @@ This removes `useParams().workspaceId` as a client-side identity source.
 - realtime room ids
 - workspace-scoped navigation destinations
 - workspace identity checks
+- workspace-scoped cache keys
 
 ### May still use route params for
 
-- `channelId`
-- active tab / active channel state
-- local route rendering
+- channelId
+- active tab state
+- active channel rendering state
+- presentational route reading
 
 ### Examples
 
@@ -375,10 +386,32 @@ Use `useActiveWorkspace()` in:
 - `presenceRoom`
 - `router.push("/workspace/...")` workspace identity
 - `href="/workspace/..."` workspace identity
+- workspace-scoped React Query key identity
 
 ---
 
-## 11. UI Data Pages
+### 11.Query Cache Contract
+
+### Rule
+
+Workspace-scoped client cache keys must encode workspace identity.
+
+Examples
+
+- workspaceQueryKeys.channelList(workspaceId)
+- workspaceQueryKeys.memberList(workspaceId)
+
+### Why
+
+Server authority may be correct while client memory is stale if workspace identity is not part of the key.
+
+### Hydration Rule
+
+- server prefetch and client components must use the same query key shape.
+
+---
+
+## 12. UI Data Pages
 
 ### Files
 
@@ -389,6 +422,7 @@ Use `useActiveWorkspace()` in:
 ### Responsibility
 
 - render workspace-related UI data
+- hydrate shell-level workspace data
 
 ### Rule
 
@@ -400,12 +434,12 @@ These are UI/data pages, not authority boundaries.
 
 ---
 
-## 12. Onboarding
+## 13. Onboarding
 
 ### Files
 
 - `app/router/onboarding.ts`
-- onboarding pages/layouts/components
+- onboarding pages,layouts and components
 
 ### Responsibility
 
@@ -450,7 +484,7 @@ Use:
 context.workspace.id
 ```
 
-### Server pages/layouts
+### Server pages and layouts
 
 Use:
 
@@ -466,7 +500,9 @@ getCurrentWorkspace()
 
 ### Server components
 
-Prefer resolving once in parent and passing `workspace` as a prop.
+- Prefer resolving once in parent and passing `workspace` as a prop when it is simple.
+
+- If multiple server components call the no-arg helper in the same request, request caching prevents repeated workspace resolution work.
 
 ### Client identity
 
@@ -498,6 +534,7 @@ Do not do these:
 - duplicate workspace fallback logic outside `current-workspace.server.ts`
 - use global `middleware.ts` for workspace resolution
 - mix onboarding workspace state with current app workspace state
+- use broad workspace-scoped query keys that omit workspace identity
 
 ---
 
@@ -507,12 +544,14 @@ The workspace architecture is:
 
 - **Better Auth session** provides intended active organization
 - **`current-workspace.server.ts`** turns that into a validated `AppWorkspace`
+- **request-cached no-arg server-component** reads reduce repeated resolution work without changing authority
 - **workspace route layout** canonicalizes the URL once
 - **oRPC middleware** injects the authoritative workspace into routes
 - **workspace-scoped routes** trust `context.workspace`
-- **server pages/layouts** trust the helper
+- **server pages and layouts** trust the helper
 - **client components** trust `useActiveWorkspace()`
+- **workspace-scoped query keys** encode workspace identity
 - **URL** is only the canonical route representation
 - **onboarding** uses separate workflow state
 
-This keeps workspace identity consistent across server routes, server pages, server components, and client UI.
+This keeps workspace identity consistent across server routes, server pages, server components, and client UI without weakning the authority model.
