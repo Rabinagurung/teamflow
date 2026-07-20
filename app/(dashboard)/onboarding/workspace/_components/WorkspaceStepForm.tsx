@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingSwap } from "@/components/ui/loading-swap"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
@@ -36,7 +37,7 @@ const WorkspaceStepForm = () => {
             queryKey: orpc.workspace.list.queryKey(),
           }),
           queryClient.invalidateQueries({
-            queryKey: ["channel.list"],
+            queryKey: workspaceQueryKeys.channelList(result.workspaceId),
           }),
         ])
 

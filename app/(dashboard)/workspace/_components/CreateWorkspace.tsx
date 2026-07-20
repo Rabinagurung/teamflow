@@ -36,6 +36,7 @@ import { orpc } from "@/lib/orpc/orpc"
 import { toast } from "sonner"
 import { isDefinedError } from "@orpc/client"
 import { useRouter } from "next/navigation"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 type CreateWorkspaceProps = {
   alwaysOpen?: boolean
@@ -61,7 +62,7 @@ const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
             queryKey: orpc.workspace.list.queryKey(),
           }),
           queryClient.invalidateQueries({
-            queryKey: ["channel.list"],
+            queryKey: workspaceQueryKeys.channelList(result.workspaceId),
           }),
         ])
 
