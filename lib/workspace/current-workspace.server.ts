@@ -4,6 +4,7 @@ import { appWorkspaceSchema, type AppWorkspace } from "@/app/schemas/workspace"
 import { auth } from "@/lib/auth/auth"
 import prisma from "@/lib/db"
 import { headers as nextHeaders } from "next/headers"
+import { cache } from "react"
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>
 
@@ -133,9 +134,26 @@ export const resolveWorkspaceForSession = async ({
   return fallbackWorkspace
 }
 
+const getCurrentWorkspaceForRequest = cache(async () => {
+  const headers = await getRequestHeaders()
+  const session = await auth.api.getSession({ headers })
+
+  if (!session) {
+    return null
+  }
+
+  return resolveWorkspaceForSession({
+    session: session as AuthSession,
+    headers,
+  })
+})
+
 export const getCurrentWorkspace = async (input?: {
   headers?: HeadersInit
 }) => {
+  if (!input?.headers) {
+    return getCurrentWorkspaceForRequest()
+  }
   const headers = await getRequestHeaders(input?.headers)
   const session = await auth.api.getSession({ headers })
 

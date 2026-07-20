@@ -18,10 +18,12 @@ const WorkspaceIdPage = async () => {
   const currentWorkspace = await requireCurrentWorkspace()
   const queryClient = getQueryClient()
 
-  const { channels } = await queryClient.fetchQuery({
+  const channelListQuery = {
     ...orpc.channel.list.queryOptions(),
     queryKey: workspaceQueryKeys.channelList(currentWorkspace.id),
-  })
+  }
+
+  const { channels } = await queryClient.ensureQueryData(channelListQuery)
 
   const initialChannel =
     channels.find((channel) => channel.name === "general") ?? channels[0]
