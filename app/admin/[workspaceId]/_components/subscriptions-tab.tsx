@@ -118,7 +118,7 @@ type SubscriptionsTabProps = {
 
 export const SubscriptionsTab = ({ workspaceId }: SubscriptionsTabProps) => {
   const billingQuery = useQuery({
-    ...orpc.workspace.billing.get.queryOptions({
+    ...orpc.billing.get.queryOptions({
       input: {
         workspaceId,
       },

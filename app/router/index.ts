@@ -1,5 +1,9 @@
 import { generateCompose, generateThreadSummary } from "./ai"
-import { getWorkspaceBilling } from "./billing"
+import {
+  createWorkspaceCheckout,
+  createWorkspacePortal,
+  getWorkspaceBilling,
+} from "./billing"
 import { createChannel, getChannel, listChannel } from "./channel"
 import { inviteMember, listMembers } from "./member"
 import {
@@ -34,16 +38,17 @@ import {
  * and inside your client, you can call something like client.workspace.list(...) (depending on your client setup)
  */
 export const router = {
-  // Creating our first route i.e: workspace(an object where all procedures are passed)
-  // For that, a key is created(list) and a file workspace.ts will stores all procedures for workspace category
   workspace: {
     list: listWorkspaces,
     create: createWorkspace,
     select: selectWorkspace,
     update: editWorkspace,
-    billing: {
-      get: getWorkspaceBilling,
-    },
+  },
+
+  billing: {
+    get: getWorkspaceBilling,
+    checkout: createWorkspaceCheckout,
+    portal: createWorkspacePortal,
   },
 
   member: {
