@@ -1,8 +1,11 @@
-import { requireAuth } from "@/lib/auth/auth-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getWorkspaceColor } from "@/lib/utlis/get-workspace-color"
 import { cn } from "@/lib/utlis/utils"
+import {
+  type AdminWorkspaceAccess,
+  requireRouteAdminWorkspace,
+} from "@/lib/workspace/admin-workspace.server"
 import {
   BotMessageSquare,
   ChevronRight,
@@ -104,32 +107,38 @@ const AdminHomeRowLink = ({
   )
 }
 
+function AdminHomeTitle({ access }: { access: AdminWorkspaceAccess }) {
+  return (
+    <div className="flex items-center gap-4">
+      <div
+        className={cn(
+          "flex size-11 items-center justify-center rounded-xl text-lg font-semibold shadow-sm",
+          getWorkspaceColor(access.workspace.id),
+        )}
+      >
+        {access.user.name.charAt(0).toUpperCase()}
+      </div>
+      <span>Hello {access.user.name}!</span>
+    </div>
+  )
+}
+
 const AdminWorkspacePage = async ({ params }: AdminWorkspacePageProps) => {
-  const session = await requireAuth()
   const { workspaceId } = await params
-  const billingHref = `/admin/${workspaceId}/billing`
+  const access = await requireRouteAdminWorkspace(workspaceId)
+
+  const base = `/admin/${access.workspace.id}`
+  const billingHref = `${base}/billing`
 
   return (
     <AdminPageShell
-      title={
-        <div className="flex items-center gap-4">
-          <div
-            className={cn(
-              "flex size-11 items-center justify-center rounded-xl text-lg font-semibold shadow-sm",
-              getWorkspaceColor(workspaceId),
-            )}
-          >
-            {session.user.name.charAt(0).toUpperCase()}
-          </div>
-          <span>Hello {session.user.name}!</span>
-        </div>
-      }
+      title={<AdminHomeTitle access={access} />}
       description="Manage profile details, membership, invitations, and billing from one clean admin space."
       framed={false}
     >
       <div className="space-y-6">
         <AdminHomeLinkCard
-          href={`/admin/${workspaceId}/settings`}
+          href={`${base}/settings`}
           title="Account Settings"
           description="Edit your profile, update your username and password, and manage other account settings."
           icon={Settings}
@@ -139,7 +148,7 @@ const AdminWorkspacePage = async ({ params }: AdminWorkspacePageProps) => {
         <Card className="overflow-hidden rounded-[28px] border-border/80 shadow-[0_20px_50px_-36px_rgba(15,23,42,0.35)]">
           <CardContent className="space-y-2 p-4 md:p-5">
             <AdminHomeRowLink
-              href={`/admin/${workspaceId}/members`}
+              href={`${base}/members`}
               title="Manage Your Members"
               description="Invite new members and manage user permissions."
               icon={Users}
@@ -147,7 +156,7 @@ const AdminWorkspacePage = async ({ params }: AdminWorkspacePageProps) => {
             />
 
             <AdminHomeRowLink
-              href={`/admin/${workspaceId}/invitations`}
+              href={`${base}/invitations`}
               title="Manage Your Invitations"
               description="Review pending invites and resend them when needed."
               icon={Mail}
