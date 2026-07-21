@@ -10,6 +10,7 @@ import {
   getOrganizationBillingState,
 } from "@/lib/billing/service"
 import { writeSecurityMiddleware } from "../middlewares/arcjet/write"
+import { canManageOrganizationBilling } from "@/lib/billing/guards"
 
 const workspaceBillingInputSchema = z.object({
   workspaceId: z.string(),
@@ -26,6 +27,19 @@ const workspaceBillingOutputSchema = z.object({
 const workspaceBillingActionOutputSchema = z.object({
   url: z.string(),
 })
+
+async function hasBillingManagerAccess({
+  workspaceId,
+  userId,
+}: {
+  workspaceId: string
+  userId: string
+}) {
+  return canManageOrganizationBilling({
+    organizationId: workspaceId,
+    userId,
+  })
+}
 
 export const getWorkspaceBilling = base
   .use(requiredAuthMiddleware)
@@ -78,19 +92,23 @@ export const createWorkspaceCheckout = base
       })
     }
 
+    const canManageBilling = await hasBillingManagerAccess({
+      workspaceId: context.workspace.id,
+      userId: context.user.id,
+    })
+
+    if (!canManageBilling) {
+      throw errors.FORBIDDEN({
+        message: "WORKSPACE_BILLING_MANAGER_REQUIRED",
+      })
+    }
+
     try {
-      return await createOrganizationCheckout(context.workspace.id)
+      return await createOrganizationCheckout({
+        organizationId: context.workspace.id,
+        initiatedByUserId: context.user.id,
+      })
     } catch (error) {
-      if (error instanceof Error && error.message === "Unauthorized") {
-        throw errors.UNAUTHORIZED()
-      }
-
-      if (error instanceof Error && error.message === "Forbidden") {
-        throw errors.FORBIDDEN({
-          message: "WORKSPACE_BILLING_MANAGER_REQUIRED",
-        })
-      }
-
       console.error("Failed to create workspace checkout", error)
 
       throw errors.INTERNAL_SERVER_ERROR({
@@ -118,20 +136,22 @@ export const createWorkspacePortal = base
         message: "NO_WORKSPACE",
       })
     }
+    const canManageBilling = await hasBillingManagerAccess({
+      workspaceId: context.workspace.id,
+      userId: context.user.id,
+    })
 
+    if (!canManageBilling) {
+      throw errors.FORBIDDEN({
+        message: "WORKSPACE_BILLING_MANAGER_REQUIRED",
+      })
+    }
     try {
-      return await createOrganizationPortalSession(context.workspace.id)
+      return await createOrganizationPortalSession({
+        organizationId: context.workspace.id,
+        externalMemberId: context.user.id,
+      })
     } catch (error) {
-      if (error instanceof Error && error.message === "Unauthorized") {
-        throw errors.UNAUTHORIZED()
-      }
-
-      if (error instanceof Error && error.message === "Forbidden") {
-        throw errors.FORBIDDEN({
-          message: "WORKSPACE_BILLING_MANAGER_REQUIRED",
-        })
-      }
-
       console.error("Failed to create workspace billing portal session", error)
 
       throw errors.INTERNAL_SERVER_ERROR({
