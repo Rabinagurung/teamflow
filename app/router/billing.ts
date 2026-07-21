@@ -34,15 +34,11 @@ export const getWorkspaceBilling = base
   .use(readSecurityMiddleware)
   .route({
     method: "GET",
-    path: "/workspace/billing",
+    path: "/billing",
     summary: "Get workspace billing",
-    tags: ["workspace", "billing"],
+    tags: ["billing"],
   })
-  .input(
-    z.object({
-      workspaceId: z.string(),
-    }),
-  )
+  .input(workspaceBillingInputSchema)
   .output(workspaceBillingOutputSchema)
   .handler(async ({ context, input, errors }) => {
     if (context.workspace.id !== input.workspaceId) {
@@ -69,9 +65,9 @@ export const createWorkspaceCheckout = base
   .use(writeSecurityMiddleware)
   .route({
     method: "POST",
-    path: "/workspace/billing/checkout",
+    path: "/billing/checkout",
     summary: "Create worksapce checkout session",
-    tags: ["workspace", "billing"],
+    tags: ["billing"],
   })
   .input(workspaceBillingInputSchema)
   .output(workspaceBillingActionOutputSchema)
@@ -110,9 +106,9 @@ export const createWorkspacePortal = base
   .use(writeSecurityMiddleware)
   .route({
     method: "POST",
-    path: "/workspace/billing/portal",
+    path: "/billing/portal",
     summary: "Create workspace billing portal session",
-    tags: ["workspace", "billing"],
+    tags: ["billing"],
   })
   .input(workspaceBillingInputSchema)
   .output(workspaceBillingActionOutputSchema)
