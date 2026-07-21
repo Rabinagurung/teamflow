@@ -20,11 +20,22 @@ import { ProfileUpdateForm } from "./_components/profile-update-form"
 import SessionManagement from "./_components/session-management"
 import { SetPasswordButton } from "./_components/set-password-form"
 import { SettingsPageFocusRefresh } from "./_components/SettingsPageFocusRefresh"
+import { requireRouteAdminWorkspace } from "@/lib/workspace/admin-workspace.server"
 
 const settingsCardClassName =
   "overflow-hidden rounded-[26px] border border-border/80 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.35)]"
 
-export default async function AdminSettingsPage() {
+type AdminSettingsPageProps = {
+  params: Promise<{ workspaceId: string }>
+}
+
+export default async function AdminSettingsPage({
+  params,
+}: AdminSettingsPageProps) {
+  const { workspaceId } = await params
+
+  const access = await requireRouteAdminWorkspace(workspaceId)
+
   const headerList = await headers()
   const session = await auth.api.getSession({ headers: headerList })
 
@@ -33,7 +44,7 @@ export default async function AdminSettingsPage() {
   return (
     <AdminPageShell
       title="Account settings"
-      description="Manage your profile, sign-in methods, active sessions, and password security."
+      description={`Manage your profile, sign-in methods, active sessions, and password security while administering ${access.workspace.name}.`}
       framed={false}
     >
       <SettingsPageFocusRefresh />

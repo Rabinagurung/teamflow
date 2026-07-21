@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { authClient } from "@/lib/auth/auth-client"
 
 import { PlanKey, POLAR_PLANS } from "@/lib/billing/plans"
 import { orpc } from "@/lib/orpc/orpc"
@@ -25,16 +24,6 @@ import {
 } from "lucide-react"
 import { useEffect } from "react"
 import { toast } from "sonner"
-
-// type BillingStatus = "free" | "active" | "trailing" | "canceled"
-
-// type OrganizationBillingResponse = {
-//   organizationId: string
-//   plan: PlanKey
-//   status: BillingStatus
-//   currentPeriodEnd: string | null
-//   cancelAtPeriodEnd: boolean
-// }
 
 const PLAN_ORDER: PlanKey[] = ["free", "pro"]
 
@@ -123,24 +112,18 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 })
 
-export const SubscriptionsTab = () => {
-  const { data: activeOrganization } = authClient.useActiveOrganization()
+type SubscriptionsTabProps = {
+  workspaceId: string
+}
 
+export const SubscriptionsTab = ({ workspaceId }: SubscriptionsTabProps) => {
   const billingQuery = useQuery({
     ...orpc.workspace.billing.get.queryOptions({
       input: {
-        workspaceId: activeOrganization?.id ?? "",
+        workspaceId,
       },
     }),
-    enabled: !!activeOrganization?.id,
   })
-
-  //console.log({ activeOrganization });
-
-  // const [billing, setBilling] = useState<OrganizationBillingResponse | null>(
-  //   null,
-  // )
-  // const [isLoading, setIsLoading] = useState(false)
 
   const billing = billingQuery.data ?? null
   const isLoading = billingQuery.isLoading
@@ -156,46 +139,6 @@ export const SubscriptionsTab = () => {
     -> insert free billing row
     -> return free billing row
    */
-  // useEffect(() => {
-  //   if (!activeOrganization) {
-  //     setBilling(null)
-  //     setIsLoading(false)
-  //     return
-  //   }
-  //   let cancelled = false
-  //   setIsLoading(true)
-
-  //   void fetch(`/api/organizations/${activeOrganization.id}/billing`)
-  //     .then(async (response) => {
-  //       const data = await readJsonSafely<OrganizationBillingResponse>(response)
-  //       if (!response.ok || !data) {
-  //         throw new Error("Failed to load billing")
-  //       }
-
-  //       //console.log({ data })
-
-  //       if (!cancelled) {
-  //         setBilling(data)
-  //         //console.log({ data })
-  //       }
-  //     })
-  //     .catch(() => {
-  //       if (!cancelled) {
-  //         setBilling(null)
-  //         toast.error("Failed to load billing")
-  //       }
-  //     })
-  //     .finally(() => {
-  //       if (!cancelled) {
-  //         setIsLoading(false)
-  //       }
-  //     })
-
-  //   return () => {
-  //     cancelled = true
-  //   }
-  // }, [activeOrganization])
-
   useEffect(() => {
     if (billingQuery.error) {
       toast.error("Failed to load billing")
@@ -224,13 +167,9 @@ export const SubscriptionsTab = () => {
 -> frontend redirects with window.location.href = data.url
    */
   async function handleUpgrade() {
-    if (!activeOrganization) {
-      return { error: { message: "No active organization" } }
-    }
-
     try {
       const response = await fetch(
-        `/api/organizations/${activeOrganization.id}/billing/checkout`,
+        `/api/organizations/${workspaceId}/billing/checkout`,
         { method: "POST" },
       )
 
@@ -257,14 +196,10 @@ export const SubscriptionsTab = () => {
   }
 
   async function handleManageBilling() {
-    if (!activeOrganization) {
-      return { error: { message: "No active organization" } }
-    }
-
     try {
       //console.log("MANAGE BILLING")
       const response = await fetch(
-        `/api/organizations/${activeOrganization.id}/billing/portal`,
+        `/api/organizations/${workspaceId}/billing/portal`,
         { method: "POST" },
       )
       //console.log({ response })
@@ -300,10 +235,6 @@ export const SubscriptionsTab = () => {
       <Card>
         <CardHeader>
           <CardTitle>Current Plan</CardTitle>
-          {/* <CardDescription>
-            Billing is managed at the organization level and inherited by all
-            members.
-          </CardDescription> */}
         </CardHeader>
 
         <CardContent className="flex items-start justify-between gap-4">

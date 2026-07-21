@@ -2,6 +2,7 @@ import prisma from "@/lib/db"
 import AdminInvitationsTabs from "../_components/AdminInvitationsTabs"
 import AdminPageShell from "../_components/AdminPageShell"
 import InvitePeopleButton from "../_components/InvitePeopleButton"
+import { requireRouteAdminWorkspace } from "@/lib/workspace/admin-workspace.server"
 
 type AdminInvitationsPageProps = {
   params: Promise<{ workspaceId: string }>
@@ -9,10 +10,11 @@ type AdminInvitationsPageProps = {
 
 const AdminInvitationsPage = async ({ params }: AdminInvitationsPageProps) => {
   const { workspaceId } = await params
+  const access = await requireRouteAdminWorkspace(workspaceId)
 
   const invitations = await prisma.invitation.findMany({
     where: {
-      organizationId: workspaceId,
+      organizationId: access.workspace.id,
     },
     orderBy: {
       createdAt: "desc",
