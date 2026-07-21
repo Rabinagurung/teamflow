@@ -1,6 +1,5 @@
-import { auth } from "@/lib/auth/auth"
+import { workspaceMemberRoleSchema } from "@/app/schemas/workspace"
 import prisma from "@/lib/db"
-import { headers } from "next/headers"
 
 /** Goal: restrict billing actions to org owner/admin.
  *
@@ -17,37 +16,50 @@ Billing actions cannot be run by regular members.
 The helper returns the session/user for later service methods.
 
  */
-export async function requireOrganizationMember(organizationId: string) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) throw new Error("Unauthorized")
 
+type OrganizationAccessParams = {
+  organizationId: string
+  userId: string
+}
+
+export async function getOrganizationMemberRole({
+  organizationId,
+  userId,
+}: OrganizationAccessParams) {
   const membership = await prisma.member.findUnique({
     where: {
       organizationId_userId: {
         organizationId,
-        userId: session.user.id,
+        userId,
       },
+    },
+    select: {
+      role: true,
     },
   })
 
   if (!membership) {
-    throw new Error("Forbidden")
+    return null
   }
 
-  return { session, membership }
+  const roleResult = workspaceMemberRoleSchema.safeParse(membership.role)
+
+  if (!roleResult.success) {
+    return null
+  }
+
+  return roleResult.data
 }
 
-export async function requireOrganizationBillingManager(
-  organizationId: string,
+export async function isOrganizationMember(params: OrganizationAccessParams) {
+  const role = await getOrganizationMemberRole(params)
+  return role !== null
+}
+
+export async function canManageOrganizationBilling(
+  params: OrganizationAccessParams,
 ) {
-  const { session, membership } =
-    await requireOrganizationMember(organizationId)
+  const role = await getOrganizationMemberRole(params)
 
-  console.log(session, membership)
-
-  if (!["owner", "admin"].includes(membership.role)) {
-    throw new Error("Forbidden")
-  }
-
-  return session
+  return role === "owner" || role === "admin"
 }

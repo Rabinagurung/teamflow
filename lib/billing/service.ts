@@ -1,6 +1,5 @@
 import "server-only"
 
-import { requireOrganizationBillingManager } from "./guards"
 import {
   ensureOrganizationBillingRow,
   updateOrganizationBillingManager,
@@ -10,10 +9,6 @@ import { ensurePolarTeamCustomer } from "./polar-customer"
 import { POLAR_PRODUCT_IDS } from "./polar-products"
 import { syncOrganizationBillingFromPolar } from "./sync"
 
-export async function getOrganizationBillingState(organizationId: string) {
-  return ensureOrganizationBillingRow(organizationId)
-}
-
 /**
  service.ts is correctly acting as the orchestration layer. 
  It does not own low-level DB details anymore. 
@@ -22,12 +17,19 @@ export async function getOrganizationBillingState(organizationId: string) {
  ensure team customer, create checkout for externalCustomerId: organizationId, 
  store billingManagerUserId, return checkout URL.
  */
-export async function createOrganizationCheckout(organizationId: string) {
-  //Ensures the current user is owner/admim of this organization.
-  const session = await requireOrganizationBillingManager(organizationId)
-  // console.log({ session })
-  // console.log("requireOrganizationBillingManager passed")
+export async function getOrganizationBillingState(organizationId: string) {
+  return ensureOrganizationBillingRow(organizationId)
+}
 
+type CreateOrganizationCheckoutParams = {
+  organizationId: string
+  initiatedByUserId: string
+}
+
+export async function createOrganizationCheckout({
+  organizationId,
+  initiatedByUserId,
+}: CreateOrganizationCheckoutParams) {
   //Enusres polar team customer exists -> returns orgBilligRow with polar.customer.id.
   //Or creates new polar team customer for this orgId -> Updates -> returns orgBilligRow with polar customer Id
   // const orgBillingRowAfterPolarTeamCustomer =
@@ -68,22 +70,28 @@ export async function createOrganizationCheckout(organizationId: string) {
     returnUrl: `${process.env.BETTER_AUTH_URL}/admin/${organizationId}/billing`,
     metadata: {
       organizationId,
-      initiatedByUserId: session.user.id,
+      initiatedByUserId,
     },
   })
 
   //Updates orgBilligRow with billingManagerUserId = userId
   await updateOrganizationBillingManager({
     organizationId,
-    userId: session.user.id,
+    userId: initiatedByUserId,
   })
 
   return { url: checkout.url }
 }
 
-export async function createOrganizationPortalSession(organizationId: string) {
-  const session = await requireOrganizationBillingManager(organizationId)
+type CreateOrganizationPortalSessionParams = {
+  organizationId: string
+  externalMemberId: string
+}
 
+export async function createOrganizationPortalSession({
+  organizationId,
+  externalMemberId,
+}: CreateOrganizationPortalSessionParams) {
   const billing = await ensurePolarTeamCustomer(organizationId)
 
   if (!billing?.polarCustomerId) {
@@ -97,29 +105,9 @@ export async function createOrganizationPortalSession(organizationId: string) {
    */
   const customerSession = await polarClient.customerSessions.create({
     customerId: billing.polarCustomerId,
-    externalMemberId: session.user.id,
+    externalMemberId,
     returnUrl: `${process.env.BETTER_AUTH_URL}/admin/${organizationId}/billing?portal=return`,
   })
 
   return { url: customerSession.customerPortalUrl }
 }
-
-// export async function markWebhookProcessed(
-//   eventId: string,
-//   type: string,
-//   payload: string
-// ) {
-//   const existing = await db.query.polarWebhookEvent.findFirst({
-//     where: eq(polarWebhookEvent.id, eventId),
-//   });
-
-//   if (existing) return false;
-
-//   await db.insert(polarWebhookEvent).values({
-//     id: eventId,
-//     type,
-//     payload,
-//   });
-
-//   return true;
-// }

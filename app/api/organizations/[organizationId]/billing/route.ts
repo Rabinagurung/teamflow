@@ -1,5 +1,7 @@
-import { requireOrganizationMember } from "@/lib/billing/guards"
+import { auth } from "@/lib/auth/auth"
+import { isOrganizationMember } from "@/lib/billing/guards"
 import { getOrganizationBillingState } from "@/lib/billing/service"
+import { headers } from "next/headers"
 
 function errorResponse(error: unknown) {
   if (error instanceof Error && error.message === "Unauthorized") {
@@ -23,8 +25,22 @@ export async function GET(
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+
+    if (!session) {
+      throw new Error("Unauthorized")
+    }
+
     const { organizationId } = await params
-    await requireOrganizationMember(organizationId)
+    const isMember = await isOrganizationMember({
+      organizationId,
+      userId: session.user.id,
+    })
+
+    if (!isMember) {
+      throw new Error("Forbidden")
+    }
+
     const billing = await getOrganizationBillingState(organizationId)
     return Response.json(billing)
   } catch (error) {
