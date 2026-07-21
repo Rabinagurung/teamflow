@@ -66,7 +66,7 @@ export const createWorkspaceCheckout = base
   .route({
     method: "POST",
     path: "/billing/checkout",
-    summary: "Create worksapce checkout session",
+    summary: "Create workspace checkout session",
     tags: ["billing"],
   })
   .input(workspaceBillingInputSchema)
