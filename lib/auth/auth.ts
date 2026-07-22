@@ -15,10 +15,11 @@ import { markPolarWebhookProcessed } from "../billing/polar-webhooks.repository"
 import { syncWorkspaceBillingFromPolar } from "../billing/billing-sync.service"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function extractOrganizationId(payload: any): string | null {
+function extractWorkspaceId(payload: any): string | null {
   return (
     payload?.data?.externalCustomerId ??
     payload?.data?.customer?.externalId ??
+    payload?.data?.metadata?.workspaceId ??
     payload?.data?.metadata?.organizationId ??
     null
   )
@@ -78,23 +79,23 @@ export const auth = betterAuth({
         webhooks({
           secret: process.env.POLAR_WEBHOOK_SECRET!,
           onPayload: async (payload) => {
-            console.log("HHHHHHHHHHHHHHHHHHHH")
-            console.log({ payload })
+            // console.log("HHHHHHHHHHHHHHHHHHHH")
+            // console.log({ payload })
             if (!shouldSyncBillingForPolarWebhook(payload)) {
               return
             }
 
             console.log("should Sync billing passed")
 
-            const organizationId = extractOrganizationId(payload)
+            const workspaceId = extractWorkspaceId(payload)
 
-            if (!organizationId) {
+            if (!workspaceId) {
               return
             }
 
-            console.log("Organization PRESENT")
+            // console.log("Organization PRESENT")
             const eventId = getPolarWebhookEventID(payload)
-            console.log("onPayload eventId", eventId)
+            // console.log("onPayload eventId", eventId)
 
             if (eventId) {
               /**
@@ -119,7 +120,7 @@ export const auth = betterAuth({
               if (!processed) return
             }
 
-            await syncWorkspaceBillingFromPolar(organizationId)
+            await syncWorkspaceBillingFromPolar(workspaceId)
           },
         }),
       ],

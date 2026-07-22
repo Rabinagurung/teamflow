@@ -64,7 +64,7 @@ export const getWorkspaceBilling = base
     const billing = await getWorkspaceBillingState(context.workspace.id)
 
     return {
-      workspaceId: billing.organizationId,
+      workspaceId: context.workspace.id,
       plan: billing.plan,
       status: billing.status,
       currentPeriodEnd: billing.currentPeriodEnd?.toISOString() ?? null,
