@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import { getOnboardingErrorMessage } from "../_components/get-onboarding-error-message"
 import { Button } from "@/components/ui/button"
+import OnboardingProcessingState from "../_components/OnboardingProcessingState"
 
 export default function OnboardingSuccessPage() {
   const router = useRouter()
@@ -36,38 +37,40 @@ export default function OnboardingSuccessPage() {
 
   if (isError) {
     return (
-      <main className="grid min-h-screen place-items-center bg-background p-6 text-foreground">
-        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-xl shadow-primary/10">
-          <div className="mx-auto mb-5 size-12 rounded-2xl bg-destructive/10" />
-          <p className="text-lg font-semibold">
-            We couldn&apos;t finish your TeamFlow setup
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {getOnboardingErrorMessage(
-              error,
-              "We couldn't finish setting up your workspace. Please try again.",
-            )}
-          </p>
+      <main className="min-h-screen bg-background p-4 text-foreground sm:p-5">
+        <div className="min-h-[calc(100vh-32px)] overflow-hidden rounded-2xl border border-border bg-secondary/60 shadow-2xl shadow-primary/10 sm:min-h-[calc(100vh-40px)]">
+          <section className="flex min-h-[calc(100vh-32px)] items-center justify-center px-4 py-10 sm:min-h-[calc(100vh-40px)] sm:px-10 lg:px-16">
+            <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-6 shadow-xl shadow-primary/5 sm:p-8">
+              <div className="mx-auto flex max-w-md flex-col items-center text-center">
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                  We couldn&apos;t finish your TeamFlow setup
+                </h1>
 
-          <div className="mt-6 flex justify-center">
-            <Button onClick={handleRetry}>Try again</Button>
-          </div>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                  {getOnboardingErrorMessage(
+                    error,
+                    "We couldn't finish setting up your workspace. Please try again.",
+                  )}
+                </p>
+
+                <div className="mt-8 flex w-full justify-center">
+                  <Button onClick={handleRetry} className="min-w-36">
+                    Try again
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-background p-6 text-foreground">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-xl shadow-primary/10">
-        <div className="mx-auto mb-5 size-12 rounded-2xl bg-accent" />
-        <p className="text-lg font-semibold">
-          Finishing your TeamFlow setup...
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          We&apos;re getting your workspace ready.
-        </p>
-      </div>
-    </main>
+    <OnboardingProcessingState
+      eyebrow="Confirming your upgrade"
+      title="Finishing your TeamFlow setup..."
+      description="We’re confirming your Pro workspace and getting everything ready for your first session."
+    />
   )
 }
