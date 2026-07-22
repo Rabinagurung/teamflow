@@ -14,14 +14,15 @@ import {
   updateMessage,
 } from "./message"
 import {
+  completeOnboardingProPlan,
+  createOnboardingWorkspace,
   getAppEntry,
   getOnboardingState,
   saveOnboardingProfile,
-  createOnboardingWorkspace,
-  submitOnboardingInvites,
   skipOnboardingInvites,
   startOnboardingFreePlan,
-  completeOnboardingProPlan,
+  startOnboardingProPlan,
+  submitOnboardingInvites,
 } from "./onboarding"
 import {
   createWorkspace,
@@ -96,6 +97,7 @@ export const router = {
     },
     billing: {
       startFree: startOnboardingFreePlan,
+      startPro: startOnboardingProPlan,
       completePro: completeOnboardingProPlan,
     },
   },

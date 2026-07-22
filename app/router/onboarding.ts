@@ -1,6 +1,10 @@
 import { auth } from "@/lib/auth/auth"
-import { polarClient } from "@/lib/billing/polar.gateway"
 
+import {
+  activateWorkspaceFreePlan,
+  confirmWorkspaceProPlan,
+  createWorkspaceCheckoutSession,
+} from "@/lib/billing/workspace-billing.service"
 import prisma from "@/lib/db"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
@@ -708,41 +712,51 @@ export const startOnboardingFreePlan = base
       throw errors.FORBIDDEN({ message: "No onboarding workspace found" })
     }
 
-    const now = new Date()
-    // console.log("startOnboardingFreePlan procedure: ", { now })
-    const trialEndsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-    // console.log("startOnboardingFreePlan procedure : ", { trialEndsAt })
+    await activateWorkspaceFreePlan(workspace.id)
 
-    await prisma.$transaction([
-      prisma.organization.update({
-        where: { id: workspace.id },
-        data: {
-          metadata: mergeMetadata(workspace.metadata, {
-            billing: {
-              plan: "free",
-              status: "trialing",
-              trialStartedAt: now.toISOString(),
-              trialEndsAt: trialEndsAt.toISOString(),
-            },
-          }),
-        },
-      }),
-
-      prisma.onboardingState.update({
-        where: {
-          userId: context.user.id,
-        },
-        data: {
-          hasCompletedBilling: true,
-          currentStep: null,
-        },
-      }),
-    ])
+    await prisma.onboardingState.update({
+      where: {
+        userId: context.user.id,
+      },
+      data: {
+        hasCompletedBilling: true,
+        currentStep: null,
+      },
+    })
 
     return {
       workspaceId: workspace.id,
       redirectTo: `/workspace/${workspace.id}`,
     }
+  })
+
+export const startOnboardingProPlan = base
+  .use(requiredAuthMiddleware)
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .route({
+    method: "POST",
+    path: "/onboarding/billing/pro/start",
+    summary: "Start paid onboarding with workspace checkout",
+    tags: ["onboarding"],
+  })
+  .input(z.void())
+  .output(z.object({ url: z.string() }))
+  .handler(async ({ context, errors }) => {
+    const workspace = await getOnboardingWorkspace(context.user.id)
+
+    if (!workspace) {
+      throw errors.FORBIDDEN({
+        message: "No onboarding workspace found",
+      })
+    }
+
+    return createWorkspaceCheckoutSession({
+      workspaceId: workspace.id,
+      initiatedByUserId: context.user.id,
+      successUrl: `${process.env.BETTER_AUTH_URL}/onboarding/success`,
+      returnUrl: `${process.env.BETTER_AUTH_URL}/onboarding/billing`,
+    })
   })
 
 export const completeOnboardingProPlan = base
@@ -764,53 +778,21 @@ export const completeOnboardingProPlan = base
       throw errors.FORBIDDEN({ message: "No onboarding workspace found" })
     }
 
-    let customerState: Awaited<
-      ReturnType<typeof polarClient.customers.getStateExternal>
-    >
+    const billing = await confirmWorkspaceProPlan(workspace.id)
 
-    try {
-      customerState = await polarClient.customers.getStateExternal({
-        externalId: context.user.id,
-      })
-    } catch (error) {
-      console.error("Failed to load Polar customer state", error)
-
-      throw errors.INTERNAL_SERVER_ERROR({
-        message: "Unable to verify Polar subscription.",
-      })
-    }
-
-    const activeSubscription = customerState.activeSubscriptions[0]
-
-    if (!activeSubscription) {
+    if (!billing || billing.plan !== "pro") {
       throw errors.BAD_REQUEST({
         message: "No active Polar subscription found",
       })
     }
 
-    await prisma.$transaction([
-      prisma.organization.update({
-        where: { id: workspace.id },
-        data: {
-          metadata: mergeMetadata(workspace.metadata, {
-            billing: {
-              plan: "pro",
-              status: "active",
-              activatedAt: new Date().toISOString(),
-              polarCustomerId: customerState.id,
-              polarSubscriptionId: activeSubscription.id,
-            },
-          }),
-        },
-      }),
-      prisma.onboardingState.update({
-        where: { userId: context.user.id },
-        data: {
-          hasCompletedBilling: true,
-          currentStep: null,
-        },
-      }),
-    ])
+    await prisma.onboardingState.update({
+      where: { userId: context.user.id },
+      data: {
+        hasCompletedBilling: true,
+        currentStep: null,
+      },
+    })
 
     return {
       workspaceId: workspace.id,
