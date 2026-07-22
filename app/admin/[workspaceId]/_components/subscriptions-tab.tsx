@@ -202,7 +202,7 @@ export const SubscriptionsTab = ({ workspaceId }: SubscriptionsTabProps) => {
   async function handleUpgrade() {
     try {
       const result = await checkoutMutation.mutateAsync({ workspaceId })
-      //console.log({ result })
+      console.log({ result })
 
       //url: 'https://sandbox.polar.sh/checkout/polar_c_7bdB0bFkieXMC7njkv8jotxCMstTjBFHKDPdg12BLuf'
       //takes the user to polarcheck out url
