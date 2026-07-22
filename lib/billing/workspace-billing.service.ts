@@ -6,6 +6,7 @@ import { POLAR_PRODUCT_IDS } from "./polar-products"
 import { polarClient } from "./polar.gateway"
 import {
   ensureWorkspaceBillingRow,
+  setWorkspaceBillingFreeState,
   updateWorkspaceBillingManager,
 } from "./workspace-billing.repository"
 
@@ -21,12 +22,33 @@ export async function getWorkspaceBillingState(workspaceId: string) {
   return ensureWorkspaceBillingRow(workspaceId)
 }
 
+export async function activateWorkspaceFreePlan(workspaceId: string) {
+  await ensureWorkspaceBillingRow(workspaceId)
+  return setWorkspaceBillingFreeState(workspaceId)
+}
+
+export async function confirmWorkspaceProPlan(workspaceId: string) {
+  const syncedBilling = await syncWorkspaceBillingFromPolar(workspaceId)
+
+  if (syncedBilling?.plan === "pro") {
+    return syncedBilling
+  }
+
+  const latestBilling = await getWorkspaceBillingState(workspaceId)
+
+  return latestBilling.plan === "pro" ? latestBilling : null
+}
+
 export async function createWorkspaceCheckoutSession({
   workspaceId,
   initiatedByUserId,
+  successUrl,
+  returnUrl,
 }: {
   workspaceId: string
   initiatedByUserId: string
+  successUrl?: string
+  returnUrl?: string
 }) {
   //Enusres polar team customer exists -> returns orgBilligRow with polar.customer.id.
   //Or creates new polar team customer for this orgId -> Updates -> returns orgBilligRow with polar customer Id
@@ -35,9 +57,16 @@ export async function createWorkspaceCheckoutSession({
 
   const billing = await syncWorkspaceBillingFromPolar(workspaceId)
 
+  const resolvedSuccessUrl =
+    successUrl ??
+    `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing?checkout=success`
+
+  const resolvedReturnUrl =
+    returnUrl ?? `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing`
+
   if (billing?.plan === "pro") {
     return {
-      url: `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing`,
+      url: resolvedSuccessUrl,
     }
   }
 
@@ -62,8 +91,8 @@ export async function createWorkspaceCheckoutSession({
   const checkout = await polarClient.checkouts.create({
     externalCustomerId: workspaceId,
     products: [POLAR_PRODUCT_IDS.pro],
-    successUrl: `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing?checkout=success`,
-    returnUrl: `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing`,
+    successUrl: resolvedSuccessUrl,
+    returnUrl: resolvedReturnUrl,
     metadata: {
       workspaceId,
       initiatedByUserId,

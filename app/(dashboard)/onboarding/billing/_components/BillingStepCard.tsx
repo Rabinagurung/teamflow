@@ -76,36 +76,25 @@ const BillingStepCard = () => {
     }),
   )
 
-  const [startingCheckout, setStartingCheckout] = useState(false)
+  const startProMutation = useMutation(
+    orpc.onboarding.billing.startPro.mutationOptions({
+      onSuccess: ({ url }) => {
+        window.location.href = url
+      },
+      onError: (error) =>
+        toast.error(error.message || "Unable to start checkout"),
+    }),
+  )
+
+  // const [startingCheckout, setStartingCheckout] = useState(false)
+
+  const isSubmitting = freeMutation.isPending || startProMutation.isPending
+
   const activeFeature = useMemo(
     () =>
       FEATURES.find((feature) => feature.id === selectedFeature) ?? FEATURES[3],
     [selectedFeature],
   )
-  // const startPro = async () => {
-  //   if (!data.state.workspaceId) {
-  //     toast.error("Create a workspace before starting checkout")
-  //     return
-  //   }
-
-  //   setStartingCheckout(true)
-
-  //   try {
-  //     await authClient.checkout({
-  //       slug: "pro",
-  //       referenceId: data.state.workspaceId,
-  //       metadata: {
-  //         workspaceId: data.state.workspaceId,
-  //         flow: "onboarding",
-  //       },
-  //     })
-  //   } catch (error) {
-  //     toast.error(
-  //       error instanceof Error ? error.message : "Unable to start checkout",
-  //     )
-  //     setStartingCheckout(false)
-  //   }
-  // }
 
   return (
     <OnboardingShell
@@ -164,11 +153,13 @@ const BillingStepCard = () => {
                 </div>
                 <Button
                   size="lg"
-                  disabled={freeMutation.isPending || startingCheckout}
-                  onClick={() => "StartPro"}
+                  disabled={isSubmitting}
+                  onClick={() => startProMutation.mutate()}
                   className="h-12 w-full rounded-xl bg-accent text-base font-semibold text-accent-foreground hover:bg-accent/90"
                 >
-                  {startingCheckout ? "Opening checkout..." : "Start with Pro"}
+                  {startProMutation.isPending
+                    ? "Opening checkout..."
+                    : "Start with Pro"}
                 </Button>
               </CardContent>
             </Card>
@@ -176,7 +167,7 @@ const BillingStepCard = () => {
             <Button
               size="lg"
               variant="secondary"
-              disabled={freeMutation.isPending || startingCheckout}
+              disabled={isSubmitting}
               onClick={() => freeMutation.mutate()}
               className="h-12 w-full  rounded-xl text-base font-semibold"
             >
