@@ -18,6 +18,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
+import OnboardingProcessingState from "../../_components/OnboardingProcessingState"
 
 const FEATURES = [
   {
@@ -86,8 +87,6 @@ const BillingStepCard = () => {
     }),
   )
 
-  // const [startingCheckout, setStartingCheckout] = useState(false)
-
   const isSubmitting = freeMutation.isPending || startProMutation.isPending
 
   const activeFeature = useMemo(
@@ -95,6 +94,16 @@ const BillingStepCard = () => {
       FEATURES.find((feature) => feature.id === selectedFeature) ?? FEATURES[3],
     [selectedFeature],
   )
+
+  if (freeMutation.isPending) {
+    return (
+      <OnboardingProcessingState
+        eyebrow="Starting your workspace"
+        title="Activating your free workspace..."
+        description="We’re applying your plan and taking you into TeamFlow now."
+      />
+    )
+  }
 
   return (
     <OnboardingShell
