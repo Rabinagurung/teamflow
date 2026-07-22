@@ -1,23 +1,23 @@
+import { canManageWorkspaceBilling } from "@/lib/billing/guards"
+import {
+  createWorkspaceCheckoutSession,
+  createWorkspacePortalSession,
+  getWorkspaceBillingState,
+} from "@/lib/billing/workspace-billing.service"
 import { z } from "zod"
 import { readSecurityMiddleware } from "../middlewares/arcjet/read"
 import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
+import { writeSecurityMiddleware } from "../middlewares/arcjet/write"
 import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
 import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
-import {
-  createOrganizationCheckout,
-  createOrganizationPortalSession,
-  getOrganizationBillingState,
-} from "@/lib/billing/service"
-import { writeSecurityMiddleware } from "../middlewares/arcjet/write"
-import { canManageOrganizationBilling } from "@/lib/billing/guards"
 
 const workspaceBillingInputSchema = z.object({
   workspaceId: z.string(),
 })
 
 const workspaceBillingOutputSchema = z.object({
-  organizationId: z.string(),
+  workspaceId: z.string(),
   plan: z.enum(["free", "pro"]),
   status: z.enum(["free", "active", "trailing", "canceled"]),
   currentPeriodEnd: z.string().nullable(),
@@ -35,8 +35,8 @@ async function hasBillingManagerAccess({
   workspaceId: string
   userId: string
 }) {
-  return canManageOrganizationBilling({
-    organizationId: workspaceId,
+  return canManageWorkspaceBilling({
+    workspaceId,
     userId,
   })
 }
@@ -61,10 +61,10 @@ export const getWorkspaceBilling = base
       })
     }
 
-    const billing = await getOrganizationBillingState(context.workspace.id)
+    const billing = await getWorkspaceBillingState(context.workspace.id)
 
     return {
-      organizationId: billing.organizationId,
+      workspaceId: billing.organizationId,
       plan: billing.plan,
       status: billing.status,
       currentPeriodEnd: billing.currentPeriodEnd?.toISOString() ?? null,
@@ -104,8 +104,8 @@ export const createWorkspaceCheckout = base
     }
 
     try {
-      return await createOrganizationCheckout({
-        organizationId: context.workspace.id,
+      return await createWorkspaceCheckoutSession({
+        workspaceId: context.workspace.id,
         initiatedByUserId: context.user.id,
       })
     } catch (error) {
@@ -147,8 +147,8 @@ export const createWorkspacePortal = base
       })
     }
     try {
-      return await createOrganizationPortalSession({
-        organizationId: context.workspace.id,
+      return await createWorkspacePortalSession({
+        workspaceId: context.workspace.id,
         externalMemberId: context.user.id,
       })
     } catch (error) {

@@ -1,47 +1,43 @@
 import "server-only"
 
-import {
-  ensureOrganizationBillingRow,
-  updateOrganizationBillingManager,
-} from "./organization-billing.repository"
-import { polarClient } from "./polar"
-import { ensurePolarTeamCustomer } from "./polar-customer"
+import { syncWorkspaceBillingFromPolar } from "./billing-sync.service"
+import { ensurePolarTeamCustomer } from "./polar-customer.service"
 import { POLAR_PRODUCT_IDS } from "./polar-products"
-import { syncOrganizationBillingFromPolar } from "./sync"
+import { polarClient } from "./polar.gateway"
+import {
+  ensureWorkspaceBillingRow,
+  updateWorkspaceBillingManager,
+} from "./workspace-billing.repository"
 
 /**
  service.ts is correctly acting as the orchestration layer. 
  It does not own low-level DB details anymore. 
  
  Checkout flow is clean: require owner/admin,
- ensure team customer, create checkout for externalCustomerId: organizationId, 
+ ensure team customer, create checkout for externalCustomerId: workspaceId, 
  store billingManagerUserId, return checkout URL.
  */
-export async function getOrganizationBillingState(organizationId: string) {
-  return ensureOrganizationBillingRow(organizationId)
+export async function getWorkspaceBillingState(workspaceId: string) {
+  return ensureWorkspaceBillingRow(workspaceId)
 }
 
-type CreateOrganizationCheckoutParams = {
-  organizationId: string
-  initiatedByUserId: string
-}
-
-export async function createOrganizationCheckout({
-  organizationId,
+export async function createWorkspaceCheckoutSession({
+  workspaceId,
   initiatedByUserId,
-}: CreateOrganizationCheckoutParams) {
+}: {
+  workspaceId: string
+  initiatedByUserId: string
+}) {
   //Enusres polar team customer exists -> returns orgBilligRow with polar.customer.id.
   //Or creates new polar team customer for this orgId -> Updates -> returns orgBilligRow with polar customer Id
   // const orgBillingRowAfterPolarTeamCustomer =
-  await ensurePolarTeamCustomer(organizationId)
-  // console.log({ orgBillingRowAfterPolarTeamCustomer })
-  // console.log("ensurePolarTeamCustomer passed")
+  await ensurePolarTeamCustomer(workspaceId)
 
-  const billing = await syncOrganizationBillingFromPolar(organizationId)
+  const billing = await syncWorkspaceBillingFromPolar(workspaceId)
 
   if (billing?.plan === "pro") {
     return {
-      url: `${process.env.BETTER_AUTH_URL}/admin/${organizationId}/billing`,
+      url: `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing`,
     }
   }
 
@@ -50,7 +46,7 @@ export async function createOrganizationCheckout({
 
    At this moment: await polarClient.checkouts.create(): 
     -> Polar has created a checkout URL.
-    -> The checkout is associated with the org customer using externalCustomerId: organizationId.
+    -> The checkout is associated with the org customer using externalCustomerId: workspaceId.
     -> The product being offered is Pro because of products: [POLAR_PRODUCT_IDS.pro].
     -> The user has not paid yet.
     -> Your local organization_billing.plan should still be free.
@@ -60,39 +56,37 @@ export async function createOrganizationCheckout({
     -> user completes payment/subscription in Polar
     -> Polar creates/activates subscription
     -> Polar sends webhook to your app
-    -> syncOrganizationBillingFromPolar(organizationId) runs
+    -> syncOrganizationBillingFromPolar(workspaceId) runs
     -> your DB updates organization_billing.plan = "pro"
    */
   const checkout = await polarClient.checkouts.create({
-    externalCustomerId: organizationId,
+    externalCustomerId: workspaceId,
     products: [POLAR_PRODUCT_IDS.pro],
-    successUrl: `${process.env.BETTER_AUTH_URL}/admin/${organizationId}/billing?checkout=success`,
-    returnUrl: `${process.env.BETTER_AUTH_URL}/admin/${organizationId}/billing`,
+    successUrl: `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing?checkout=success`,
+    returnUrl: `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing`,
     metadata: {
-      organizationId,
+      workspaceId,
       initiatedByUserId,
     },
   })
 
   //Updates orgBilligRow with billingManagerUserId = userId
-  await updateOrganizationBillingManager({
-    organizationId,
+  await updateWorkspaceBillingManager({
+    workspaceId,
     userId: initiatedByUserId,
   })
 
   return { url: checkout.url }
 }
 
-type CreateOrganizationPortalSessionParams = {
-  organizationId: string
-  externalMemberId: string
-}
-
-export async function createOrganizationPortalSession({
-  organizationId,
+export async function createWorkspacePortalSession({
+  workspaceId,
   externalMemberId,
-}: CreateOrganizationPortalSessionParams) {
-  const billing = await ensurePolarTeamCustomer(organizationId)
+}: {
+  workspaceId: string
+  externalMemberId: string
+}) {
+  const billing = await ensurePolarTeamCustomer(workspaceId)
 
   if (!billing?.polarCustomerId) {
     throw new Error("Polar customer not found")
@@ -106,7 +100,7 @@ export async function createOrganizationPortalSession({
   const customerSession = await polarClient.customerSessions.create({
     customerId: billing.polarCustomerId,
     externalMemberId,
-    returnUrl: `${process.env.BETTER_AUTH_URL}/admin/${organizationId}/billing?portal=return`,
+    returnUrl: `${process.env.BETTER_AUTH_URL}/admin/${workspaceId}/billing?portal=return`,
   })
 
   return { url: customerSession.customerPortalUrl }

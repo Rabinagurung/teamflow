@@ -5,14 +5,14 @@ import { organization } from "better-auth/plugins"
 import { sendEmailVerificationEmail } from "../emails/send-email-verification"
 import { sendPasswordResetEmail } from "../emails/send-password-reset-email"
 import { sendOrganizationInviteEmail } from "../emails/organization-invite-email"
-import { polarClient } from "../billing/polar"
+import { polarClient } from "../billing/polar.gateway"
 import { betterAuth } from "better-auth"
 import {
   shouldSyncBillingForPolarWebhook,
   getPolarWebhookEventID,
 } from "../billing/polar-webhooks"
 import { markPolarWebhookProcessed } from "../billing/polar-webhooks.repository"
-import { syncOrganizationBillingFromPolar } from "../billing/sync"
+import { syncWorkspaceBillingFromPolar } from "../billing/billing-sync.service"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractOrganizationId(payload: any): string | null {
@@ -119,7 +119,7 @@ export const auth = betterAuth({
               if (!processed) return
             }
 
-            await syncOrganizationBillingFromPolar(organizationId)
+            await syncWorkspaceBillingFromPolar(organizationId)
           },
         }),
       ],

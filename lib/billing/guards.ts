@@ -4,7 +4,7 @@ import prisma from "@/lib/db"
 /** Goal: restrict billing actions to org owner/admin.
  *
  *
- * Add a requireBillingManager(organizationId) helper.
+ * Add a requireBillingManager(workspaceId) helper.
  * Use BetterAuth session lookup on the server.
  * Verify the signed-in user is a member of the org.
  * Verify the role is owner or admin.
@@ -16,20 +16,19 @@ Billing actions cannot be run by regular members.
 The helper returns the session/user for later service methods.
 
  */
-
-type OrganizationAccessParams = {
-  organizationId: string
+type WorkspaceAccessParams = {
+  workspaceId: string
   userId: string
 }
 
-export async function getOrganizationMemberRole({
-  organizationId,
+export async function getWorkspaceMemberRole({
+  workspaceId,
   userId,
-}: OrganizationAccessParams) {
+}: WorkspaceAccessParams) {
   const membership = await prisma.member.findUnique({
     where: {
       organizationId_userId: {
-        organizationId,
+        organizationId: workspaceId,
         userId,
       },
     },
@@ -51,15 +50,8 @@ export async function getOrganizationMemberRole({
   return roleResult.data
 }
 
-export async function isOrganizationMember(params: OrganizationAccessParams) {
-  const role = await getOrganizationMemberRole(params)
-  return role !== null
-}
-
-export async function canManageOrganizationBilling(
-  params: OrganizationAccessParams,
-) {
-  const role = await getOrganizationMemberRole(params)
+export async function canManageWorkspaceBilling(params: WorkspaceAccessParams) {
+  const role = await getWorkspaceMemberRole(params)
 
   return role === "owner" || role === "admin"
 }

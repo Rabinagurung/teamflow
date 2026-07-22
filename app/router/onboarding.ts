@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth/auth"
-import { polarClient } from "@/lib/billing/polar"
+import { polarClient } from "@/lib/billing/polar.gateway"
 
 import prisma from "@/lib/db"
 import { z } from "zod"
