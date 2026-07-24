@@ -1,130 +1,20 @@
 "use client"
 
-import { InviteMemberSchema } from "@/app/schemas/member"
+import { WorkspaceInviteMembersDialog } from "@/components/invitations/WorkspaceInviteMembersDialog"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select"
-import { orpc } from "@/lib/orpc/orpc"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
 
 import { UserPlus } from "lucide-react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { toast } from "sonner"
-import z from "zod"
 
 const InviteMember = () => {
-  const [open, setOpen] = useState(false)
-
-  const form = useForm<z.infer<typeof InviteMemberSchema>>({
-    resolver: zodResolver(InviteMemberSchema),
-    defaultValues: {
-      email: "",
-      role: "member",
-    },
-  })
-
-  const inviteMutation = useMutation(
-    orpc.member.invite.mutationOptions({
-      onSuccess: () => {
-        toast.success("Invitation sent successfully!")
-        form.reset()
-        setOpen(false)
-      },
-
-      onError: (error) => {
-        toast.error(error.message)
-      },
-    }),
-  )
-
-  function onSubmit(data: z.infer<typeof InviteMemberSchema>) {
-    inviteMutation.mutate(data)
-  }
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <WorkspaceInviteMembersDialog
+      trigger={
         <Button variant="outline">
           <UserPlus />
           Invite Member
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Invite Member</DialogTitle>
-          <DialogDescription>
-            Invite a new member to your workspace by using their email
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter Email address..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" disabled={inviteMutation.isPending}>
-              {inviteMutation.isPending ? "Sending..." : "Send Invitation"}
-            </Button>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+      }
+    />
   )
 }
 
