@@ -48,48 +48,39 @@ export function WorkspaceInviteMembersDialog({
   const handleSubmit = async ({ emails }: { emails: string[] }) => {
     setIsSubmitting(true)
 
-    const invitedEmails: string[] = []
-    const failedEmails: string[] = []
-    let firstErrorMessage: string | null = null
-
     try {
-      for (const email of emails) {
-        try {
-          await inviteMutation.mutateAsync({
-            email,
-            role: "member",
-          })
+      const result = await inviteMutation.mutateAsync({ emails })
 
-          invitedEmails.push(email)
-        } catch (error) {
-          failedEmails.push(email)
-
-          if (!firstErrorMessage) {
-            firstErrorMessage = getErrorMessage(error)
-          }
-        }
-      }
-
-      if (invitedEmails.length > 0) {
+      if (result.invitedCount > 0) {
         toast.success(
-          `${invitedEmails.length} invitation${invitedEmails.length > 1 ? "s" : ""} sent`,
+          `${result.invitedCount} invitation${result.invitedCount > 1 ? "s" : ""} sent`,
         )
 
         setOpen(false)
         await onSuccess?.()
       }
 
-      if (failedEmails.length > 0) {
-        if (failedEmails.length === 1 && invitedEmails.length === 0) {
-          toast.error(firstErrorMessage ?? "Unable to send invitation")
-          return
-        }
-
-        const preview = failedEmails.slice(0, 3).join(", ")
-        const suffix = failedEmails.length > 3 ? "..." : ""
-
-        toast.error(`Failed to invite: ${preview}${suffix}`)
+      if (result.existingMemberEmails.length > 0) {
+        toast.warning(
+          `Already members: ${result.existingMemberEmails.slice(0, 3).join(", ")}`,
+        )
       }
+
+      if (result.alreadyInvitedEmails.length > 0) {
+        toast.warning(
+          `Already invited: ${result.alreadyInvitedEmails.slice(0, 3).join(", ")}`,
+        )
+      }
+
+      if (result.selfEmails.length > 0) {
+        toast.warning("You cannot invite yourself")
+      }
+
+      if (result.failedEmails.length > 0) {
+        toast.error(`Failed: ${result.failedEmails.slice(0, 3).join(", ")}`)
+      }
+    } catch (error) {
+      toast.error(getErrorMessage(error) ?? "Unable to send invitations")
     } finally {
       setIsSubmitting(false)
     }
