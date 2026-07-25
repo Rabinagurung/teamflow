@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import SkipInviteDialog from "./SkipInviteDialog"
+import { applyInviteFeedback } from "@/components/invitations/apply-invite-feedback"
 
 const InviteStepForm = () => {
   const { data } = useSuspenseQuery(orpc.onboarding.state.queryOptions())
@@ -22,45 +23,13 @@ const InviteStepForm = () => {
 
   const inviteMutation = useMutation(
     orpc.onboarding.invite.submit.mutationOptions({
-      onSuccess: async ({
-        invitedCount,
-        failedEmails,
-        existingMemberEmails,
-        alreadyInvitedEmails,
-        selfEmails,
-        nextStep,
-      }) => {
+      onSuccess: async (result) => {
         await queryClient.invalidateQueries({
           queryKey: orpc.onboarding.state.queryKey(),
         })
+        applyInviteFeedback(result)
 
-        if (invitedCount > 0) {
-          toast.success(
-            `${invitedCount} invitation${invitedCount > 1 ? "s" : ""} sent`,
-          )
-        }
-
-        if (existingMemberEmails.length > 0) {
-          toast.warning(
-            `Already members: ${existingMemberEmails.slice(0, 3).join(", ")}`,
-          )
-        }
-
-        if (alreadyInvitedEmails.length > 0) {
-          toast.warning(
-            `Already invited: ${alreadyInvitedEmails.slice(0, 3).join(", ")}`,
-          )
-        }
-
-        if (selfEmails.length > 0) {
-          toast.warning("You cannot invite yourself")
-        }
-
-        if (failedEmails.length > 0) {
-          toast.error(`Failed: ${failedEmails.slice(0, 3).join(", ")}`)
-        }
-
-        router.push(`/onboarding/${nextStep}`)
+        router.push(`/onboarding/${result.nextStep}`)
         router.refresh()
       },
       onError: (error) => {

@@ -13,7 +13,7 @@ import {
 } from "../ui/form"
 import { LoadingSwap } from "../ui/loading-swap"
 import InviteEmailsInput from "./InviteEmailsInput"
-import { inviteEmailSchema } from "@/app/schemas/onboarding"
+import { inviteEmailSchema } from "@/app/schemas/invitations"
 
 const workspaceInviteMembersFormSchema = z.object({
   emails: z.array(inviteEmailSchema).min(1, "Add at least one email"),
