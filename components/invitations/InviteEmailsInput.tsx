@@ -1,6 +1,6 @@
 "use client"
 
-import { inviteEmailSchema } from "@/app/schemas/onboarding"
+import { inviteEmailSchema } from "@/app/schemas/invitations"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

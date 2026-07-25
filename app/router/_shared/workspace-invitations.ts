@@ -1,39 +1,10 @@
-import z from "zod"
 import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./better-auth-organization-errors"
 import { auth } from "@/lib/auth/auth"
 import prisma from "@/lib/db"
-
-export const workspaceInviteFailureReasonSchema = z.enum([
-  "permission_denied",
-  "workspace_not_found",
-  "invite_limit_reached",
-  "already_member",
-  "already_invited",
-  "unknown",
-])
-
-export type WorkspaceInviteFailureReason = z.infer<
-  typeof workspaceInviteFailureReasonSchema
->
-
-export const workspaceInviteMembersResultSchema = z.object({
-  invitedCount: z.number(),
-  invitedEmails: z.array(z.string()),
-  existingMemberEmails: z.array(z.string()),
-  alreadyInvitedEmails: z.array(z.string()),
-  selfEmails: z.array(z.string()),
-  failedEmails: z.array(z.string()),
-  failedInvitations: z.array(
-    z.object({
-      email: z.string(),
-      reason: workspaceInviteFailureReasonSchema,
-    }),
-  ),
-})
-
-export type WorkspaceInviteMembersResult = z.infer<
-  typeof workspaceInviteMembersResultSchema
->
+import {
+  type WorkspaceInviteFailureReason,
+  type WorkspaceInviteMembersResult,
+} from "@/app/schemas/invitations"
 
 const classifyWorkspaceInviteFailure = (
   error: unknown,

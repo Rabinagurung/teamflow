@@ -9,10 +9,8 @@ import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
 import { InviteMemberSchema } from "../schemas/member"
 import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./_shared/better-auth-organization-errors"
-import {
-  inviteWorkspaceMembers,
-  workspaceInviteMembersResultSchema,
-} from "./_shared/workspace-invitations"
+import { inviteWorkspaceMembers } from "./_shared/workspace-invitations"
+import { workspaceInviteMembersResultSchema } from "../schemas/invitations"
 
 type ListMembersResponse = Awaited<ReturnType<typeof auth.api.listMembers>>
 export type BetterAuthMember = ListMembersResponse["members"][number]

@@ -1,6 +1,9 @@
 import { z } from "zod"
 import { appUserSchema } from "./user"
-import { workspaceInviteMembersResultSchema } from "../router/_shared/workspace-invitations"
+import {
+  inviteEmailSchema,
+  workspaceInviteMembersResultSchema,
+} from "./invitations"
 
 export const onboardingStepSchema = z.enum([
   "profile",
@@ -12,11 +15,6 @@ export const onboardingStepSchema = z.enum([
 export const onboardingProfileSchema = z.object({
   name: z.string().trim().min(2).max(20),
 })
-
-export const inviteEmailSchema = z
-  .email("Enter a valid email address")
-  .trim()
-  .toLowerCase()
 
 export const onboardingInviteSchema = z.object({
   emails: z

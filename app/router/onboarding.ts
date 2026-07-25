@@ -30,10 +30,8 @@ import {
   partialWorkspaceCreationResultSchema,
   WorkspaceCreationResult,
 } from "./_shared/workspace"
-import {
-  inviteWorkspaceMembers,
-  WorkspaceInviteMembersResult,
-} from "./_shared/workspace-invitations"
+import { inviteWorkspaceMembers } from "./_shared/workspace-invitations"
+import { type WorkspaceInviteMembersResult } from "../schemas/invitations"
 
 const resolveCurrentStep = (
   state: {
