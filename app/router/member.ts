@@ -9,6 +9,10 @@ import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
 import { InviteMemberSchema } from "../schemas/member"
 import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./_shared/better-auth-organization-errors"
+import {
+  inviteWorkspaceMembers,
+  workspaceInviteMembersResultSchema,
+} from "./_shared/workspace-invitations"
 
 type ListMembersResponse = Awaited<ReturnType<typeof auth.api.listMembers>>
 export type BetterAuthMember = ListMembersResponse["members"][number]
@@ -30,67 +34,17 @@ export const inviteMember = base
     tags: ["Members"],
   })
   .input(InviteMemberSchema)
-  .output(z.void())
+  .output(workspaceInviteMembersResultSchema)
   .handler(async ({ input, context, errors }) => {
     try {
-      await auth.api.createInvitation({
-        body: {
-          email: input.email,
-          role: input.role,
-          organizationId: context.workspace.id,
-        },
+      return await inviteWorkspaceMembers({
+        workspaceId: context.workspace.id,
+        requesterEmail: context.user.email,
+        emails: input.emails,
         headers: new Headers(context.request.headers as HeadersInit),
       })
     } catch (error) {
       rethrowORPCError(error)
-
-      if (
-        error instanceof Error &&
-        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_ALREADY_MEMBER
-      ) {
-        throw errors.BAD_REQUEST({
-          message: "User is already a member of this workspace",
-        })
-      }
-
-      if (
-        error instanceof Error &&
-        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_ALREADY_INVITED
-      ) {
-        throw errors.BAD_REQUEST({
-          message: "User already has a pending invitation.",
-        })
-      }
-
-      if (
-        error instanceof Error &&
-        error.message === BETTER_AUTH_ORGANIZATION_ERRORS.INVITE_FORBIDDEN
-      ) {
-        throw errors.FORBIDDEN({
-          message: "You do not have permission to invite members.",
-        })
-      }
-
-      if (
-        error instanceof Error &&
-        error.message ===
-          BETTER_AUTH_ORGANIZATION_ERRORS.INVITATION_LIMIT_REACHED
-      ) {
-        throw errors.FORBIDDEN({
-          message: "Invitation limit reached for this workspace.",
-        })
-      }
-
-      if (
-        error instanceof Error &&
-        error.message.startsWith(
-          BETTER_AUTH_ORGANIZATION_ERRORS.ROLE_NOT_FOUND_PREFIX,
-        )
-      ) {
-        throw errors.BAD_REQUEST({
-          message: "The selected role is invalid.",
-        })
-      }
 
       if (
         error instanceof Error &&
@@ -101,10 +55,20 @@ export const inviteMember = base
         })
       }
 
-      console.error("Failed to invite member", error)
+      if (
+        error instanceof Error &&
+        (error.message === BETTER_AUTH_ORGANIZATION_ERRORS.USER_NOT_MEMBER ||
+          error.message === BETTER_AUTH_ORGANIZATION_ERRORS.INVITE_FORBIDDEN)
+      ) {
+        throw errors.FORBIDDEN({
+          message: "You do not have permission to invite members.",
+        })
+      }
+
+      console.error("Failed to invite members", error)
 
       throw errors.INTERNAL_SERVER_ERROR({
-        message: "Unable to invite member.",
+        message: "Unable to invite members.",
       })
     }
   })

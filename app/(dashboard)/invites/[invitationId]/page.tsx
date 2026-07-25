@@ -1,4 +1,4 @@
-import { TeamFlowInvitationCard } from "@/components/invites/TeamFlowInvitationCard"
+import { TeamFlowInvitationCard } from "@/components/invitations/TeamFlowInvitationCard"
 import { InviteInformation } from "../_components/invite-information"
 import { auth } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
