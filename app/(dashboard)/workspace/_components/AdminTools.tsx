@@ -79,7 +79,7 @@ const AdminTools = () => {
           <DropdownMenuGroup>
             <DropdownMenuItem
               asChild
-              className="rounded-xl p-0 focus:bg-accent"
+              className="rounded-xl p-0 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:hover:text-white dark:focus:text-white"
             >
               <Link
                 target="_blank"
@@ -103,7 +103,7 @@ const AdminTools = () => {
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              className="rounded-xl p-0 focus:bg-accent"
+              className="rounded-xl p-0 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:hover:text-white dark:focus:text-white"
               onSelect={() => {
                 setMenuOpen(false)
                 setEditWorkspaceOpen(true)
@@ -127,7 +127,7 @@ const AdminTools = () => {
 
             <DropdownMenuItem
               asChild
-              className="rounded-xl p-0 focus:bg-accent"
+              className="rounded-xl p-0 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:hover:text-white dark:focus:text-white"
             >
               <Link
                 target="_blank"
@@ -152,7 +152,7 @@ const AdminTools = () => {
             </DropdownMenuItem>
             <DropdownMenuItem
               asChild
-              className="rounded-xl p-0 focus:bg-accent"
+              className="rounded-xl p-0 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:hover:text-white dark:focus:text-white"
             >
               <Link
                 target="_blank"
@@ -177,7 +177,7 @@ const AdminTools = () => {
             </DropdownMenuItem>
             <DropdownMenuItem
               asChild
-              className="rounded-xl p-0 focus:bg-accent"
+              className="rounded-xl p-0 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:hover:text-white dark:focus:text-white"
             >
               <Link
                 target="_blank"
