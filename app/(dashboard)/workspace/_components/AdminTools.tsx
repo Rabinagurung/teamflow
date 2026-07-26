@@ -11,6 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
 import { CreditCardIcon, PencilLine, Settings, Users } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -28,25 +33,30 @@ const AdminTools = () => {
 
   const membersHref = `/admin/${workspaceId}/members`
   const billingHref = `/admin/${workspaceId}/billing`
+  const invitationsHref = `/admin/${workspaceId}/invitations`
+  const accountSettingHref = `/admin/${workspaceId}/settings`
 
   return (
     <>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <div className="flex flex-col items-center gap-2">
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="icon"
-              variant="outline"
-              aria-label={`${currentWorkspace.name} admin tools`}
-              className="size-12 rounded-xl border-workspace-rail-border bg-workspace-rail-accent transition-all duration-200 hover:rounded-lg hover:bg-sidebar-accent hover:text-accent-foreground"
-            >
-              <Settings className="size-6" />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <span className="text-center text-sm font-medium text-sidebar-foreground">
-            Admin
-          </span>
+        <div className="flex flex-col items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  aria-label={`${currentWorkspace.name} admin tools`}
+                  className="size-10 rounded-full border-workspace-rail-border bg-workspace-rail-accent text-white transition-all duration-200 hover:rounded-full hover:bg-sidebar-accent hover:text-white"
+                >
+                  <Settings className="size-6 text-white" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Admin</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <DropdownMenuContent
@@ -94,7 +104,7 @@ const AdminTools = () => {
                 setEditWorkspaceOpen(true)
               }}
             >
-              <div className="flex w-full items-start gap-3 px-3 py-3">
+              <div className="flex w-full items-start gap-3 px-3 py-2">
                 <div className="rounded-lg border bg-background p-2">
                   <PencilLine className="size-4" />
                 </div>
@@ -118,7 +128,7 @@ const AdminTools = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 href={membersHref}
-                className="flex w-full items-start gap-3 px-3 py-3"
+                className="flex w-full items-start gap-3 px-3 py-2"
               >
                 <div className="rounded-lg border bg-background p-2">
                   <Users className="size-4" />
@@ -127,6 +137,56 @@ const AdminTools = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium leading-none">
                     Manage members
+                  </p>
+
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Invite teammates and manage access
+                  </p>
+                </div>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="rounded-xl p-0 focus:bg-accent"
+            >
+              <Link
+                target="_blank"
+                rel="noopener noreferrer"
+                href={invitationsHref}
+                className="flex w-full items-start gap-3 px-3 py-2"
+              >
+                <div className="rounded-lg border bg-background p-2">
+                  <Users className="size-4" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium leading-none">
+                    Invitations
+                  </p>
+
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Invite teammates and manage access
+                  </p>
+                </div>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="rounded-xl p-0 focus:bg-accent"
+            >
+              <Link
+                target="_blank"
+                rel="noopener noreferrer"
+                href={accountSettingHref}
+                className="flex w-full items-start gap-3 px-3 py-2"
+              >
+                <div className="rounded-lg border bg-background p-2">
+                  <Users className="size-4" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium leading-none">
+                    Account Settings
                   </p>
 
                   <p className="mt-1 text-xs text-muted-foreground">

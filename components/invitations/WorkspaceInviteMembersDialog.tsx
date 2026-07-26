@@ -10,11 +10,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { orpc } from "@/lib/orpc/orpc"
+import { isDefinedError } from "@orpc/client"
 import { useMutation } from "@tanstack/react-query"
 import { type ReactElement, useState } from "react"
 import { toast } from "sonner"
 import { applyInviteFeedback } from "./apply-invite-feedback"
-import { isDefinedError } from "@orpc/client"
 
 interface WorkspaceInviteMembersDialogProps {
   trigger: ReactElement
@@ -37,7 +37,6 @@ export function WorkspaceInviteMembersDialog({
           await onSuccess?.()
         }
       },
-
       onError: (error) => {
         toast.error(
           isDefinedError(error) ? error.message : "Unable to send invitations",
@@ -50,7 +49,7 @@ export function WorkspaceInviteMembersDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="sm:max-w-2xl p-10">
+      <DialogContent className="p-10 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Invite People</DialogTitle>
           <DialogDescription>
