@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { orpc } from "@/lib/orpc/orpc"
 import { toast } from "sonner"
 import { z } from "zod"
-import { GroupedReactionSchema } from "@/app/schemas/message"
+import { groupedReactionSchema } from "@/app/schemas/message"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utlis/utils"
 import { useParams } from "next/navigation"
@@ -18,7 +18,7 @@ type ListContext = { type: "list"; channelId: string }
 
 interface ReactionBarProps {
   messageId: string
-  reactions: z.infer<typeof GroupedReactionSchema>[]
+  reactions: z.infer<typeof groupedReactionSchema>[]
   context?: ThreadContext | ListContext
 }
 
@@ -33,7 +33,7 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionBarProps) => {
     orpc.message.reaction.toggle.mutationOptions({
       onMutate: async (vars: { messageId: string; emoji: string }) => {
         const bump = (
-          currentReactions: z.infer<typeof GroupedReactionSchema>[],
+          currentReactions: z.infer<typeof groupedReactionSchema>[],
         ) => {
           const existingReaction = currentReactions.find(
             (r) => r.emoji === vars.emoji,
