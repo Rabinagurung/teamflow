@@ -49,7 +49,14 @@ export function WorkspaceInviteMembersDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="p-10 sm:max-w-2xl">
+      <DialogContent
+        className="p-10 sm:max-w-2xl"
+        onCloseAutoFocus={(event) => {
+          // Prevent Radix from returning focus to the trigger button, which
+          // re-triggers any Tooltip wrapping it even though the mouse isn't hovering.
+          event.preventDefault()
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Invite People</DialogTitle>
           <DialogDescription>
