@@ -11,6 +11,7 @@ declare namespace Cloudflare {
 		DATABASE_URL: string;
 		UPLOADTHING_TOKEN: string;
 		LLM_KEY: string;
+		GROQ_API_KEY: string;
 		BETTER_AUTH_SECRET: string;
 		BETTER_AUTH_URL: string;
 		POLAR_ACCESS_TOKEN: string;
