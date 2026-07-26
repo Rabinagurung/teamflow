@@ -1,13 +1,13 @@
-import React from "react"
-import Image from "next/image"
-import Link from "next/link"
-import WorkspaceList from "./_components/WorkspaceList"
-import CreateWorkspace from "./_components/CreateWorkspace"
-import UserNav from "./_components/UserNav"
+import { requireAuth } from "@/lib/auth/auth-utils"
 import { orpc } from "@/lib/orpc/orpc"
 import { getQueryClient, HydrateClient } from "@/lib/query/hydration"
-import { requireAuth } from "@/lib/auth/auth-utils"
+import React from "react"
 import AdminTools from "./_components/AdminTools"
+import CreateNewAction from "./_components/CreateNewAction"
+import CreateWorkspace from "./_components/CreateWorkspace"
+import InviteMembersAction from "./_components/InviteMembersAction"
+import UserNav from "./_components/UserNav"
+import WorkspaceList from "./_components/WorkspaceList"
 
 const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
   await requireAuth()
@@ -23,28 +23,21 @@ const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
           role="navigation"
           aria-label="Workspace navigation"
         >
-          <Link
-            href="/app-entry"
-            className="mb-4 flex size-10 items-center justify-center rounded-lg border border-workspace-rail-border bg-workspace-rail-accent shadow-xs transition-colors hover:bg-sidebar-accent"
-            aria-label="TeamFlow home"
-          >
-            <Image
-              src="/logos/teamflow-mark.svg"
-              alt=""
-              width={28}
-              height={28}
-              priority
-            />
-          </Link>
-
           <WorkspaceList />
 
           <div className="mt-4">
             <CreateWorkspace />
           </div>
-          <div className="mt-auto">
-            <AdminTools />
-            <UserNav />
+          <div className="mt-auto flex flex-col items-center">
+            <div className="flex flex-col items-center gap-3">
+              <AdminTools />
+              <InviteMembersAction />
+              <CreateNewAction />
+            </div>
+
+            <div className="mt-3">
+              <UserNav />
+            </div>
           </div>
         </aside>
         {children}

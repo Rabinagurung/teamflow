@@ -25,7 +25,7 @@ import {
 import { DialogDescription } from "@radix-ui/react-dialog"
 import { Plus } from "lucide-react"
 
-import { startTransition, useState } from "react"
+import { ReactElement, startTransition, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -40,9 +40,10 @@ import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 type CreateWorkspaceProps = {
   alwaysOpen?: boolean
+  trigger?: ReactElement
 }
 
-const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
+const CreateWorkspace = ({ alwaysOpen, trigger }: CreateWorkspaceProps) => {
   const [open, setOpen] = useState(alwaysOpen ?? false)
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -118,23 +119,26 @@ const CreateWorkspace = ({ alwaysOpen }: CreateWorkspaceProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-12 rounded-xl border-2 border-dashed border-workspace-rail-border text-muted-foreground 
-              transition-all duration-200 hover:rounded-lg hover:border-sidebar-ring hover:bg-workspace-rail-accent hover:text-foreground"
-            >
-              <Plus className="size-5" />
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Create Workspace</p>
-        </TooltipContent>
-      </Tooltip>
+      {trigger ? (
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-10 rounded-xl border-2 border-dashed border-workspace-rail-border text-muted-foreground transition-all duration-200 hover:rounded-lg hover:border-sidebar-ring hover:bg-workspace-rail-accent hover:text-foreground"
+              >
+                <Plus className="size-5" />
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Create Workspace</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create workspace</DialogTitle>

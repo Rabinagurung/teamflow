@@ -28,14 +28,18 @@ import { isDefinedError } from "@orpc/client"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { ReactElement, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
 const DUPLICATE_CHANNEL_MESSAGE = "A channel with that name already exists."
 
-const CreateNewChannel = () => {
+type CreateNewChannelProps = {
+  trigger?: ReactElement
+}
+
+const CreateNewChannel = ({ trigger }: CreateNewChannelProps) => {
   const { workspacePath, workspaceId } = useRequiredActiveWorkspace()
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
@@ -101,13 +105,15 @@ const CreateNewChannel = () => {
       }}
     >
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-full border-white/15 bg-white/8 text-sidebar-foreground hover:bg-white/14 hover:text-white"
-        >
-          <Plus className="size-4" />
-          Add Channel
-        </Button>
+        {trigger ?? (
+          <Button
+            variant="outline"
+            className="w-full border-white/15 bg-white/8 text-sidebar-foreground hover:bg-white/14 hover:text-white"
+          >
+            <Plus className="size-4" />
+            Add Channel
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

@@ -9,31 +9,39 @@ import {
 import { UserMenuContent } from "@/components/navigation/UserMenuContent"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { getAvatar } from "@/lib/utlis/get-avatar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const UserNav = () => {
   const { user, workspaceId } = useRequiredActiveWorkspace()
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="icon"
-          variant="outline"
-          className="size-12 rounded-xl border-workspace-rail-border bg-workspace-rail-accent 
-          transition-all duration-200 hover:rounded-lg hover:bg-sidebar-accent hover:text-accent-foreground"
-        >
-          <Avatar>
-            <AvatarImage
-              src={getAvatar(user.image, user.email!)}
-              alt="User image"
-              className="object-cover"
-            />
-            <AvatarFallback>
-              {user.name?.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon">
+              <Avatar className="size-9 rounded-lg">
+                <AvatarImage
+                  src={getAvatar(user.image, user.email!)}
+                  alt="User image"
+                  className="object-cover"
+                />
+                <AvatarFallback className="rounded-lg">
+                  {user.name?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>User Profile</p>
+        </TooltipContent>
+      </Tooltip>
+
       <UserMenuContent user={user} workspaceId={workspaceId} />
     </DropdownMenu>
   )
