@@ -64,6 +64,11 @@ const AdminTools = () => {
           side="right"
           sideOffset={8}
           className="w-[280px] rounded-2xl p-2"
+          onCloseAutoFocus={(event) => {
+            // Prevent Radix from returning focus to the trigger button, which
+            // re-triggers the Tooltip wrapping it even though the mouse isn't hovering.
+            event.preventDefault()
+          }}
         >
           <DropdownMenuLabel className="px-3 py-2 text-left text-base font-semibold">
             Admin Tools

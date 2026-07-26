@@ -23,6 +23,7 @@ import { authClient } from "@/lib/auth/auth-client"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Link } from "lucide-react"
 import { redirect, useRouter, useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
@@ -36,6 +37,14 @@ type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>
 
 //http://localhost:3000/auth/reset-password?token=vBHCRiGxhtQvmbnaQfLZ25CB
 export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
+  )
+}
+
+function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
 
