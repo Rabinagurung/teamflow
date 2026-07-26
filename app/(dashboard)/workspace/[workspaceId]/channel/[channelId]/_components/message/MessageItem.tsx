@@ -138,6 +138,7 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
       </div>
 
       <MessageHoverToolbar
+        channelId={message.channelId}
         messageId={message.id}
         canEdit={message.authorId === currentUserId}
         onEdit={() => setIsEditing(true)}

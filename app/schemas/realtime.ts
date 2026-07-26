@@ -77,6 +77,12 @@ export const ChannelEventSchema = z.union([
     payload: z.object({ message: RealtimeMessageSchema }),
   }),
   z.object({
+    type: z.literal("message:deleted"),
+    payload: z.object({
+      messageId: z.string(),
+    }),
+  }),
+  z.object({
     type: z.literal("reaction:updated"),
     payload: z.object({
       messageId: z.string(),

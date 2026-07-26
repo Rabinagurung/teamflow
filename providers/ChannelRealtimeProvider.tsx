@@ -162,6 +162,28 @@ export function ChannelRealtimeProvider({
           return
         }
 
+        if (event.type === "message:deleted") {
+          const { messageId } = event.payload
+
+          queryClient.setQueryData<RealtimeInfiniteMessages>(
+            ["message.list", channelId],
+            (old) => {
+              if (!old) return old
+
+              const pages = old.pages.map((page) => ({
+                ...page,
+                items: page.items.filter((message) => message.id !== messageId),
+              }))
+
+              return {
+                ...old,
+                pages,
+              }
+            },
+          )
+          return
+        }
+
         /**
          * reaction:udpated
          * Update reaction aggregates for a given message ID.

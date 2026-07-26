@@ -17,38 +17,49 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash } from "lucide-react"
 import React, { useState } from "react"
 import { toast } from "sonner"
+import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
+import { InfiniteMessages } from "@/lib/types"
 
 interface DeleteMessageProps {
   messageId: string
+  channelId: string
 }
 
-const DeleteMessage = ({ messageId }: DeleteMessageProps) => {
+const DeleteMessage = ({ messageId, channelId }: DeleteMessageProps) => {
   const queryClient = useQueryClient()
   const { selectedThreadId, closeThread } = useThread()
-
+  const { send } = useChannelRealtime()
   const [open, setOpen] = useState(false)
 
   const deleteMessageMutation = useMutation(
     orpc.message.delete.mutationOptions({
-      onSuccess: async () => {
+      onSuccess: (data) => {
+        queryClient.setQueryData<InfiniteMessages>(
+          ["message.list", channelId],
+          (old) => {
+            if (!old) return old
+
+            const pages = old.pages.map((page) => ({
+              ...page,
+              items: page.items.filter(
+                (message) => message.id !== data.messageId,
+              ),
+            }))
+
+            return { ...old, pages }
+          },
+        )
+
         if (selectedThreadId === messageId) {
           closeThread()
         }
 
-        const threadOptions = orpc.message.thread.list.queryOptions({
-          input: {
-            messageId,
+        send({
+          type: "message:deleted",
+          payload: {
+            messageId: data.messageId,
           },
         })
-
-        await Promise.all([
-          queryClient.invalidateQueries({
-            queryKey: ["message.list"],
-          }),
-          queryClient.invalidateQueries({
-            queryKey: threadOptions.queryKey,
-          }),
-        ])
 
         toast.success("Message deleted")
         setOpen(false)
@@ -78,7 +89,7 @@ const DeleteMessage = ({ messageId }: DeleteMessageProps) => {
 
       <AlertDialogContent size="default" className="gap-5">
         <AlertDialogHeader className="place-items-start text-left">
-          <AlertDialogTitle>Delete message </AlertDialogTitle>
+          <AlertDialogTitle>Delete message</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete this message? This cannot be undone.
           </AlertDialogDescription>

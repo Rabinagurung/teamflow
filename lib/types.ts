@@ -1,11 +1,11 @@
 import { InfiniteData } from "@tanstack/react-query"
 import { Message } from "./generated/prisma/client"
 import { z } from "zod"
-import { GroupedReactionSchema } from "@/app/schemas/message"
+import { groupedReactionSchema } from "@/app/schemas/message"
 
 export type MessageListItem = Message & {
   repliesCount: number
-  reactions: z.infer<typeof GroupedReactionSchema>[]
+  reactions: z.infer<typeof groupedReactionSchema>[]
 }
 
 export type MessagePage = {
