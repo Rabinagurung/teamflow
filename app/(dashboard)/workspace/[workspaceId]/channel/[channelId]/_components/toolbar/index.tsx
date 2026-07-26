@@ -27,7 +27,7 @@ export function MessageHoverToolbar({
           <Button variant="ghost" size="icon" onClick={onEdit}>
             <Pencil className="size-4" />
           </Button>
-          <DeleteMessage />
+          <DeleteMessage messageId={messageId} />
         </>
       )}
 

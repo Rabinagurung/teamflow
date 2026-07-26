@@ -8,6 +8,7 @@ import { createChannel, getChannel, listChannel } from "./channel"
 import { inviteMember, listMembers } from "./member"
 import {
   createMessage,
+  deleteMessage,
   listMessages,
   listThreadReplies,
   toggleReaction,
@@ -67,6 +68,7 @@ export const router = {
     create: createMessage,
     list: listMessages,
     update: updateMessage,
+    delete: deleteMessage,
     reaction: {
       toggle: toggleReaction,
     },

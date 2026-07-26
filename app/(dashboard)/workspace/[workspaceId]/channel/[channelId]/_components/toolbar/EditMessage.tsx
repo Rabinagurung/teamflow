@@ -1,4 +1,4 @@
-import { UpdateMessageSchema } from "@/app/schemas/message"
+import { updateMessageSchema } from "@/app/schemas/message"
 import RichTextEditor from "@/components/rich-text-editor/Editor"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,7 +38,7 @@ const EditMessage = ({ message, onCancel, onSave }: EditMessage) => {
   const queryClient = useQueryClient()
   const { send } = useChannelRealtime()
   const form = useForm({
-    resolver: zodResolver(UpdateMessageSchema),
+    resolver: zodResolver(updateMessageSchema),
     defaultValues: {
       messageId: message.id,
       content: message.content,
@@ -83,7 +83,7 @@ const EditMessage = ({ message, onCancel, onSave }: EditMessage) => {
     }),
   )
 
-  function onSubmit(data: z.infer<typeof UpdateMessageSchema>) {
+  function onSubmit(data: z.infer<typeof updateMessageSchema>) {
     updateMessageMutation.mutate(data)
   }
 

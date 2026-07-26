@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { GroupedReactionSchema } from "./message"
+import { groupedReactionSchema } from "./message"
 
 const PublicReactionSchema = z.object({
   emoji: z.string(),
@@ -62,7 +62,7 @@ export const RealtimeMessageSchema = z.object({
   authorAvatar: z.string().optional().nullable(),
   channelId: z.string().nullable(),
   threadId: z.string().optional().nullable(),
-  reactions: z.array(GroupedReactionSchema).optional(),
+  reactions: z.array(groupedReactionSchema).optional(),
   repliesCount: z.number().optional(),
 })
 

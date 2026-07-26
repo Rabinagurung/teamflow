@@ -7,17 +7,21 @@ export const createMessageSchema = z.object({
   threadId: z.string().optional(),
 })
 
-export const UpdateMessageSchema = z.object({
+export const updateMessageSchema = z.object({
   messageId: z.string(),
   content: z.string().min(1),
 })
 
-export const ToggleReactionSchema = z.object({
+export const deleteMessageSchema = z.object({
+  messageId: z.string(),
+})
+
+export const toggleReactionSchema = z.object({
   messageId: z.string(),
   emoji: z.string().min(1),
 })
 
-export const GroupedReactionSchema = z.object({
+export const groupedReactionSchema = z.object({
   emoji: z.string(),
   count: z.number(),
   reactedByMe: z.boolean(),

@@ -1,20 +1,21 @@
+import prisma from "@/lib/db"
+import { Message } from "@/lib/generated/prisma/client"
+import { MessageListItem } from "@/lib/types"
+import { getAvatar } from "@/lib/utlis/get-avatar"
 import { z } from "zod"
+import { readSecurityMiddleware } from "../middlewares/arcjet/read"
 import { standardSecurityMiddleware } from "../middlewares/arcjet/standard"
 import { writeSecurityMiddleware } from "../middlewares/arcjet/write"
 import { requiredAuthMiddleware } from "../middlewares/auth"
 import { base } from "../middlewares/base"
 import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
-import prisma from "@/lib/db"
 import {
   createMessageSchema,
-  GroupedReactionSchema,
-  ToggleReactionSchema,
-  UpdateMessageSchema,
+  deleteMessageSchema,
+  groupedReactionSchema,
+  toggleReactionSchema,
+  updateMessageSchema,
 } from "../schemas/message"
-import { getAvatar } from "@/lib/utlis/get-avatar"
-import { Message } from "@/lib/generated/prisma/client"
-import { readSecurityMiddleware } from "../middlewares/arcjet/read"
-import { MessageListItem } from "@/lib/types"
 
 type Reaction = {
   emoji: string
@@ -26,7 +27,7 @@ type Reactions = Reaction[]
 function groupReactions(
   reactions: Reactions,
   userId: string,
-): z.infer<typeof GroupedReactionSchema>[] {
+): z.infer<typeof groupedReactionSchema>[] {
   const reactionMap = new Map<string, { count: number; reactedByMe: boolean }>()
 
   for (const reaction of reactions) {
@@ -224,7 +225,7 @@ export const updateMessage = base
     summary: "Edit message",
     tags: ["Messages"],
   })
-  .input(UpdateMessageSchema)
+  .input(updateMessageSchema)
   .output(
     z.object({
       message: z.custom<Message>(),
@@ -265,6 +266,65 @@ export const updateMessage = base
     return {
       message: updated,
       canEdit: updated.authorId === context.user.id,
+    }
+  })
+
+export const deleteMessage = base
+  .use(requiredAuthMiddleware)
+  .use(requiredWorkspaceMiddleware)
+  .use(standardSecurityMiddleware)
+  .use(writeSecurityMiddleware)
+  .route({
+    method: "DELETE",
+    path: "/messages/:messageId",
+    summary: "Delete Message",
+    tags: ["Messages"],
+  })
+  .input(deleteMessageSchema)
+  .output(
+    z.object({
+      messageId: z.string(),
+      deleted: z.boolean(),
+      threadId: z.string().nullable(),
+    }),
+  )
+  .handler(async ({ context, errors, input }) => {
+    const message = await prisma.message.findFirst({
+      where: {
+        id: input.messageId,
+        channel: {
+          organizationId: context.workspace.id,
+        },
+      },
+      select: {
+        id: true,
+        authorId: true,
+        threadId: true,
+      },
+    })
+
+    if (!message) {
+      throw errors.NOT_FOUND({
+        message: "Message not found",
+      })
+    }
+
+    if (message.authorId !== context.user.id) {
+      throw errors.FORBIDDEN({
+        message: "You do not have permission to delete this message",
+      })
+    }
+
+    await prisma.message.delete({
+      where: {
+        id: input.messageId,
+      },
+    })
+
+    return {
+      messageId: message.id,
+      deleted: true,
+      threadId: message.threadId,
     }
   })
 
@@ -368,11 +428,11 @@ export const toggleReaction = base
     summary: "Toggle a reaction",
     tags: ["Messages"],
   })
-  .input(ToggleReactionSchema)
+  .input(toggleReactionSchema)
   .output(
     z.object({
       messageId: z.string(),
-      reactions: z.array(GroupedReactionSchema),
+      reactions: z.array(groupedReactionSchema),
       action: z.string(),
     }),
   )
