@@ -9,7 +9,7 @@ const InviteMember = () => {
   return (
     <WorkspaceInviteMembersDialog
       trigger={
-        <Button variant="outline">
+        <Button variant="outline" className="dark:hover:text-white">
           <UserPlus />
           Invite Member
         </Button>
