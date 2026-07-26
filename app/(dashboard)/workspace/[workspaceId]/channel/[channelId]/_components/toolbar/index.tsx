@@ -5,11 +5,13 @@ import DeleteMessage from "./DeleteMessage"
 
 interface MessageHoverToolbarProps {
   messageId: string
+  channelId: string
   canEdit: boolean
   onEdit: () => void
 }
 
 export function MessageHoverToolbar({
+  channelId,
   messageId,
   canEdit,
   onEdit,
@@ -27,7 +29,7 @@ export function MessageHoverToolbar({
           <Button variant="ghost" size="icon" onClick={onEdit}>
             <Pencil className="size-4" />
           </Button>
-          <DeleteMessage messageId={messageId} />
+          <DeleteMessage messageId={messageId} channelId={channelId} />
         </>
       )}
 

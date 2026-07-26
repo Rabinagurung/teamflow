@@ -285,7 +285,6 @@ export const deleteMessage = base
     z.object({
       messageId: z.string(),
       deleted: z.boolean(),
-      threadId: z.string().nullable(),
     }),
   )
   .handler(async ({ context, errors, input }) => {
@@ -299,7 +298,6 @@ export const deleteMessage = base
       select: {
         id: true,
         authorId: true,
-        threadId: true,
       },
     })
 
@@ -324,7 +322,6 @@ export const deleteMessage = base
     return {
       messageId: message.id,
       deleted: true,
-      threadId: message.threadId,
     }
   })
 
