@@ -18,6 +18,7 @@ import CreateNewChannel from "./_components/CreateNewChannel"
 import WorkspaceHeader from "./_components/WorkspaceHeader"
 import WorkspaceMembersList from "./_components/WorkspaceMembersList"
 import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
+import UpgradePlan from "./_components/UpgradePlan"
 
 const WorkspaceDetailsLayout = async ({
   children,
@@ -63,7 +64,7 @@ const WorkspaceDetailsLayout = async ({
             <WorkspaceHeader />
           </div>
           <div className="px-4 py-2">
-            <CreateNewChannel />
+            <UpgradePlan />
           </div>
           {/* Channel List */}
           <div className="flex-1 overflow-y-auto px-4">
@@ -77,6 +78,7 @@ const WorkspaceDetailsLayout = async ({
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <ChannelList />
+                <CreateNewChannel />
               </CollapsibleContent>
             </Collapsible>
           </div>

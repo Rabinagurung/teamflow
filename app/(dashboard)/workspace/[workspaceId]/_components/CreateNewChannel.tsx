@@ -106,10 +106,7 @@ const CreateNewChannel = ({ trigger }: CreateNewChannelProps) => {
     >
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button
-            variant="outline"
-            className="w-full border-white/15 bg-white/8 text-sidebar-foreground hover:bg-white/14 hover:text-white"
-          >
+          <Button className="w-full border-white/15 bg-white/8 text-sidebar-foreground hover:bg-white/14 hover:text-white flex items-center justify-start">
             <Plus className="size-4" />
             Add Channel
           </Button>
