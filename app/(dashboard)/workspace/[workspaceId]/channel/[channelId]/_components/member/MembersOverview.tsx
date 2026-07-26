@@ -66,7 +66,7 @@ const MembersOverview = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="dark:hover:text-white">
           <UsersIcon />
           <span>Members</span>
         </Button>
