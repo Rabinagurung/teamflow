@@ -5,25 +5,25 @@ import { requiredWorkspaceMiddleware } from "../middlewares/workspace"
 import prisma from "@/lib/db"
 import { tipTapJsonToMarkdown } from "@/lib/utlis/json-to-markdown"
 import { streamText } from "ai"
-import { createOpenRouter } from "@openrouter/ai-sdk-provider"
+import { createGroq } from "@ai-sdk/groq"
 import { streamToEventIterator } from "@orpc/client"
 import { aiSecurityMiddleware } from "../middlewares/arcjet/ai-middleware"
 import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
 
-const LLM_KEY = process.env.LLM_KEY
+const LLM_KEY = process.env.GROQ_API_KEY
 if (!LLM_KEY) {
   console.warn(
-    "LLM_KEY environment variable is not set. AI features will be unavailable.",
+    "GROQ_API_KEY environment variable is not set. AI features will be unavailable.",
   )
 }
 
-const openrouter = createOpenRouter({
+const groq = createGroq({
   apiKey: LLM_KEY,
 })
 
-const MODEL_ID = "z-ai/glm-4.5-air:free"
+const MODEL_ID = "llama-3.3-70b-versatile"
 
-const model = openrouter.chat(MODEL_ID)
+const model = groq(MODEL_ID)
 
 export const generateThreadSummary = base
   .use(requiredAuthMiddleware)
