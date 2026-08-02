@@ -20,6 +20,7 @@ const ThreadSidebar = () => {
   const lastMessageCountRef = useRef(0)
 
   const [isAtBottom, setIsAtBottom] = useState(true)
+  const [canScroll, setCanScroll] = useState(false)
 
   const { data, error, isLoading, isFetching, refetch } = useQuery(
     orpc.message.thread.list.queryOptions({
@@ -46,6 +47,7 @@ const ThreadSidebar = () => {
     if (!element) return
 
     setIsAtBottom(isNearBottom(element))
+    setCanScroll(element.scrollHeight > element.clientHeight + 24)
   }
 
   // Enables auto scroll when new reply arrived
@@ -103,6 +105,7 @@ const ThreadSidebar = () => {
     //ResizeObserver watches size changes of the observed element (the scroll container).
 
     const resizeObserver = new ResizeObserver(() => {
+      setCanScroll(element.scrollHeight > element.clientHeight + 24)
       scrolltoBottomIfNeeded()
     })
 
@@ -111,6 +114,7 @@ const ThreadSidebar = () => {
     //MutationObserver watches DOM changes inside the container.
 
     const mutationObserver = new MutationObserver(() => {
+      setCanScroll(element.scrollHeight > element.clientHeight + 24)
       scrolltoBottomIfNeeded()
     })
 
@@ -128,6 +132,14 @@ const ThreadSidebar = () => {
     }
   }, [isAtBottom])
 
+  useEffect(() => {
+    const element = scrollRef.current
+    if (!element) return
+
+    setCanScroll(element.scrollHeight > element.clientHeight + 24)
+    setIsAtBottom(isNearBottom(element))
+  }, [data])
+
   const scrollToBottom = () => {
     const element = scrollRef.current
     if (!element) return
@@ -135,12 +147,19 @@ const ThreadSidebar = () => {
     setIsAtBottom(true)
   }
 
-  const canScroll =
-    !!scrollRef.current &&
-    scrollRef.current.scrollHeight > scrollRef.current.clientHeight + 24
-
   const showScrollToBottomButton =
     !!data && data.messages.length > 0 && canScroll && !isAtBottom
+
+  const parentContent = (() => {
+    if (!data?.parent.content) return ""
+
+    try {
+      return JSON.parse(data.parent.content)
+    } catch {
+      console.error("Failed to parse thread parent content:", data.parent.id)
+      return ""
+    }
+  })()
 
   if (isLoading) {
     return <ThreadSidebarSkeleton />
@@ -236,7 +255,7 @@ const ThreadSidebar = () => {
 
                           <SafeContent
                             className="text-sm break-words prose dark:prose-invert max-w-none"
-                            content={JSON.parse(data.parent.content)}
+                            content={parentContent}
                           />
                         </div>
                       </div>

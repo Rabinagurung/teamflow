@@ -9,6 +9,17 @@ interface ThreadReplyProps {
 }
 
 const ThreadReply = ({ message, selectedThreadId }: ThreadReplyProps) => {
+  const parsedContent = (() => {
+    if (!message.content) return ""
+
+    try {
+      return JSON.parse(message.content)
+    } catch {
+      console.error("Failed to parse thread reply content:", message.id)
+      return ""
+    }
+  })()
+
   return (
     <div className="flex space-x-3 p-3 hover:bg-muted/30 rounded-lg">
       <Image
@@ -32,7 +43,7 @@ const ThreadReply = ({ message, selectedThreadId }: ThreadReplyProps) => {
           </span>
         </div>
         <SafeContent
-          content={JSON.parse(message.content)}
+          content={parsedContent}
           className="text-sm break-words prose dark:prose-invert max-w-none marker:text-primary"
         />
 

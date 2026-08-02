@@ -19,11 +19,11 @@ export default async function GetStartedPage() {
   if (workspaces.length === 0) redirect("/no-workspace")
 
   return (
-    <main className="min-h-screen bg-background md:p-4  text-foreground sm:p-5">
-      <div className="min-h-[calc(100vh-32px)] overflow-hidden md:rounded-2xl border border-border bg-secondary/60 shadow-2xl shadow-primary/10">
-        <section className="flex justify-center w-full items-start bg-secondary/60 px-4  py-10 sm:px-10 lg:px-16">
-          <div className="w-full max-w-3xl">
-            <div className="mb-10">
+    <main className="h-screen overflow-hidden bg-background text-foreground md:p-4 sm:p-5">
+      <div className="h-full overflow-hidden border border-border bg-secondary/60 shadow-2xl shadow-primary/10 md:rounded-2xl">
+        <section className="flex h-full w-full justify-center overflow-hidden bg-secondary/60 px-4 py-6 sm:px-10 lg:px-16">
+          <div className="flex h-full w-full max-w-3xl flex-col">
+            <div className="mb-6 shrink-0">
               <div className="flex items-center gap-3">
                 <Image
                   src="/logos/teamflow-mark.svg"
@@ -44,8 +44,8 @@ export default async function GetStartedPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-xl shadow-primary/5">
-              <div className="mb-5 flex items-center justify-between gap-4">
+            <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-5 shadow-xl shadow-primary/5">
+              <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
                 <div>
                   <p className="text-lg font-semibold">Ready to launch</p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -58,15 +58,17 @@ export default async function GetStartedPage() {
                 </div>
               </div>
 
-              <WorkspacePickerList
-                workspaces={workspaces.map((workspace) => ({
-                  id: workspace.id,
-                  name: workspace.name,
-                  memberCount: 0,
-                }))}
-              />
+              <div className="min-h-0 flex-1">
+                <WorkspacePickerList
+                  workspaces={workspaces.map((workspace) => ({
+                    id: workspace.id,
+                    name: workspace.name,
+                    memberCount: 0,
+                  }))}
+                />
+              </div>
 
-              <div className="my-8 flex items-center gap-4 text-muted-foreground">
+              <div className="my-6 flex shrink-0 items-center gap-4 text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />
                 <span className="text-xs font-semibold uppercase tracking-[0.16em]">
                   Or
@@ -74,7 +76,7 @@ export default async function GetStartedPage() {
                 <div className="h-px flex-1 bg-border" />
               </div>
 
-              <div className="space-y-3">
+              <div className="shrink-0 space-y-3">
                 <p className="text-lg font-semibold">Create a new workspace</p>
                 <CreateWorkspaceCard />
               </div>
