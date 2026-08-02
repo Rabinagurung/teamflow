@@ -92,6 +92,7 @@ const ProfileSetupForm = () => {
                     {...field}
                     className="h-14 border-input bg-background text-lg text-foreground placeholder:text-muted-foreground"
                     placeholder="Your Name"
+                    disabled={mutation.isPending}
                   />
                 </FormControl>
                 <FormMessage />

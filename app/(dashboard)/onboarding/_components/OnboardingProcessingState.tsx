@@ -3,13 +3,11 @@
 import { LoaderCircle } from "lucide-react"
 
 type OnboardingProcessingStateProps = {
-  eyebrow?: string
   title: string
   description: string
 }
 
 export default function OnboardingProcessingState({
-  eyebrow = "Setting things up",
   title,
   description,
 }: OnboardingProcessingStateProps) {
@@ -19,10 +17,6 @@ export default function OnboardingProcessingState({
         <section className="flex min-h-[calc(100vh-32px)] items-center justify-center px-4 py-10 sm:min-h-[calc(100vh-40px)] sm:px-10 lg:px-16">
           <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-6 shadow-xl shadow-primary/5 sm:p-8">
             <div className="mx-auto flex max-w-md flex-col items-center text-center">
-              <div className="mb-4 inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                {eyebrow}
-              </div>
-
               <div className="mb-5 grid size-16 place-items-center justify-center rounded-2xl ">
                 <LoaderCircle
                   className="size-12 animate-spin text-primary"

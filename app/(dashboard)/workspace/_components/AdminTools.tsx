@@ -119,7 +119,7 @@ const AdminTools = () => {
                     Edit workspace
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Edit workspace name
+                    Update workspace name
                   </p>
                 </div>
               </div>
@@ -145,7 +145,7 @@ const AdminTools = () => {
                   </p>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Invite teammates and manage access
+                    Invite and manage members
                   </p>
                 </div>
               </Link>
@@ -170,7 +170,7 @@ const AdminTools = () => {
                   </p>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Invite teammates and manage access
+                    Pending and accepted invites
                   </p>
                 </div>
               </Link>
@@ -195,7 +195,7 @@ const AdminTools = () => {
                   </p>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Invite teammates and manage access
+                    Profile, security, and sessions
                   </p>
                 </div>
               </Link>

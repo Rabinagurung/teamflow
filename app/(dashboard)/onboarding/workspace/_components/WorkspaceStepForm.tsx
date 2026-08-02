@@ -109,6 +109,7 @@ const WorkspaceStepForm = () => {
                     {...field}
                     className="h-14 border-input bg-background text-lg text-foreground placeholder:text-muted-foreground"
                     placeholder="TeamFlow Workspace"
+                    disabled={mutation.isPending}
                   />
                 </FormControl>
                 <FormMessage />

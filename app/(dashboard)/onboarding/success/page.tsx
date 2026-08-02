@@ -68,7 +68,6 @@ export default function OnboardingSuccessPage() {
 
   return (
     <OnboardingProcessingState
-      eyebrow="Confirming your upgrade"
       title="Finishing your TeamFlow setup..."
       description="We’re confirming your Pro workspace and getting everything ready for your first session."
     />

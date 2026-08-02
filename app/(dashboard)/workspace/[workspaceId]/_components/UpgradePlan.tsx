@@ -18,7 +18,7 @@ const UpgradePlan = () => {
     refetchOnWindowFocus: true,
   })
 
-  if (!canManageWorkspace) {
+  if (!canManageWorkspace || !workspaceId) {
     return null
   }
 
