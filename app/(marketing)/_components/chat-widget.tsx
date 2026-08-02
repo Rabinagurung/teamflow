@@ -9,7 +9,7 @@ export function ChatWidget() {
     script.async = true
     script.setAttribute(
       "data-organization-id",
-      process.env.NEXT_PUBLIC_ORG_ID || ""
+      process.env.NEXT_PUBLIC_ORG_ID || "",
     )
     script.setAttribute("data-primary-color", "#006b67")
     document.body.appendChild(script)

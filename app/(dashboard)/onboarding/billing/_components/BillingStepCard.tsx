@@ -69,7 +69,7 @@ const BillingStepCard = () => {
   const freeMutation = useMutation(
     orpc.onboarding.billing.startFree.mutationOptions({
       onSuccess: ({ redirectTo }) => {
-        router.replace(redirectTo)
+        router.push(redirectTo)
         router.refresh()
       },
       onError: (error) =>
@@ -98,7 +98,6 @@ const BillingStepCard = () => {
   if (freeMutation.isPending) {
     return (
       <OnboardingProcessingState
-        eyebrow="Starting your workspace"
         title="Activating your free workspace..."
         description="We’re applying your plan and taking you into TeamFlow now."
       />
@@ -162,7 +161,7 @@ const BillingStepCard = () => {
                 </div>
                 <Button
                   size="lg"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || startProMutation.isPending}
                   onClick={() => startProMutation.mutate()}
                   className="h-12 w-full rounded-xl bg-accent text-base font-semibold text-accent-foreground hover:bg-accent/90"
                 >
@@ -176,7 +175,7 @@ const BillingStepCard = () => {
             <Button
               size="lg"
               variant="secondary"
-              disabled={isSubmitting}
+              disabled={isSubmitting || freeMutation.isPending}
               onClick={() => freeMutation.mutate()}
               className="h-12 w-full  rounded-xl text-base font-semibold"
             >

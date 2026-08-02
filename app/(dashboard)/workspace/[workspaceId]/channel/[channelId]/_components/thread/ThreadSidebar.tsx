@@ -19,7 +19,7 @@ const ThreadSidebar = () => {
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const lastMessageCountRef = useRef(0)
 
-  const [isAtBottom, setIsAtBottom] = useState(false)
+  const [isAtBottom, setIsAtBottom] = useState(true)
 
   const { data, error, isLoading, isFetching, refetch } = useQuery(
     orpc.message.thread.list.queryOptions({
@@ -134,6 +134,13 @@ const ThreadSidebar = () => {
     bottomRef.current?.scrollIntoView({ block: "end", behavior: "smooth" })
     setIsAtBottom(true)
   }
+
+  const canScroll =
+    !!scrollRef.current &&
+    scrollRef.current.scrollHeight > scrollRef.current.clientHeight + 24
+
+  const showScrollToBottomButton =
+    !!data && data.messages.length > 0 && canScroll && !isAtBottom
 
   if (isLoading) {
     return <ThreadSidebarSkeleton />
@@ -259,7 +266,7 @@ const ThreadSidebar = () => {
                 )}
               </div>
 
-              {!isAtBottom && (
+              {showScrollToBottomButton && (
                 <Button
                   type="button"
                   size="sm"

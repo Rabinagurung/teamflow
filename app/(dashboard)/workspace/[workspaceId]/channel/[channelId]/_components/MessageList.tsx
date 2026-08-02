@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
 import { useInfiniteQuery } from "@tanstack/react-query"
-import { ChevronDown, Loader2 } from "lucide-react"
+import { ChevronDown, Loader2, LoaderCircle } from "lucide-react"
 import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import MessageItem from "./message/MessageItem"
@@ -46,7 +46,7 @@ const MessageList = () => {
 
   // Whether the user is currently positioned near the bottom of the list.
   // Determines auto-scroll behavior and UI state.
-  const [isAtBottom, setIsAtBottom] = useState(false)
+  const [isAtBottom, setIsAtBottom] = useState(true)
 
   // True when new messages arrive while the user is not near the bottom.
   // Controls visibility of the "New Messages" affordance.
@@ -320,6 +320,30 @@ const MessageList = () => {
     )
   }
 
+  if (isFetching && !isFetchingNextPage) {
+    return (
+      <div className="mx-auto flex h-full w-full flex-col items-center justify-center text-center ">
+        <div className="mb-5 grid size-16 place-items-center justify-center rounded-2xl ">
+          <LoaderCircle
+            className="size-12 animate-spin text-primary"
+            strokeWidth={1.75}
+          />
+        </div>
+
+        <p className="mt-1 text-sm leading-7 text-muted-foreground sm:text-base">
+          Loading messages....
+        </p>
+      </div>
+    )
+  }
+
+  const canScroll =
+    !!scrollRef.current &&
+    scrollRef.current.scrollHeight > scrollRef.current.clientHeight + 24
+
+  const showScrollToBottomButton =
+    hasInitialScrolled && !isEmpty && canScroll && !isAtBottom
+
   return (
     <div className="relative h-full">
       <div
@@ -347,11 +371,6 @@ const MessageList = () => {
             ))}
           </div>
         )}
-        {isFetching && !isFetchingNextPage ? (
-          <div className="py-2 text-center text-sm text-muted-foreground">
-            Loading....
-          </div>
-        ) : null}
 
         <div ref={bottomRef}></div>
       </div>
@@ -371,11 +390,11 @@ const MessageList = () => {
         </div>
       )}
 
-      {!isAtBottom && (
+      {showScrollToBottomButton && (
         <Button
           type="button"
           size="sm"
-          className="absolute bottom-4 right-5 z-20 rounded-full hover:shadow-xl transition-all duration-200 "
+          className="absolute bottom-4 right-5 z-20 rounded-full transition-all duration-200 hover:shadow-xl"
           onClick={scrollToBottom}
         >
           <ChevronDown className="size-4" />
