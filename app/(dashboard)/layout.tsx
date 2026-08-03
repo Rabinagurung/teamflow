@@ -1,3 +1,4 @@
+import { TabFocusRefresh } from "@/components/app/TabFocusRefresh"
 import React from "react"
 
 export default async function DashoboardGroupLayout({
@@ -5,5 +6,10 @@ export default async function DashoboardGroupLayout({
 }: {
   children: React.ReactNode
 }) {
-  return children
+  return (
+    <>
+      <TabFocusRefresh />
+      {children}
+    </>
+  )
 }
