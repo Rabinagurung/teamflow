@@ -175,7 +175,6 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionBarProps) => {
             },
           })
         }
-        toast.success(`Emoji ${data.action}`)
       },
 
       onError: (_error, _variables, context) => {

@@ -137,8 +137,6 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
           type: "message:replies:increment",
           payload: { messageId: threadId, delta: 1 },
         })
-
-        toast.success("Reply posted successfully")
       },
       onError: (_error, _variables, context) => {
         if (context?.previous && context.listOptions) {

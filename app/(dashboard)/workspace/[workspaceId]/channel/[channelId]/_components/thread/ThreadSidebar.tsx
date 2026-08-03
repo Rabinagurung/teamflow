@@ -150,17 +150,6 @@ const ThreadSidebar = () => {
   const showScrollToBottomButton =
     !!data && data.messages.length > 0 && canScroll && !isAtBottom
 
-  const parentContent = (() => {
-    if (!data?.parent.content) return ""
-
-    try {
-      return JSON.parse(data.parent.content)
-    } catch {
-      console.error("Failed to parse thread parent content:", data.parent.id)
-      return ""
-    }
-  })()
-
   if (isLoading) {
     return <ThreadSidebarSkeleton />
   }
@@ -255,7 +244,7 @@ const ThreadSidebar = () => {
 
                           <SafeContent
                             className="text-sm break-words prose dark:prose-invert max-w-none"
-                            content={parentContent}
+                            content={data.parent.content}
                           />
                         </div>
                       </div>
