@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { authClient } from "@/lib/auth/auth-client"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export type AdminInvitation = {
   id: string
@@ -47,6 +47,10 @@ const AdminInvitationsTabs = ({ invitations }: AdminInvitationsTabsProps) => {
   const router = useRouter()
   const [search, setSearch] = useState("")
   const [invitationRows, setInvitationRows] = useState(invitations)
+
+  useEffect(() => {
+    setInvitationRows(invitations)
+  }, [invitations])
 
   const query = search.trim().toLowerCase()
 

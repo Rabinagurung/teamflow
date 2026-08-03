@@ -14,7 +14,7 @@ import {
 import { authClient } from "@/lib/auth/auth-client"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export type AdminMembersTableMember = {
   id: string
@@ -40,6 +40,10 @@ const AdminMembersTable = ({ members }: AdminMembersTableProps) => {
   const [search, setSearch] = useState("")
   const [memberRows, setMemberRows] = useState(members)
   const { data: session } = authClient.useSession()
+
+  useEffect(() => {
+    setMemberRows(members)
+  }, [members])
 
   const query = search.trim().toLowerCase()
 

@@ -5,7 +5,10 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 
 // hooks/use-active-workspace.ts
 export function useActiveWorkspace() {
-  const { data } = useSuspenseQuery(orpc.workspace.list.queryOptions())
+  const { data } = useSuspenseQuery({
+    ...orpc.workspace.list.queryOptions(),
+    refetchOnWindowFocus: true,
+  })
 
   const currentWorkspace = data.currentWorkspace
   const currentWorkspaceRole = data.currentWorkspaceRole
