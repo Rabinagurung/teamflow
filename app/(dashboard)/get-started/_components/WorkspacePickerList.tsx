@@ -20,8 +20,8 @@ export default function WorkspacePickerList({
   )
 
   return (
-    <Card className="overflow-hidden rounded-xl border-border bg-card shadow-sm py-0">
-      <CardContent className="divide-y divide-border p-0">
+    <Card className="h-full overflow-hidden rounded-xl border-border bg-card py-0 shadow-sm">
+      <CardContent className="h-full divide-y divide-border overflow-y-auto p-0">
         {workspaces.map((workspace) => (
           <WorkspacePickerItem
             key={workspace.id}
