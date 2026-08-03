@@ -4,7 +4,7 @@ import DOMPurify from "dompurify"
 import parse from "html-react-parser"
 
 interface SafeContentProps {
-  content: JSONContent
+  content: JSONContent | string | null | undefined
   className?: string
 }
 

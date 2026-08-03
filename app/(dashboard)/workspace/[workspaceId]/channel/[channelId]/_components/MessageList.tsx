@@ -323,14 +323,14 @@ const MessageList = () => {
   if (isFetching && !isFetchingNextPage) {
     return (
       <div className="mx-auto flex h-full w-full flex-col items-center justify-center text-center ">
-        <div className="mb-5 grid size-16 place-items-center justify-center rounded-2xl ">
+        <div className="grid size-16 place-items-center justify-center rounded-2xl ">
           <LoaderCircle
-            className="size-12 animate-spin text-primary"
+            className="size-10 animate-spin text-primary"
             strokeWidth={1.75}
           />
         </div>
 
-        <p className="mt-1 text-sm leading-7 text-muted-foreground sm:text-base">
+        <p className="text-sm leading-7 text-muted-foreground sm:text-base">
           Loading messages....
         </p>
       </div>

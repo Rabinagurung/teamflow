@@ -78,15 +78,7 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
         ) : (
           <>
             <SafeContent
-              content={(() => {
-                if (!message.content) return ""
-                try {
-                  return JSON.parse(message.content)
-                } catch {
-                  console.error("Failed to parse message content:", message.id)
-                  return ""
-                }
-              })()}
+              content={message.content}
               className="prose max-w-none break-words text-sm text-foreground/90 marker:text-primary dark:prose-invert"
             />
 

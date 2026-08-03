@@ -178,7 +178,6 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
         upload.clear()
         setEditorKey((k) => k + 1)
         send({ type: "message:created", payload: { message: data } })
-        return toast.success("Message created successfully")
       },
 
       /**
