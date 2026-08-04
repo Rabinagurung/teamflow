@@ -25,7 +25,7 @@ const ChannelPageMain = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-full w-full">
         <div className="text-center">
           <p className="text-lg font-semibold mb-2">Failed to load channel</p>
           <p className="text-sm text-muted-foreground">

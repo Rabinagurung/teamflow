@@ -21,33 +21,33 @@ export default function OnboardingShell({
   const progress = `${Math.round((step / totalSteps) * 100)}%`
 
   return (
-    <main className="min-h-screen bg-background p-4 text-foreground sm:p-5">
-      <div className="grid min-h-[calc(100vh-32px)] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-primary/10 sm:min-h-[calc(100vh-40px)] lg:grid-cols-[320px_1fr]">
-        <aside className="border-b border-workspace-rail-border bg-workspace-rail p-6 text-sidebar-foreground lg:border-r lg:border-b-0 lg:p-8">
+    <main className="h-dvh overflow-hidden bg-background p-4 text-foreground sm:p-5">
+      <div className="grid h-full min-h-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-primary/10 lg:grid-cols-[300px_1fr] xl:grid-cols-[320px_1fr]">
+        <aside className="border-b border-workspace-rail-border bg-workspace-rail p-5 text-sidebar-foreground lg:border-r lg:border-b-0 lg:p-6 xl:p-8">
           <Image
             src="/logos/teamflow-wordmark.svg"
             alt="TeamFlow"
             width={170}
             height={37}
             priority
-            className="mb-10 h-auto w-40"
+            className="mb-7 h-auto w-36 xl:mb-10 xl:w-40"
           />
 
-          <div className="mb-8 flex items-center gap-4">
-            <div className="grid size-12 place-items-center rounded-xl bg-workspace-rail-accent text-lg font-semibold text-sidebar-foreground shadow-inner shadow-white/10">
+          <div className="mb-6 flex items-center gap-3 xl:mb-8 xl:gap-4">
+            <div className="grid size-11 place-items-center rounded-xl bg-workspace-rail-accent text-base font-semibold text-sidebar-foreground shadow-inner shadow-white/10 xl:size-12 xl:text-lg">
               {workspaceName?.slice(0, 2).toUpperCase() ?? "TW"}
             </div>
             <div>
               <p className="text-sm font-medium text-sidebar-foreground/60">
                 Workspace
               </p>
-              <div className="text-lg font-semibold">
+              <div className="text-base font-semibold xl:text-lg">
                 {workspaceName ?? "New Workspace"}
               </div>
             </div>
           </div>
 
-          <div className="space-y-3 border-t border-white/10 pt-7 text-sm font-medium text-sidebar-foreground/70">
+          <div className="space-y-2.5 border-t border-white/10 pt-5 text-sm font-medium text-sidebar-foreground/70 xl:space-y-3 xl:pt-7">
             <p className="rounded-lg bg-white/10 px-3 py-2 text-sidebar-foreground">
               # general
             </p>
@@ -56,9 +56,9 @@ export default function OnboardingShell({
           </div>
         </aside>
 
-        <section className="flex w-full flex-col px-6 py-10 sm:px-10 lg:px-16 lg:py-16">
-          <div className="mb-10 max-w-6xl">
-            <div className="mb-5 flex items-center gap-4">
+        <section className="flex min-h-0 w-full flex-col overflow-hidden px-6 py-5 sm:px-8 lg:px-12 lg:py-6 xl:px-16 xl:py-8">
+          <div className="mb-5 max-w-5xl xl:mb-6 xl:max-w-6xl">
+            <div className="mb-4 flex items-center gap-4 xl:mb-5">
               <p className="text-sm font-semibold text-muted-foreground">
                 Step {step} of {totalSteps}
               </p>
@@ -69,15 +69,15 @@ export default function OnboardingShell({
                 />
               </div>
             </div>
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
+            <h1 className="text-[clamp(2.5rem,4vw,4.25rem)] font-semibold leading-none tracking-tight text-foreground">
               {title}
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground lg:text-lg">
               {description}
             </p>
           </div>
 
-          <div className="w-full">{children}</div>
+          <div className="min-h-0 flex-1">{children}</div>
         </section>
       </div>
     </main>
