@@ -68,8 +68,8 @@ export default function OnboardingSuccessPage() {
 
   return (
     <OnboardingProcessingState
-      title="Finishing your TeamFlow setup..."
-      description="We’re confirming your Pro workspace and getting everything ready for your first session."
+      title="Launching the workspace"
+      description="Tunning default channels..."
     />
   )
 }

@@ -325,7 +325,7 @@ const MessageList = () => {
       <div className="mx-auto flex h-full w-full flex-col items-center justify-center text-center ">
         <div className="grid size-16 place-items-center justify-center rounded-2xl ">
           <LoaderCircle
-            className="size-10 animate-spin text-primary"
+            className="size-8 animate-spin text-primary"
             strokeWidth={1.75}
           />
         </div>
