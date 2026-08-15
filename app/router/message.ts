@@ -16,6 +16,7 @@ import {
   toggleReactionSchema,
   updateMessageSchema,
 } from "../schemas/message"
+import { resolveRequestedWorkspaceId } from "./_shared/requested-workspace"
 
 type Reaction = {
   emoji: string
@@ -66,11 +67,22 @@ export const createMessage = base
   .input(createMessageSchema)
   .output(z.custom<MessageListItem>())
   .handler(async ({ context, errors, input }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     //verfiy channel belongs to user's org
     const channel = await prisma.channel.findFirst({
       where: {
         id: input.channelId,
-        organizationId: context.workspace.id,
+        organizationId: workspaceId,
       },
     })
 
@@ -84,7 +96,7 @@ export const createMessage = base
         where: {
           id: input.threadId,
           channel: {
-            organizationId: context.workspace.id,
+            organizationId: workspaceId,
           },
         },
       })
@@ -133,6 +145,7 @@ export const listMessages = base
       channelId: z.string(),
       limit: z.number().min(1).max(100).optional(),
       cursor: z.string().optional(),
+      workspaceId: z.string().optional(),
       //cursor: id of last message(unique identifier) from previous page
       //why cursor optional: first time page load -> cursor undefined -> if we scroll to top then cursor is defined
     }),
@@ -146,11 +159,22 @@ export const listMessages = base
     }),
   )
   .handler(async ({ input, errors, context }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     //verify channel belongs to user's organization(authorize)
     const channel = await prisma.channel.findFirst({
       where: {
         id: input.channelId,
-        organizationId: context.workspace.id,
+        organizationId: workspaceId,
       },
     })
 
@@ -233,11 +257,22 @@ export const updateMessage = base
     }),
   )
   .handler(async ({ context, errors, input }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     const message = await prisma.message.findFirst({
       where: {
         id: input.messageId,
         channel: {
-          organizationId: context.workspace.id,
+          organizationId: workspaceId,
         },
       },
       select: {
@@ -288,11 +323,22 @@ export const deleteMessage = base
     }),
   )
   .handler(async ({ context, errors, input }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     const message = await prisma.message.findFirst({
       where: {
         id: input.messageId,
         channel: {
-          organizationId: context.workspace.id,
+          organizationId: workspaceId,
         },
       },
       select: {
@@ -339,6 +385,7 @@ export const listThreadReplies = base
   .input(
     z.object({
       messageId: z.string(),
+      workspaceId: z.string().optional(),
     }),
   )
   .output(
@@ -348,12 +395,23 @@ export const listThreadReplies = base
     }),
   )
   .handler(async ({ context, errors, input }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     //get parent message
     const parentRow = await prisma.message.findFirst({
       where: {
         id: input.messageId,
         channel: {
-          organizationId: context.workspace.id,
+          organizationId: workspaceId,
         },
       },
       include: {
@@ -371,7 +429,7 @@ export const listThreadReplies = base
       where: {
         threadId: input.messageId,
         channel: {
-          organizationId: context.workspace.id,
+          organizationId: workspaceId,
         },
         // Optional (stronger): keep replies in the same channel as the parent
         channelId: parentRow.channelId,
@@ -434,12 +492,23 @@ export const toggleReaction = base
     }),
   )
   .handler(async ({ context, input, errors }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     //verify message exists and belongs to user's workspace
     const message = await prisma.message.findFirst({
       where: {
         id: input.messageId,
         channel: {
-          organizationId: context.workspace.id,
+          organizationId: workspaceId,
         },
       },
       select: { id: true },

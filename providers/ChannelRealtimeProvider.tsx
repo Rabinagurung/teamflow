@@ -2,6 +2,7 @@ import {
   ChannelEventSchema,
   RealtimeMessageSchema,
 } from "@/app/schemas/realtime"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { InfiniteData, useQueryClient } from "@tanstack/react-query"
 import usePartySocket from "partysocket/react"
 import { createContext, useContext, useMemo } from "react"
@@ -16,6 +17,7 @@ type ChannelRealtimeContextValueType = {
 }
 
 interface ChannelRealtimeProviderProps {
+  workspaceId: string
   /** Channel identifier used to select the websocket room name. */
   channelId: string
   children: React.ReactNode
@@ -33,10 +35,12 @@ const ChannelRealtimeContext =
   createContext<ChannelRealtimeContextValueType | null>(null)
 
 export function ChannelRealtimeProvider({
+  workspaceId,
   channelId,
   children,
 }: ChannelRealtimeProviderProps) {
   const queryClient = useQueryClient() //mainpulate the cache in Tanstack query
+  const messageListKey = workspaceQueryKeys.messageList(workspaceId, channelId)
 
   /**
    * ChannelRealtimeProvider
@@ -103,7 +107,7 @@ export function ChannelRealtimeProvider({
 
           //Insert at top of first page of Infinite List for the channel
           queryClient.setQueryData<RealtimeInfiniteMessages>(
-            ["message.list", channelId],
+            messageListKey,
             (old) => {
               // If no cache exists yet, initialize an infinite-query-shaped cache value.
               if (!old) {
@@ -140,7 +144,7 @@ export function ChannelRealtimeProvider({
 
           //replace the message in the infinite list by id
           queryClient.setQueryData<RealtimeInfiniteMessages>(
-            ["message.list", channelId],
+            messageListKey,
             (old) => {
               if (!old) return old
 
@@ -166,7 +170,7 @@ export function ChannelRealtimeProvider({
           const { messageId } = event.payload
 
           queryClient.setQueryData<RealtimeInfiniteMessages>(
-            ["message.list", channelId],
+            messageListKey,
             (old) => {
               if (!old) return old
 
@@ -193,7 +197,7 @@ export function ChannelRealtimeProvider({
           const { messageId, reactions: currentReactions } = event.payload
 
           queryClient.setQueryData<RealtimeInfiniteMessages>(
-            ["message.list", channelId],
+            messageListKey,
             (old) => {
               if (!old) return old
 
@@ -240,7 +244,7 @@ export function ChannelRealtimeProvider({
           const { messageId, delta } = event.payload
 
           queryClient.setQueryData<RealtimeInfiniteMessages>(
-            ["message.list", channelId],
+            messageListKey,
             (old) => {
               if (!old) return old
 

@@ -14,3 +14,8 @@ export type MessagePage = {
 }
 
 export type InfiniteMessages = InfiniteData<MessagePage>
+
+export type ThreadMessages = {
+  parent: MessageListItem
+  messages: MessageListItem[]
+}

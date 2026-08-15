@@ -4,9 +4,9 @@ import EmptyState from "@/components/general/EmptyState"
 import { Button } from "@/components/ui/button"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { ChevronDown, Loader2, LoaderCircle } from "lucide-react"
-import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import MessageItem from "./message/MessageItem"
 
@@ -27,9 +27,12 @@ import MessageItem from "./message/MessageItem"
  * This component is intentionally client-side to support scroll position
  * preservation and real-time UX patterns.
  */
-const MessageList = () => {
-  const { channelId } = useParams<{ channelId: string }>()
+type MessageListProps = {
+  workspaceId: string
+  channelId: string
+}
 
+const MessageList = ({ workspaceId, channelId }: MessageListProps) => {
   // Indicates whether the initial scroll-to-bottom has been performed.
   // Prevents repeated auto-scrolling on re-renders.
   const [hasInitialScrolled, setHasInitialScrolled] = useState(false)
@@ -57,8 +60,9 @@ const MessageList = () => {
       channelId,
       cursor: pageParam,
       limit: 30,
+      workspaceId,
     }),
-    queryKey: ["message.list", channelId], //multiple channels and want to validate one channel
+    queryKey: workspaceQueryKeys.messageList(workspaceId, channelId),
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     select: (data) => {

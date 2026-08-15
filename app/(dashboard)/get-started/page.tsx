@@ -1,3 +1,4 @@
+import "@/lib/orpc/orpc.server"
 import { requireAuth } from "@/lib/auth/auth-utils"
 
 import { getQueryClient } from "@/lib/query/hydration"

@@ -11,6 +11,7 @@ import {
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { useAttachmentUpload } from "@/hooks/use-attachment-upload"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { InfiniteMessages, MessageListItem, MessagePage } from "@/lib/types"
 import { getAvatar } from "@/lib/utlis/get-avatar"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
@@ -23,6 +24,7 @@ import z from "zod"
 import MessageComposer from "./MessageComposer"
 
 interface MessageInputFormProps {
+  workspaceId: string
   channelId: string
 }
 
@@ -33,8 +35,12 @@ interface MessageInputFormProps {
 
 // type InfiniteMessages = InfiniteData<MessagePage>
 
-const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
+const MessageInputForm = ({
+  workspaceId,
+  channelId,
+}: MessageInputFormProps) => {
   const queryClient = useQueryClient()
+  const messageListKey = workspaceQueryKeys.messageList(workspaceId, channelId)
   const [editorKey, setEditorKey] = useState(0)
   const upload = useAttachmentUpload()
   const { send } = useChannelRealtime()
@@ -45,6 +51,7 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
     defaultValues: {
       channelId,
       content: "",
+      workspaceId,
     },
   })
 
@@ -59,16 +66,13 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
          * Prevent race conditions where an in-flight refetch overwrites our optimistic insert.
          */
         await queryClient.cancelQueries({
-          queryKey: ["message.list", channelId],
+          queryKey: messageListKey,
         })
 
         /**
          * Snapshot the current cache state to allow rollback if the mutation fails.
          */
-        const previousData = queryClient.getQueryData([
-          "message.list",
-          channelId,
-        ])
+        const previousData = queryClient.getQueryData(messageListKey)
 
         /**
          * Create a temporary client-only ID so we can later replace this optimistic record
@@ -99,45 +103,42 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
          * Apply an optimistic insert into the infinite list cache.
          * Assumption: pages[0] contains the newest messages (server sorts desc).
          */
-        queryClient.setQueryData<InfiniteMessages>(
-          ["message.list", channelId],
-          (old) => {
-            /**
-             * If the infinite query has not been initialized in the cache yet,
-             * bootstrap minimal cache so the optimistic message can render.
-             */
-            if (!old) {
-              return {
-                pages: [
-                  {
-                    items: [optimisticMessage],
-                    nextCursor: undefined, //no more pages to fetch as this is only message in inital page
-                  },
-                ],
-                pageParams: [undefined], //tracks pagination parameter for each page
-                // undefined means intial page has no cursor
-              } satisfies InfiniteMessages //for Typesript types
-            }
-
-            /**
-             * Insert the optimistic message at the front of the newest page.
-             * Remaining pages are preserved.
-             */
-            const firstPage = old.pages[0] ?? {
-              items: [],
-              nextCursor: undefined,
-            }
-            const updatedFirstPage: MessagePage = {
-              ...firstPage,
-              items: [optimisticMessage, ...firstPage.items],
-            }
-
+        queryClient.setQueryData<InfiniteMessages>(messageListKey, (old) => {
+          /**
+           * If the infinite query has not been initialized in the cache yet,
+           * bootstrap minimal cache so the optimistic message can render.
+           */
+          if (!old) {
             return {
-              ...old,
-              pages: [updatedFirstPage, ...old.pages.slice(1)],
-            }
-          },
-        )
+              pages: [
+                {
+                  items: [optimisticMessage],
+                  nextCursor: undefined, //no more pages to fetch as this is only message in inital page
+                },
+              ],
+              pageParams: [undefined], //tracks pagination parameter for each page
+              // undefined means intial page has no cursor
+            } satisfies InfiniteMessages //for Typesript types
+          }
+
+          /**
+           * Insert the optimistic message at the front of the newest page.
+           * Remaining pages are preserved.
+           */
+          const firstPage = old.pages[0] ?? {
+            items: [],
+            nextCursor: undefined,
+          }
+          const updatedFirstPage: MessagePage = {
+            ...firstPage,
+            items: [optimisticMessage, ...firstPage.items],
+          }
+
+          return {
+            ...old,
+            pages: [updatedFirstPage, ...old.pages.slice(1)],
+          }
+        })
 
         //Return context for onSuccess/onError.
         return {
@@ -154,27 +155,24 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
         //data is data returned by server after successfully creating a message in database
 
         //update the cache with real message genereated by server
-        queryClient.setQueryData<InfiniteMessages>(
-          ["message.list", channelId],
-          (old) => {
-            if (!old || !context?.tempId) return old
+        queryClient.setQueryData<InfiniteMessages>(messageListKey, (old) => {
+          if (!old || !context?.tempId) return old
 
-            const updatedPages = old.pages.map((page) => ({
-              ...page, //preserving next cursor and overwriting items
-              items: page.items.map((m) =>
-                /*message.id matches with optimistic temp message.id
+          const updatedPages = old.pages.map((page) => ({
+            ...page, //preserving next cursor and overwriting items
+            items: page.items.map((m) =>
+              /*message.id matches with optimistic temp message.id
                 //update that optimistic message with new successfully added message from server
                 //and remaininng messages in items array should remain same*/
-                m.id === context.tempId ? { ...data } : m,
-              ),
-            }))
+              m.id === context.tempId ? { ...data } : m,
+            ),
+          }))
 
-            // ...old: preserving page params and overwriting pages
-            return { ...old, pages: updatedPages }
-          },
-        )
+          // ...old: preserving page params and overwriting pages
+          return { ...old, pages: updatedPages }
+        })
 
-        form.reset({ channelId, content: "" })
+        form.reset({ channelId, content: "", workspaceId })
         upload.clear()
         setEditorKey((k) => k + 1)
         send({ type: "message:created", payload: { message: data } })
@@ -186,10 +184,7 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
        */
       onError: (_err, _variables, context) => {
         if (context?.previousData) {
-          queryClient.setQueryData(
-            ["message.list", channelId],
-            context.previousData,
-          )
+          queryClient.setQueryData(messageListKey, context.previousData)
         }
         return toast.error("Something went wrong")
       },
@@ -200,6 +195,7 @@ const MessageInputForm = ({ channelId }: MessageInputFormProps) => {
     createMessageMutation.mutate({
       ...data,
       imageUrl: upload.stagedUrl ?? undefined,
+      workspaceId,
     })
   }
 
