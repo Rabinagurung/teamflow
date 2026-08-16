@@ -1,3 +1,4 @@
+import "@/lib/orpc/orpc.server"
 import {
   Empty,
   EmptyContent,

@@ -1,3 +1,4 @@
+import "@/lib/orpc/orpc.server"
 import { AppWorkspace } from "@/app/schemas/workspace"
 import {
   Collapsible,

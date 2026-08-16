@@ -53,7 +53,7 @@ export function usePresence({ room, currentUser }: usePresenceProps) {
      * In local dev with wrangler, it is typically localhost:8787.
      * (Some setups accept http://localhost:8787, but the common form is without protocol.)
      */
-    host: "localhost:8787",
+    host: "https://teamflow-chat-realtime.team-flow.workers.dev",
 
     /** Room name/id: isolates the Durable Object instance (presence per workspace). */
     room,

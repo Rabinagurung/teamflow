@@ -1,3 +1,4 @@
+import "@/lib/orpc/orpc.server"
 import { orpc } from "@/lib/orpc/orpc"
 import { getQueryClient } from "@/lib/query/hydration"
 import { redirect } from "next/navigation"

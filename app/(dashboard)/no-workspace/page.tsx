@@ -1,3 +1,4 @@
+import "@/lib/orpc/orpc.server"
 import React from "react"
 import NoWorkspaceHero from "./_components/NoWorkspaceHero"
 import { requireAuth } from "@/lib/auth/auth-utils"

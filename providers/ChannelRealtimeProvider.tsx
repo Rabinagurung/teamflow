@@ -62,7 +62,8 @@ export function ChannelRealtimeProvider({
      * - party: backend PartyServer class name
      * - room: logical room name (mapped to a Durable Object instance)
      */
-    host: "localhost:8787",
+    // host: "localhost:8787",
+    host: "https://teamflow-chat-realtime.team-flow.workers.dev",
     room: `channel-${channelId}`,
     party: "chat",
 

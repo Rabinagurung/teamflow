@@ -1,21 +1,19 @@
 {
+  "$schema": "./node_modules/wrangler/config-schema.json",
   /**
    * Worker script name (how it appears in your Cloudflare dashboard/account).
    * Must be unique within your account.
    */
   "name": "teamflow-chat-realtime",
-
   /**
    * Worker entry point bundled by Wrangler.
    * This file should export a default object with a fetch() handler.
    */
   "main": "realtime/index.ts",
-
   /**
    * Locks the Worker runtime compatibility behavior to this date.
    */
   "compatibility_date": "2026-01-13",
-
   /**
    * Durable Object bindings.
    *
@@ -32,7 +30,6 @@
       }
     ]
   },
-
   /**
    * Migrations tell Cloudflare how to initialize/upgrade Durable Object classes.
    * Each migration "tag" is a step; you add new steps over time.
@@ -44,7 +41,24 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["Chat"]
+      "new_sqlite_classes": [
+        "Chat"
+      ]
     }
-  ]
+  ],
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  }
 }

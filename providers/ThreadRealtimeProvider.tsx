@@ -31,7 +31,8 @@ export function ThreadRealtimeProvider({
   type ThreadQueryData = Awaited<ReturnType<ThreadListOptions["queryFn"]>>
 
   const socket = usePartySocket({
-    host: "localhost:8787",
+    host: "https://teamflow-chat-realtime.team-flow.workers.dev",
+    // host: "localhost:8787",
     room: `thread-${threadId}`,
     party: "chat",
 
