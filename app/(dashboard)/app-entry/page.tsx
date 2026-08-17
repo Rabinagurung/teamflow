@@ -3,6 +3,8 @@ import { orpc } from "@/lib/orpc/orpc"
 import { getQueryClient } from "@/lib/query/hydration"
 import { redirect } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 export default async function AppEntryPage() {
   //gives user's current onboarding step
   const queryClient = getQueryClient()
