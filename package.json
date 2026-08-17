@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "postinstall": "prisma generate",
     "start": "next start",
     "db:push": "prisma db push",
     "db:backfill-user-profile-fields": "npx prisma db execute --schema prisma --file scripts/backfill-user-profile-fields.sql",
