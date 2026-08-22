@@ -21,7 +21,7 @@ const groq = createGroq({
   apiKey: LLM_KEY,
 })
 
-const MODEL_ID = "llama-3.3-70b-versatile"
+const MODEL_ID = "openai/gpt-oss-20b"
 
 const model = groq(MODEL_ID)
 
