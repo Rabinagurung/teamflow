@@ -2,9 +2,11 @@
 
 import { createMessageSchema } from "@/app/schemas/message"
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { useAttachmentUpload } from "@/hooks/use-attachment-upload"
 import { orpc } from "@/lib/orpc/orpc"
-import { InfiniteMessages, MessageListItem } from "@/lib/types"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
+import { InfiniteMessages, MessageListItem, ThreadMessages } from "@/lib/types"
 import { getAvatar } from "@/lib/utlis/get-avatar"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 import { useThreadRealtime } from "@/providers/ThreadRealtimeProvider"
@@ -16,7 +18,6 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import MessageComposer from "../message/MessageComposer"
-import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 
 interface ThreadReplyFormProps {
   threadId: string
@@ -29,7 +30,7 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
   const { send: sendThread } = useThreadRealtime()
   const upload = useAttachmentUpload()
   const [editorKey, setEditorKey] = useState(0)
-  const { user } = useRequiredActiveWorkspace()
+  const { user, workspaceId } = useRequiredActiveWorkspace()
 
   const form = useForm({
     resolver: zodResolver(createMessageSchema),
@@ -37,6 +38,7 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
       content: "",
       channelId,
       threadId,
+      workspaceId,
     },
   })
 
@@ -51,7 +53,8 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
   useEffect(() => {
     form.setValue("threadId", threadId)
     form.setValue("channelId", channelId)
-  }, [threadId, form, channelId])
+    form.setValue("workspaceId", workspaceId)
+  }, [threadId, form, channelId, workspaceId])
 
   const createMessageMutation = useMutation(
     orpc.message.create.mutationOptions({
@@ -59,18 +62,20 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
         const listOptions = orpc.message.thread.list.queryOptions({
           input: {
             messageId: threadId,
+            workspaceId,
           },
+          queryKey: workspaceQueryKeys.threadList(workspaceId, threadId),
         })
 
         await queryClient.cancelQueries({ queryKey: listOptions.queryKey })
 
         //Snapshot of data used to rollback if sever throws error while creating a message reply
-        const previous = queryClient.getQueryData(listOptions.queryKey)
+        const previous = queryClient.getQueryData<ThreadMessages>(
+          listOptions.queryKey,
+        )
 
-        const previousMainList = queryClient.getQueryData([
-          "message.list",
-          channelId,
-        ])
+        const listKey = workspaceQueryKeys.messageList(workspaceId, channelId)
+        const previousMainList = queryClient.getQueryData(listKey)
 
         const optimisticReply: MessageListItem = {
           id: `optimistic:${crypto.randomUUID()}`,
@@ -88,13 +93,15 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
           reactions: [], //no reactions for initial reply
         }
 
-        queryClient.setQueryData(listOptions.queryKey, (old) => {
-          if (!old) return old
-          //preserve parent and in messages array: preserve old replies and add new optimisticReply
-          return { ...old, messages: [...old.messages, optimisticReply] }
-        })
+        queryClient.setQueryData<ThreadMessages>(
+          listOptions.queryKey,
+          (old) => {
+            if (!old) return old
+            //preserve parent and in messages array: preserve old replies and add new optimisticReply
+            return { ...old, messages: [...old.messages, optimisticReply] }
+          },
+        )
 
-        const listKey = ["message.list", channelId]
         //Optimistically bump reliesCount in main messaege list for the parent message
         queryClient.setQueryData<InfiniteMessages>(listKey, (old) => {
           if (!old) return old
@@ -127,7 +134,7 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
         queryClient.invalidateQueries({
           queryKey: context.listOptions.queryKey,
         })
-        form.reset({ channelId, content: "", threadId })
+        form.reset({ channelId, content: "", threadId, workspaceId })
         upload.clear()
         setEditorKey((k) => k + 1)
 
@@ -164,6 +171,7 @@ const ThreadReplyForm = ({ threadId }: ThreadReplyFormProps) => {
     createMessageMutation.mutate({
       ...data,
       imageUrl: upload.stagedUrl ?? undefined,
+      workspaceId,
     })
   }
 

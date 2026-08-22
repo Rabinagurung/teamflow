@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/tooltip"
 import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
-import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
+import {
+  isChannelScopedQuery,
+  workspaceQueryKeys,
+} from "@/lib/query/workspace-query-keys"
 import { getWorkspaceColor } from "@/lib/utlis/get-workspace-color"
 import { cn } from "@/lib/utlis/utils"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -17,6 +20,7 @@ import { useRouter } from "next/navigation"
 import { startTransition } from "react"
 import { toast } from "sonner"
 import { getWorkspaceSwitchErrorMessage } from "./get-workspace-switch-error-message"
+import { useWorkspaceSwitch } from "./WorkspaceSwitchProvider"
 
 const WorkspaceList = () => {
   const router = useRouter()
@@ -25,10 +29,34 @@ const WorkspaceList = () => {
   const workspaceListQuery = orpc.workspace.list.queryOptions()
 
   const { workspaces, currentWorkspace } = useRequiredActiveWorkspace()
+  const {
+    isSwitchingWorkspace,
+    startWorkspaceSwitch,
+    finishWorkspaceSwitch,
+    targetWorkspaceId,
+  } = useWorkspaceSwitch()
 
   const switchWorkspace = useMutation(
     orpc.workspace.select.mutationOptions({
-      onSuccess: ({ workspaceId }) => {
+      onMutate: async ({ workspaceId }) => {
+        startWorkspaceSwitch(workspaceId)
+
+        await queryClient.cancelQueries({
+          predicate: isChannelScopedQuery,
+        })
+        queryClient.removeQueries({
+          predicate: isChannelScopedQuery,
+        })
+      },
+
+      onSuccess: async ({ workspaceId }) => {
+        await queryClient.cancelQueries({
+          predicate: isChannelScopedQuery,
+        })
+        queryClient.removeQueries({
+          predicate: isChannelScopedQuery,
+        })
+
         startTransition(() => {
           router.push(`/workspace/${workspaceId}`)
           router.refresh()
@@ -48,6 +76,7 @@ const WorkspaceList = () => {
       },
 
       onError: (error) => {
+        finishWorkspaceSwitch()
         toast.error(getWorkspaceSwitchErrorMessage(error))
       },
     }),
@@ -81,8 +110,9 @@ const WorkspaceList = () => {
         <div className="flex flex-col gap-2">
           {otherWorkspaces.map((workspace) => {
             const isSwitching =
-              switchWorkspace.isPending &&
-              switchWorkspace.variables?.workspaceId === workspace.id
+              targetWorkspaceId === workspace.id ||
+              (switchWorkspace.isPending &&
+                switchWorkspace.variables?.workspaceId === workspace.id)
 
             return (
               <Tooltip key={workspace.id}>
@@ -90,7 +120,7 @@ const WorkspaceList = () => {
                   <Button
                     size="icon"
                     type="button"
-                    disabled={isSwitching}
+                    disabled={isSwitchingWorkspace || isSwitching}
                     aria-label={`Switch to ${workspace.name}`}
                     onClick={() => {
                       switchWorkspace.mutate({ workspaceId: workspace.id })

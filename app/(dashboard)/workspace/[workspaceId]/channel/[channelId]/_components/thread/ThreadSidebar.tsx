@@ -1,6 +1,8 @@
 import SafeContent from "@/components/rich-text-editor/SafeContent"
 import { Button } from "@/components/ui/button"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { useThread } from "@/providers/ThreadProvider"
 import { ThreadRealtimeProvider } from "@/providers/ThreadRealtimeProvider"
 import { useQuery } from "@tanstack/react-query"
@@ -14,6 +16,7 @@ import ThreadSidebarSkeleton from "./ThreadSidebarSkeleton"
 
 const ThreadSidebar = () => {
   const { selectedThreadId, closeThread } = useThread()
+  const { workspaceId } = useRequiredActiveWorkspace()
 
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -22,19 +25,18 @@ const ThreadSidebar = () => {
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [canScroll, setCanScroll] = useState(false)
 
-  const { data, error, isLoading, isFetching, refetch } = useQuery(
-    orpc.message.thread.list.queryOptions({
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
+    ...orpc.message.thread.list.queryOptions({
       input: {
-        messageId: selectedThreadId!,
+        messageId: selectedThreadId ?? "no-thread-selected",
+        workspaceId,
       },
-
-      enabled: Boolean(selectedThreadId),
-
-      //only fetch data if selectedThreadId is defined
-
-      //not fetch the data for every thread, only fetch the data for open thread
     }),
-  )
+    queryKey: selectedThreadId
+      ? workspaceQueryKeys.threadList(workspaceId, selectedThreadId)
+      : workspaceQueryKeys.threadList(workspaceId, "no-thread-selected"),
+    enabled: Boolean(selectedThreadId),
+  })
 
   const hasInitialLoadError = !data && !!error
   const messageCount = data?.messages.length ?? 0
@@ -155,7 +157,10 @@ const ThreadSidebar = () => {
   }
 
   return (
-    <ThreadRealtimeProvider threadId={selectedThreadId!}>
+    <ThreadRealtimeProvider
+      workspaceId={workspaceId}
+      threadId={selectedThreadId!}
+    >
       <div className="w-[30rem] border-l flex flex-col h-full">
         {/* Header */}
 
@@ -168,7 +173,10 @@ const ThreadSidebar = () => {
 
           <div className="flex items-center gap-2">
             {!hasInitialLoadError && (
-              <SummarizeThread messageId={selectedThreadId!} />
+              <SummarizeThread
+                messageId={selectedThreadId!}
+                workspaceId={workspaceId}
+              />
             )}
 
             <Button variant="outline" size="icon" onClick={closeThread}>

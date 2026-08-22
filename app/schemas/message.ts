@@ -40,6 +40,7 @@ export const createMessageSchema = z
     content: z.string(),
     imageUrl: z.url().optional(),
     threadId: z.string().optional(),
+    workspaceId: z.string().optional(),
   })
   .superRefine((input, ctx) => {
     const plainText = getPlainTextFromStoredContent(input.content)
@@ -58,15 +59,18 @@ export const createMessageSchema = z
 export const updateMessageSchema = z.object({
   messageId: z.string(),
   content: z.string().min(1),
+  workspaceId: z.string().optional(),
 })
 
 export const deleteMessageSchema = z.object({
   messageId: z.string(),
+  workspaceId: z.string().optional(),
 })
 
 export const toggleReactionSchema = z.object({
   messageId: z.string(),
   emoji: z.string().min(1),
+  workspaceId: z.string().optional(),
 })
 
 export const groupedReactionSchema = z.object({

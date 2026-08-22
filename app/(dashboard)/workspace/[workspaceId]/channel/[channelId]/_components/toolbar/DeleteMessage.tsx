@@ -19,6 +19,8 @@ import React, { useState } from "react"
 import { toast } from "sonner"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 import { InfiniteMessages } from "@/lib/types"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 interface DeleteMessageProps {
   messageId: string
@@ -29,13 +31,14 @@ const DeleteMessage = ({ messageId, channelId }: DeleteMessageProps) => {
   const queryClient = useQueryClient()
   const { selectedThreadId, closeThread } = useThread()
   const { send } = useChannelRealtime()
+  const { workspaceId } = useRequiredActiveWorkspace()
   const [open, setOpen] = useState(false)
 
   const deleteMessageMutation = useMutation(
     orpc.message.delete.mutationOptions({
       onSuccess: (data) => {
         queryClient.setQueryData<InfiniteMessages>(
-          ["message.list", channelId],
+          workspaceQueryKeys.messageList(workspaceId, channelId),
           (old) => {
             if (!old) return old
 
@@ -105,7 +108,7 @@ const DeleteMessage = ({ messageId, channelId }: DeleteMessageProps) => {
             disabled={deleteMessageMutation.isPending}
             onClick={(event) => {
               event.preventDefault()
-              deleteMessageMutation.mutate({ messageId })
+              deleteMessageMutation.mutate({ messageId, workspaceId })
             }}
           >
             {deleteMessageMutation.isPending ? "Deleting..." : "Delete"}

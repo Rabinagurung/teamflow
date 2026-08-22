@@ -18,9 +18,10 @@ import {
 
 interface SummarizeThreadProps {
   messageId: string
+  workspaceId: string
 }
 
-const SummarizeThread = ({ messageId }: SummarizeThreadProps) => {
+const SummarizeThread = ({ messageId, workspaceId }: SummarizeThreadProps) => {
   const [open, setOpen] = useState(false)
   const {
     messages,
@@ -40,6 +41,7 @@ const SummarizeThread = ({ messageId }: SummarizeThreadProps) => {
           await client.ai.thread.summary.generate(
             {
               messageId: messageId,
+              workspaceId,
             },
             { signal: options.abortSignal },
           ),

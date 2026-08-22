@@ -14,6 +14,7 @@ import { appUserSchema } from "../schemas/user"
 import { appWorkspaceSchema } from "../schemas/workspace"
 import { BETTER_AUTH_ORGANIZATION_ERRORS } from "./_shared/better-auth-organization-errors"
 import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
+import { resolveRequestedWorkspaceId } from "./_shared/requested-workspace"
 
 type WorkspaceMember = Awaited<
   ReturnType<typeof auth.api.listMembers>
@@ -171,7 +172,9 @@ export const getChannel = base
     summary: "Get a channel by ID",
     tags: ["channels"],
   })
-  .input(z.object({ channelId: z.string() }))
+  .input(
+    z.object({ channelId: z.string(), workspaceId: z.string().optional() }),
+  )
   .output(
     z.object({
       channelName: z.string(),
@@ -179,10 +182,21 @@ export const getChannel = base
     }),
   )
   .handler(async ({ context, input, errors }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     const channel = await prisma.channel.findFirst({
       where: {
         id: input.channelId,
-        organizationId: context.workspace.id,
+        organizationId: workspaceId,
       },
       select: {
         name: true,

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/form"
 import { Message } from "@/lib/generated/prisma/client"
 import { orpc } from "@/lib/orpc/orpc"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -20,6 +21,7 @@ import {
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
 
 interface EditMessage {
   message: Message
@@ -37,6 +39,11 @@ type InfiniteMessages = InfiniteData<MessagePage>
 const EditMessage = ({ message, onCancel, onSave }: EditMessage) => {
   const queryClient = useQueryClient()
   const { send } = useChannelRealtime()
+  const { workspaceId } = useRequiredActiveWorkspace()
+  const messageListKey = workspaceQueryKeys.messageList(
+    workspaceId,
+    message.channelId,
+  )
   const form = useForm({
     resolver: zodResolver(updateMessageSchema),
     defaultValues: {
@@ -49,25 +56,22 @@ const EditMessage = ({ message, onCancel, onSave }: EditMessage) => {
     orpc.message.update.mutationOptions({
       onSuccess: (updatedData) => {
         //surgically updating data through cache instead of invalidating the message
-        queryClient.setQueryData<InfiniteMessages>(
-          ["message.list", message.channelId],
-          (old) => {
-            if (!old) return old
+        queryClient.setQueryData<InfiniteMessages>(messageListKey, (old) => {
+          if (!old) return old
 
-            const updatedMessage = updatedData.message
+          const updatedMessage = updatedData.message
 
-            const pages = old.pages.map((page) => ({
-              ...page, //preserve nextCursor and only update items array
-              items: page.items.map((message) =>
-                message.id === updatedMessage.id
-                  ? { ...message, ...updatedMessage } //spreading old & updated message? properites are overwritten & preserve the fields that might not be in server response
-                  : message,
-              ),
-            }))
+          const pages = old.pages.map((page) => ({
+            ...page, //preserve nextCursor and only update items array
+            items: page.items.map((message) =>
+              message.id === updatedMessage.id
+                ? { ...message, ...updatedMessage } //spreading old & updated message? properites are overwritten & preserve the fields that might not be in server response
+                : message,
+            ),
+          }))
 
-            return { ...old, pages }
-          },
-        )
+          return { ...old, pages }
+        })
 
         toast.success("Message updated successfully")
         send({
@@ -84,7 +88,7 @@ const EditMessage = ({ message, onCancel, onSave }: EditMessage) => {
   )
 
   function onSubmit(data: z.infer<typeof updateMessageSchema>) {
-    updateMessageMutation.mutate(data)
+    updateMessageMutation.mutate({ ...data, workspaceId })
   }
 
   return (

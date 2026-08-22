@@ -9,6 +9,7 @@ import { createGroq } from "@ai-sdk/groq"
 import { streamToEventIterator } from "@orpc/client"
 import { aiSecurityMiddleware } from "../middlewares/arcjet/ai-middleware"
 import { rethrowORPCError } from "./_shared/rethrow-orpc-error"
+import { resolveRequestedWorkspaceId } from "./_shared/requested-workspace"
 
 const LLM_KEY = process.env.GROQ_API_KEY
 if (!LLM_KEY) {
@@ -38,14 +39,26 @@ export const generateThreadSummary = base
   .input(
     z.object({
       messageId: z.string(),
+      workspaceId: z.string().optional(),
     }),
   )
   .handler(async ({ input, context, errors }) => {
+    const workspaceId = await resolveRequestedWorkspaceId({
+      activeWorkspaceId: context.workspace.id,
+      requestedWorkspaceId: input.workspaceId,
+      userId: context.user.id,
+      onForbidden: () => {
+        throw errors.FORBIDDEN({
+          message: "NO_WORKSPACE",
+        })
+      },
+    })
+
     const baseMessage = await prisma.message.findFirst({
       where: {
         id: input.messageId,
         channel: {
-          organizationId: context.workspace.id,
+          organizationId: workspaceId,
         },
       },
       select: {
@@ -71,7 +84,7 @@ export const generateThreadSummary = base
       where: {
         id: parentId,
         channel: {
-          organizationId: context.workspace.id,
+          organizationId: workspaceId,
         },
       },
       select: {

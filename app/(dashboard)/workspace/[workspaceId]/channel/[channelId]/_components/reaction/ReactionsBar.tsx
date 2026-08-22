@@ -9,9 +9,11 @@ import { groupedReactionSchema } from "@/app/schemas/message"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utlis/utils"
 import { useParams } from "next/navigation"
-import { InfiniteMessages } from "@/lib/types"
+import { InfiniteMessages, ThreadMessages } from "@/lib/types"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 import { useOptionalThreadRealtime } from "@/providers/ThreadRealtimeProvider"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 type ThreadContext = { type: "thread"; threadId: string }
 type ListContext = { type: "list"; channelId: string }
@@ -26,6 +28,7 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionBarProps) => {
   const queryClient = useQueryClient()
   const { send } = useChannelRealtime()
   const threadRealtime = useOptionalThreadRealtime()
+  const { workspaceId } = useRequiredActiveWorkspace()
 
   const { channelId } = useParams<{ channelId: string }>()
 
@@ -79,39 +82,48 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionBarProps) => {
         if (isThread) {
           // get us query key generateed by ORPC
           const listOptions = orpc.message.thread.list.queryOptions({
-            input: { messageId: context.threadId },
+            input: { messageId: context.threadId, workspaceId },
+            queryKey: workspaceQueryKeys.threadList(
+              workspaceId,
+              context.threadId,
+            ),
           })
 
           //cancelQueries to prevent race conditions
           await queryClient.cancelQueries({ queryKey: listOptions.queryKey })
 
           //create a snapshot
-          const previousThread = queryClient.getQueryData(listOptions.queryKey)
+          const previousThread = queryClient.getQueryData<ThreadMessages>(
+            listOptions.queryKey,
+          )
 
-          queryClient.setQueryData(listOptions.queryKey, (old) => {
-            if (!old) return old
+          queryClient.setQueryData<ThreadMessages>(
+            listOptions.queryKey,
+            (old) => {
+              if (!old) return old
 
-            //reacting to parent message then update the reaction
-            if (context.threadId === vars.messageId) {
-              return {
-                ...old, //preserve old.messages (thread replies)
-                parent: {
-                  ...old.parent,
-                  reactions: bump(old.parent.reactions),
-                },
+              //reacting to parent message then update the reaction
+              if (context.threadId === vars.messageId) {
+                return {
+                  ...old, //preserve old.messages (thread replies)
+                  parent: {
+                    ...old.parent,
+                    reactions: bump(old.parent.reactions),
+                  },
+                }
               }
-            }
 
-            //reacting to thread reply
-            return {
-              ...old, //preserve old.parent(parent message)
-              messages: old.messages.map((m) =>
-                m.id === vars.messageId
-                  ? { ...m, reactions: bump(m.reactions) }
-                  : m,
-              ),
-            }
-          })
+              //reacting to thread reply
+              return {
+                ...old, //preserve old.parent(parent message)
+                messages: old.messages.map((m) =>
+                  m.id === vars.messageId
+                    ? { ...m, reactions: bump(m.reactions) }
+                    : m,
+                ),
+              }
+            },
+          )
 
           return {
             previousThread,
@@ -120,7 +132,7 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionBarProps) => {
         }
 
         //Reactions to message List
-        const listKey = ["message.list", channelId]
+        const listKey = workspaceQueryKeys.messageList(workspaceId, channelId)
         await queryClient.cancelQueries({ queryKey: listKey })
 
         const previous = queryClient.getQueryData(listKey)
@@ -197,6 +209,7 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionBarProps) => {
     toggleMutation.mutate({
       emoji,
       messageId,
+      workspaceId,
     })
   }
 

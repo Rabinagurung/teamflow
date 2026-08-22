@@ -11,6 +11,8 @@ import { orpc } from "@/lib/orpc/orpc"
 import { useQueryClient } from "@tanstack/react-query"
 import ReactionsBar from "../reaction/ReactionsBar"
 import { getAvatar } from "@/lib/utlis/get-avatar"
+import { useRequiredActiveWorkspace } from "@/hooks/use-active-workspace"
+import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 interface MessageItemProps {
   message: MessageListItem
@@ -21,12 +23,15 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const { openThread } = useThread()
+  const { workspaceId } = useRequiredActiveWorkspace()
 
   const prefetchThread = useCallback(() => {
     const options = orpc.message.thread.list.queryOptions({
       input: {
         messageId: message.id,
+        workspaceId,
       },
+      queryKey: workspaceQueryKeys.threadList(workspaceId, message.id),
     })
 
     queryClient
@@ -35,7 +40,7 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
         staleTime: 60_000, //How long cache data stay fresh? 60 secs
       })
       .catch(() => {})
-  }, [message.id, queryClient])
+  }, [message.id, queryClient, workspaceId])
 
   const authorInitial = message.authorName.trim().charAt(0).toUpperCase() || "?"
 
