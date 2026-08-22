@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import React from "react"
 import Link from "next/link"
 import { ArrowRight, ChevronRight } from "lucide-react"
@@ -9,13 +8,14 @@ import { AnimatedGroup } from "@/components/ui/animated-group"
 import { HeroHeader } from "./header"
 import BackgroundImage from "@/public/image-background.png"
 import HeroDark from "@/public/image-dark.png"
-import ArcjetLogo from "@/public/arcjet-logo.png"
-import NeonDbLogo from "@/public/arcjet-logo.png"
-import OprcLogo from "@/public/arcjet-logo.png"
-import PrismaLogo from "@/public/arcjet-logo.png"
-import MotionLogo from "@/public/arcjet-logo.png"
-import KindeLogo from "@/public/arcjet-logo.png"
-import VercelLogo from "@/public/arcjet-logo.png"
+import ArcjetLogo from "@/public/logos/arcjet-logo.svg"
+import NeonDbLogo from "@/public/logos/neondb-logo.svg"
+import OprcLogo from "@/public/logos/orpc-logo.svg"
+import PrismaLogo from "@/public/logos/prisma-logo.svg"
+import MotionLogo from "@/public/logos/motion-logo.svg"
+import KindeLogo from "@/public/logos/kinde-logo.svg"
+import VercelLogo from "@/public/logos/vercel-logo.svg"
+import OpenAiLogo from "@/public/logos/openai-logo.svg"
 
 const transitionVariants = {
   item: {
@@ -252,14 +252,14 @@ export default function HeroSection() {
               </div>
               <div className="flex">
                 <Image
-                  className="mx-auto h-4 w-fit invert dark:invert-0"
+                  className="mx-auto h-4 w-fit dark:invert"
                   src={VercelLogo}
                   alt="Vercel Logo"
                 />
               </div>
               <div className="flex">
                 <Image
-                  className="mx-auto h-5 w-fit invert dark:invert-0"
+                  className="mx-auto h-5 w-fit dark:invert"
                   src={NeonDbLogo}
                   alt="NeonDb Logo"
                 />
@@ -280,19 +280,17 @@ export default function HeroSection() {
               </div>
               <div className="flex">
                 <Image
-                  className="mx-auto h-7 object-contain invert dark:invert-0"
+                  className="mx-auto h-7 object-contain dark:invert"
                   src={MotionLogo}
                   alt="Motion Logo"
                 />
               </div>
 
               <div className="flex">
-                <img
+                <Image
                   className="mx-auto h-6 w-fit dark:invert"
-                  src="https://html.tailus.io/blocks/customers/openai.svg"
+                  src={OpenAiLogo}
                   alt="OpenAI Logo"
-                  height="24"
-                  width="auto"
                 />
               </div>
             </div>
