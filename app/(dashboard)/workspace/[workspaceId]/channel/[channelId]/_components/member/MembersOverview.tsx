@@ -68,7 +68,7 @@ const MembersOverview = () => {
       <PopoverTrigger asChild>
         <Button variant="outline" className="dark:hover:text-white">
           <UsersIcon />
-          <span>Members</span>
+          <span className="hidden sm:inline">Members</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="p-0 w-[300px]">

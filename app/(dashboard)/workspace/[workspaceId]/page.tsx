@@ -13,6 +13,7 @@ import { requireCurrentWorkspace } from "@/lib/workspace/current-workspace.serve
 import { Cloud } from "lucide-react"
 import { redirect } from "next/navigation"
 import CreateNewChannel from "./_components/CreateNewChannel"
+import MobileSidebarToggle from "./_components/MobileSidebarToggle"
 import { workspaceQueryKeys } from "@/lib/query/workspace-query-keys"
 
 const WorkspaceIdPage = async () => {
@@ -36,8 +37,11 @@ const WorkspaceIdPage = async () => {
   }
 
   return (
-    <div className="p-16 flex flex-1">
-      <Empty className="from-muted/50 to-background h-full bg-linear-to-b from-30%">
+    <div className="flex flex-1 flex-col">
+      <div className="flex h-14 items-center border-b bg-channel-header px-4 lg:hidden">
+        <MobileSidebarToggle />
+      </div>
+      <Empty className="from-muted/50 to-background h-full flex-1 bg-linear-to-b from-30% p-6 lg:p-16">
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <Cloud />

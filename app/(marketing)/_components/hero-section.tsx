@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { TextEffect } from "@/components/ui/text-effect"
 import { AnimatedGroup } from "@/components/ui/animated-group"
-import { HeroHeader } from "./header"
 import BackgroundImage from "@/public/image-background.png"
 import HeroDark from "@/public/image-dark.png"
 import ArcjetLogo from "@/public/logos/arcjet-logo.svg"
@@ -40,7 +39,6 @@ const transitionVariants = {
 export default function HeroSection() {
   return (
     <>
-      <HeroHeader />
       <main className="overflow-hidden">
         <div
           aria-hidden
@@ -196,7 +194,7 @@ export default function HeroSection() {
                 ...transitionVariants,
               }}
             >
-              <div className="mask-b-from-55% relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
+              <div className="mask-b-from-55% relative mt-8 overflow-hidden px-2 sm:mt-12 md:mt-20">
                 <div
                   className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background
                  relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-zinc-950/15 ring-1"
@@ -234,7 +232,7 @@ export default function HeroSection() {
                 <ChevronRight className="ml-1 inline-block size-3" />
               </Link>
             </div>
-            <div className="group-hover:blur-xs mx-auto mt-12 grid max-w-2xl grid-cols-4 gap-x-12 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:gap-x-16 sm:gap-y-14">
+            <div className="group-hover:blur-xs mx-auto mt-12 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:grid-cols-4 sm:gap-x-16 sm:gap-y-14">
               <div className="flex">
                 <Image
                   className="mx-auto h-7 object-contain dark:invert"

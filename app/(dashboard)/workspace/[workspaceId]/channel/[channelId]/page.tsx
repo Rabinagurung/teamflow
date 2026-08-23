@@ -10,6 +10,7 @@ import ChannelHeader from "./_components/ChannelHeader"
 import MessageInputForm from "./_components/message/MessageInputForm"
 import MessageList from "./_components/MessageList"
 import ThreadSidebar from "./_components/thread/ThreadSidebar"
+import MobileSidebarToggle from "../../_components/MobileSidebarToggle"
 
 const ChannelPageMain = () => {
   const { channelId } = useParams<{ channelId: string }>()
@@ -45,11 +46,14 @@ const ChannelPageMain = () => {
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Fixed Header */}
           {isLoading ? (
-            <div className="flex h-14 items-center justify-between border-b bg-channel-header px-4">
-              <Skeleton className="h-6 w-40" />
-              <div className="flex items-center space-x-3">
-                <Skeleton className="h-8 w-28" />
-                <Skeleton className="h-8 w-20" />
+            <div className="flex h-14 items-center justify-between gap-2 border-b bg-channel-header px-2 sm:px-4">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <MobileSidebarToggle />
+                <Skeleton className="h-6 w-28 sm:w-40" />
+              </div>
+              <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+                <Skeleton className="size-8 sm:h-8 sm:w-28" />
+                <Skeleton className="size-8 sm:h-8 sm:w-20" />
                 <Skeleton className="size-8" />
               </div>
             </div>

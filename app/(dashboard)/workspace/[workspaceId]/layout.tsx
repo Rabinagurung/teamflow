@@ -15,6 +15,7 @@ import { ChevronUp } from "lucide-react"
 import { redirect } from "next/navigation"
 import React from "react"
 import ChannelList from "./_components/ChannelList"
+import ChannelSidebar from "./_components/ChannelSidebar"
 import CreateNewChannel from "./_components/CreateNewChannel"
 import WorkspaceHeader from "./_components/WorkspaceHeader"
 import WorkspaceMembersList from "./_components/WorkspaceMembersList"
@@ -59,7 +60,7 @@ const WorkspaceDetailsLayout = async ({
   return (
     <HydrateClient client={queryClient}>
       <>
-        <div className="flex h-full w-80 flex-col border-r border-channel-sidebar-border bg-channel-sidebar shadow-sm">
+        <ChannelSidebar>
           {/*Header */}
           <div className="flex h-14 items-center border-b border-channel-sidebar-border bg-channel-sidebar px-4">
             <WorkspaceHeader />
@@ -71,7 +72,7 @@ const WorkspaceDetailsLayout = async ({
           <div className="flex-1 overflow-y-auto px-4">
             <Collapsible defaultOpen>
               <CollapsibleTrigger
-                className="flex w-full items-center justify-between px-2 py-1 text-sm 
+                className="flex w-full items-center justify-between px-2 py-1 text-sm
             font-medium text-sidebar-foreground/75 hover:text-white [&[data-state=open]>svg]:rotate-180"
               >
                 Main
@@ -98,7 +99,7 @@ const WorkspaceDetailsLayout = async ({
               </CollapsibleContent>
             </Collapsible>
           </div>
-        </div>
+        </ChannelSidebar>
         {children}
       </>
     </HydrateClient>

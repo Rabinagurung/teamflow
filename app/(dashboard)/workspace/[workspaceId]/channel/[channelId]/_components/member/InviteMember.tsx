@@ -11,7 +11,7 @@ const InviteMember = () => {
       trigger={
         <Button variant="outline" className="dark:hover:text-white">
           <UserPlus />
-          Invite Member
+          <span className="hidden sm:inline">Invite Member</span>
         </Button>
       }
     />
