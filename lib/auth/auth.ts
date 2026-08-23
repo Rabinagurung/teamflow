@@ -1,7 +1,7 @@
 import prisma from "@/lib/db"
 import { polar, webhooks } from "@polar-sh/better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
-import { organization } from "better-auth/plugins"
+import { anonymous, organization } from "better-auth/plugins"
 import { sendEmailVerificationEmail } from "../emails/send-email-verification"
 import { sendPasswordResetEmail } from "../emails/send-password-reset-email"
 import { sendOrganizationInviteEmail } from "../emails/organization-invite-email"
@@ -13,6 +13,10 @@ import {
 } from "../billing/polar-webhooks"
 import { markPolarWebhookProcessed } from "../billing/polar-webhooks.repository"
 import { syncWorkspaceBillingFromPolar } from "../billing/billing-sync.service"
+
+// Guest (recruiter) sessions get a much shorter lifetime than regular
+// sessions so unattended guest access expires quickly on its own.
+const GUEST_SESSION_MAX_AGE_SECONDS = 60 * 60 * 4 // 4 hours
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractWorkspaceId(payload: any): string | null {
@@ -126,6 +130,11 @@ export const auth = betterAuth({
       ],
     }),
 
+    anonymous({
+      emailDomainName: "guest.teamflow.internal",
+      generateName: () => "Guest User",
+    }),
+
     organization({
       sendInvitationEmail: async ({
         email,
@@ -145,5 +154,59 @@ export const auth = betterAuth({
     }),
   ],
 
-  databaseHooks: {},
+  databaseHooks: {
+    session: {
+      create: {
+        // Guest accounts (better-auth's anonymous plugin) should not inherit
+        // the regular session lifetime. Force a short expiry so a recruiter's
+        // guest access can't linger for days if they forget to sign out.
+        before: async (session) => {
+          const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { isAnonymous: true },
+          })
+
+          if (!user?.isAnonymous) return
+
+          return {
+            data: {
+              expiresAt: new Date(
+                Date.now() + GUEST_SESSION_MAX_AGE_SECONDS * 1000,
+              ),
+            },
+          }
+        },
+      },
+      update: {
+        // better-auth's sliding-session refresh (triggered on every
+        // getSession call) would otherwise reset a guest session back to
+        // the full default session lifetime the moment it's used. Clamp
+        // refreshed guest sessions to a hard cap measured from creation,
+        // so guest access always expires on schedule regardless of activity.
+        before: async (session, context) => {
+          const currentSession = (
+            context as {
+              context?: {
+                session?: {
+                  user?: { isAnonymous?: boolean }
+                  session?: { createdAt: Date }
+                }
+              }
+            } | null
+          )?.context?.session
+
+          if (!currentSession?.user?.isAnonymous || !session.expiresAt) return
+
+          const hardCap = new Date(
+            new Date(currentSession.session!.createdAt).getTime() +
+              GUEST_SESSION_MAX_AGE_SECONDS * 1000,
+          )
+
+          if (new Date(session.expiresAt) <= hardCap) return
+
+          return { data: { expiresAt: hardCap } }
+        },
+      },
+    },
+  },
 })
