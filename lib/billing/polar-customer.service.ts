@@ -27,6 +27,13 @@ function getErrorStatusCode(error: unknown) {
 function isPolarNotFoundError(error: unknown) {
   return getErrorStatusCode(error) === 404
 }
+
+export class GuestBillingNotAllowedError extends Error {
+  constructor() {
+    super("Guest accounts can't start a paid plan. Create a full account first.")
+    this.name = "GuestBillingNotAllowedError"
+  }
+}
 //check if polar customer of this org already created in polar or not.
 async function getPolarTeamCustomerByExternalId(workspaceId: string) {
   try {
@@ -73,6 +80,10 @@ export async function ensurePolarTeamCustomer(workspaceId: string) {
   }
 
   const { workspace, owner } = workspaceWithOwner
+
+  if (owner.isAnonymous) {
+    throw new GuestBillingNotAllowedError()
+  }
 
   try {
     const customer = await polarClient.customers.create({

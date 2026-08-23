@@ -5,6 +5,7 @@ import {
   confirmWorkspaceProPlan,
   createWorkspaceCheckoutSession,
 } from "@/lib/billing/workspace-billing.service"
+import { GuestBillingNotAllowedError } from "@/lib/billing/polar-customer.service"
 import prisma from "@/lib/db"
 import { z } from "zod"
 import { heavyWriteSecurityMiddleware } from "../middlewares/arcjet/heavy-write"
@@ -571,12 +572,24 @@ export const startOnboardingProPlan = base
       })
     }
 
-    return createWorkspaceCheckoutSession({
-      workspaceId: workspace.id,
-      initiatedByUserId: context.user.id,
-      successUrl: `${process.env.BETTER_AUTH_URL}/onboarding/success`,
-      returnUrl: `${process.env.BETTER_AUTH_URL}/onboarding/billing`,
-    })
+    try {
+      return await createWorkspaceCheckoutSession({
+        workspaceId: workspace.id,
+        initiatedByUserId: context.user.id,
+        successUrl: `${process.env.BETTER_AUTH_URL}/onboarding/success`,
+        returnUrl: `${process.env.BETTER_AUTH_URL}/onboarding/billing`,
+      })
+    } catch (error) {
+      if (error instanceof GuestBillingNotAllowedError) {
+        throw errors.FORBIDDEN({ message: error.message })
+      }
+
+      console.error("Failed to start onboarding checkout", error)
+
+      throw errors.INTERNAL_SERVER_ERROR({
+        message: "Failed to start checkout",
+      })
+    }
   })
 
 export const completeOnboardingProPlan = base

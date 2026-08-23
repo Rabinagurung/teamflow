@@ -7,6 +7,8 @@ import React from "react"
 import { cn } from "@/lib/utlis/utils"
 import Image from "next/image"
 import { authClient } from "@/lib/auth/auth-client"
+import { Skeleton } from "@/components/ui/skeleton"
+import { GuestSignInButton } from "@/app/(marketing)/(auth)/_componentss/guest-sign-in-button"
 
 // const menuItems = [
 //   { name: "Features", href: "#link" },
@@ -96,7 +98,12 @@ export const HeroHeader = () => {
                   {/* ))} */}
                 </ul>
               </div>
-              {isPending ? null : (
+              {isPending ? (
+                <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                  <Skeleton className="h-8 w-24 rounded-md" />
+                </div>
+              ) : (
                 <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
                   {data?.user ? (
                     <>
@@ -116,6 +123,14 @@ export const HeroHeader = () => {
                     </>
                   ) : (
                     <>
+                      <GuestSignInButton
+                        variant="ghost"
+                        size="sm"
+                        className={cn("w-full", isScrolled && "lg:hidden")}
+                      >
+                        Continue as guest
+                      </GuestSignInButton>
+
                       <Link
                         href="/login"
                         className={buttonVariants({

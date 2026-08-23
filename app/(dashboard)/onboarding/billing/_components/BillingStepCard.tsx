@@ -87,7 +87,8 @@ const BillingStepCard = () => {
     }),
   )
 
-  const isSubmitting = freeMutation.isPending || startProMutation.isPending
+  const isActivatingFree = freeMutation.isPending || freeMutation.isSuccess
+  const isSubmitting = isActivatingFree || startProMutation.isPending
 
   const activeFeature = useMemo(
     () =>
@@ -95,7 +96,7 @@ const BillingStepCard = () => {
     [selectedFeature],
   )
 
-  if (freeMutation.isPending) {
+  if (isActivatingFree) {
     return (
       <OnboardingProcessingState
         title="Activating your free workspace..."

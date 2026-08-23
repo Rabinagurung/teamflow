@@ -1,4 +1,5 @@
 import { canManageWorkspaceBilling } from "@/lib/billing/guards"
+import { GuestBillingNotAllowedError } from "@/lib/billing/polar-customer.service"
 import {
   createWorkspaceCheckoutSession,
   createWorkspacePortalSession,
@@ -109,6 +110,10 @@ export const createWorkspaceCheckout = base
         initiatedByUserId: context.user.id,
       })
     } catch (error) {
+      if (error instanceof GuestBillingNotAllowedError) {
+        throw errors.FORBIDDEN({ message: error.message })
+      }
+
       console.error("Failed to create workspace checkout", error)
 
       throw errors.INTERNAL_SERVER_ERROR({
