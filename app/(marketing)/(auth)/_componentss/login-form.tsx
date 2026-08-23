@@ -232,7 +232,7 @@ const LoginForm = () => {
 
           <div className="mt-6 border-t pt-6 text-center">
             <p className="text-sm text-muted-foreground mb-3">
-              Recruiter reviewing a workspace? No account needed.
+              Just want to look around? No account needed.
             </p>
             <GuestSignInButton callbackURL={callbackURL} />
           </div>

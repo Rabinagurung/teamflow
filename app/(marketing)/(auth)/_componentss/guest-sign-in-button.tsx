@@ -3,10 +3,17 @@
 import { BetterAuthActionButton } from "@/components/auth/better-auth-action-button"
 import { authClient } from "@/lib/auth/auth-client"
 import { useRouter } from "next/navigation"
+import { ComponentProps } from "react"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utlis/utils"
 
 export function GuestSignInButton({
   callbackURL = "/app-entry",
-}: {
+  variant = "outline",
+  className,
+  children = "Continue as guest",
+  ...props
+}: Omit<ComponentProps<typeof Button>, "onClick" | "asChild"> & {
   callbackURL?: string
 }) {
   const router = useRouter()
@@ -23,11 +30,12 @@ export function GuestSignInButton({
 
   return (
     <BetterAuthActionButton
-      variant="outline"
-      className="w-full"
+      {...props}
+      variant={variant}
+      className={cn("w-full", className)}
       action={signInAsGuest}
     >
-      Continue as guest recruiter
+      {children}
     </BetterAuthActionButton>
   )
 }

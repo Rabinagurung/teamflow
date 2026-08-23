@@ -22,6 +22,23 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
+const WORKSPACE_NAME_SUGGESTIONS = [
+  "Nimbus Team",
+  "Falcon Squad",
+  "Blue Horizon",
+  "Summit Crew",
+  "Orbit Collective",
+  "Northstar Team",
+  "Ember Group",
+  "Lighthouse Team",
+]
+
+function randomWorkspaceName() {
+  return WORKSPACE_NAME_SUGGESTIONS[
+    Math.floor(Math.random() * WORKSPACE_NAME_SUGGESTIONS.length)
+  ]
+}
+
 const WorkspaceStepForm = () => {
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -73,7 +90,7 @@ const WorkspaceStepForm = () => {
   const form = useForm<z.infer<typeof workspaceSchema>>({
     resolver: zodResolver(workspaceSchema),
     defaultValues: {
-      name: "",
+      name: randomWorkspaceName(),
     },
   })
 
