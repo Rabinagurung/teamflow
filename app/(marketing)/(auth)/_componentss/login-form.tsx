@@ -32,6 +32,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 import { EmailVerification } from "./email-verification"
 import { ForgotPassword } from "./forgot-password"
+import { GuestSignInButton } from "./guest-sign-in-button"
 import { SocialAuthButtons } from "./social-auth-buttons"
 
 const loginSchema = z.object({
@@ -227,6 +228,13 @@ const LoginForm = () => {
 
           <div className="grid grid-cols-2 mt-6 gap-3">
             <SocialAuthButtons callbackURL={callbackURL} />
+          </div>
+
+          <div className="mt-6 border-t pt-6 text-center">
+            <p className="text-sm text-muted-foreground mb-3">
+              Recruiter reviewing a workspace? No account needed.
+            </p>
+            <GuestSignInButton callbackURL={callbackURL} />
           </div>
         </CardContent>
       </Card>
