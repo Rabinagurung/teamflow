@@ -13,7 +13,7 @@ export default async function GetStartedPage() {
 
   const queryClient = getQueryClient()
 
-  const { workspaces, user } = await queryClient.fetchQuery(
+  const { workspaces } = await queryClient.fetchQuery(
     orpc.workspace.list.queryOptions(),
   )
 
@@ -47,27 +47,20 @@ export default async function GetStartedPage() {
 
             <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-5 shadow-xl shadow-primary/5">
               <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
-                <div>
-                  <p className="text-lg font-semibold">Ready to launch</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {user.email}
-                  </p>
-                </div>
+                <p className="text-lg font-semibold">Ready to launch</p>
                 <div className="hidden rounded-full bg-accent px-3 py-1 text-sm font-medium text-accent-foreground sm:block">
                   {workspaces.length} workspace
                   {workspaces.length === 1 ? "" : "s"}
                 </div>
               </div>
 
-              <div className="min-h-0 flex-1">
-                <WorkspacePickerList
-                  workspaces={workspaces.map((workspace) => ({
-                    id: workspace.id,
-                    name: workspace.name,
-                    memberCount: 0,
-                  }))}
-                />
-              </div>
+              <WorkspacePickerList
+                workspaces={workspaces.map((workspace) => ({
+                  id: workspace.id,
+                  name: workspace.name,
+                  memberCount: 0,
+                }))}
+              />
 
               <div className="my-6 flex shrink-0 items-center gap-4 text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />

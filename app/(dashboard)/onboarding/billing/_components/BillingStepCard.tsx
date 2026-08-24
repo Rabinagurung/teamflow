@@ -113,8 +113,8 @@ const BillingStepCard = () => {
       title="Start with TeamFlow Pro"
       description="Your workspace is ready to go."
     >
-      <div className="grid gap-8 lg:grid-cols-[1.2fr_.8fr]">
-        <div className="space-y-6">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-[1.2fr_.8fr]">
+        <div className="min-w-0 space-y-6">
           <div className="overflow-hidden rounded-2xl border border-border">
             {FEATURES.map((feature) => {
               const selected = feature.id === selectedFeature

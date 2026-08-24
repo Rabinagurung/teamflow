@@ -78,7 +78,7 @@ export default function OnboardingShell({
                 />
               </div>
             </div>
-            <h1 className="text-[clamp(2.5rem,4vw,4.25rem)] font-semibold leading-none tracking-tight text-foreground">
+            <h1 className="text-4xl font-semibold leading-none tracking-tight text-foreground sm:text-[clamp(2.5rem,4vw,4.25rem)]">
               {title}
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground lg:text-lg">
@@ -86,7 +86,7 @@ export default function OnboardingShell({
             </p>
           </div>
 
-          <div className="min-h-0 flex-1">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
         </section>
       </div>
     </main>

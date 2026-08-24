@@ -1,6 +1,11 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ChevronsUpDown } from "lucide-react"
 import { useState } from "react"
 import WorkspacePickerItem from "./WorkspacePickerItem"
 
@@ -20,8 +25,24 @@ export default function WorkspacePickerList({
   )
 
   return (
-    <Card className="h-full overflow-hidden rounded-xl border-border bg-card py-0 shadow-sm">
-      <CardContent className="h-full divide-y divide-border overflow-y-auto p-0">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5 text-left text-sm font-semibold text-foreground shadow-sm transition hover:bg-accent/40"
+        >
+          <span>
+            {workspaces.length === 1
+              ? workspaces[0].name
+              : `Select a workspace (${workspaces.length})`}
+          </span>
+          <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="w-(--radix-dropdown-menu-trigger-width) p-1"
+      >
         {workspaces.map((workspace) => (
           <WorkspacePickerItem
             key={workspace.id}
@@ -33,7 +54,7 @@ export default function WorkspacePickerList({
             onPendingChange={setPendingWorkspaceId}
           />
         ))}
-      </CardContent>
-    </Card>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

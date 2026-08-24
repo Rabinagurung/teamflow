@@ -1,3 +1,4 @@
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { orpc } from "@/lib/orpc/orpc"
 import { getWorkspaceColor } from "@/lib/utlis/get-workspace-color"
 import { cn } from "@/lib/utlis/utils"
@@ -65,20 +66,22 @@ export default function WorkspacePickerItem({
   }
 
   return (
-    <button
-      type="button"
+    <DropdownMenuItem
       disabled={disabled}
-      onClick={handleSelect}
       aria-busy={isBusy}
+      onSelect={(event) => {
+        event.preventDefault()
+        handleSelect()
+      }}
       className={cn(
-        "cursor-pointer group flex w-full items-center justify-between bg-transparent px-6 py-5 text-left transition hover:bg-accent/40 disabled:cursor-wait disabled:opacity-60",
-        isBusy && "bg-accent/30 disabled:opacity-100",
+        "group flex cursor-pointer items-center justify-between gap-4 rounded-lg px-3 py-3 focus:bg-accent/40 data-[disabled]:cursor-wait data-[disabled]:opacity-60",
+        isBusy && "bg-accent/30",
       )}
     >
-      <div className="flex min-w-0 items-center gap-4">
+      <div className="flex min-w-0 items-center gap-3">
         <div
           className={cn(
-            "grid size-12 shrink-0 place-items-center rounded-xl text-lg font-semibold text-white",
+            "grid size-10 shrink-0 place-items-center rounded-lg text-base font-semibold text-white",
             getWorkspaceColor(id),
           )}
         >
@@ -86,20 +89,20 @@ export default function WorkspacePickerItem({
         </div>
 
         <div className="min-w-0">
-          <p className="truncate text-base font-semibold text-foreground">
+          <p className="truncate text-sm font-semibold text-foreground">
             {name}
           </p>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {isBusy ? "Opening workspace..." : `${memberCount} members`}
           </p>
         </div>
       </div>
 
       {isBusy ? (
-        <LoaderCircle className="size-5 shrink-0 animate-spin text-primary" />
+        <LoaderCircle className="size-4 shrink-0 animate-spin text-primary" />
       ) : (
-        <ArrowRight className="size-5 shrink-0 text-muted-foreground transition group-hover:text-primary" />
+        <ArrowRight className="size-4 shrink-0 text-muted-foreground transition group-hover:text-primary" />
       )}
-    </button>
+    </DropdownMenuItem>
   )
 }
