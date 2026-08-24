@@ -23,7 +23,7 @@ export default function OnboardingShell({
   return (
     <main className="h-dvh overflow-hidden bg-background p-4 text-foreground sm:p-5">
       <div className="grid h-full min-h-0 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-primary/10 lg:grid-cols-[300px_1fr] xl:grid-cols-[320px_1fr]">
-        <aside className="border-b border-workspace-rail-border bg-workspace-rail p-5 text-sidebar-foreground lg:border-r lg:border-b-0 lg:p-6 xl:p-8">
+        <aside className="hidden border-b border-workspace-rail-border bg-workspace-rail p-5 text-sidebar-foreground lg:block lg:border-r lg:border-b-0 lg:p-6 xl:p-8">
           <Image
             src="/logos/teamflow-wordmark.svg"
             alt="TeamFlow"
@@ -57,6 +57,15 @@ export default function OnboardingShell({
         </aside>
 
         <section className="flex min-h-0 w-full flex-col overflow-hidden px-6 py-5 sm:px-8 lg:px-12 lg:py-6 xl:px-16 xl:py-8">
+          <Image
+            src="/logos/teamflow-wordmark.svg"
+            alt="TeamFlow"
+            width={170}
+            height={37}
+            priority
+            className="mb-5 h-auto w-32 lg:hidden"
+          />
+
           <div className="mb-5 max-w-5xl xl:mb-6 xl:max-w-6xl">
             <div className="mb-4 flex items-center gap-4 xl:mb-5">
               <p className="text-sm font-semibold text-muted-foreground">

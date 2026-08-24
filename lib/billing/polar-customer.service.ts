@@ -30,7 +30,9 @@ function isPolarNotFoundError(error: unknown) {
 
 export class GuestBillingNotAllowedError extends Error {
   constructor() {
-    super("Guest accounts can't start a paid plan. Create a full account first.")
+    super(
+      "Guest accounts can't start a paid plan. Create a full account first.",
+    )
     this.name = "GuestBillingNotAllowedError"
   }
 }
