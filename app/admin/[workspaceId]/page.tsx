@@ -15,7 +15,7 @@ import {
   Mail,
   PenLine,
   Settings,
-  Sparkles,
+  // Sparkles,
   Users,
 } from "lucide-react"
 import Link from "next/link"
