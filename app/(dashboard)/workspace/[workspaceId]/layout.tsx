@@ -69,7 +69,7 @@ const WorkspaceDetailsLayout = async ({
             <UpgradePlan />
           </div>
           {/* Channel List */}
-          <div className="flex-1 overflow-y-auto px-4">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
             <Collapsible defaultOpen>
               <CollapsibleTrigger
                 className="flex w-full items-center justify-between px-2 py-1 text-sm

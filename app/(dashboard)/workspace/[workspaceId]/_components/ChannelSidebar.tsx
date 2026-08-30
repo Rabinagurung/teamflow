@@ -21,7 +21,7 @@ export default function ChannelSidebar({
       )}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-full w-80 flex-col border-r border-channel-sidebar-border bg-channel-sidebar shadow-sm transition-transform duration-200 ease-in-out lg:static lg:z-auto lg:translate-x-0 lg:shadow-none",
+          "fixed left-0 top-0 z-50 flex h-dvh min-h-0 w-80 flex-col overflow-hidden overscroll-none border-r border-channel-sidebar-border bg-channel-sidebar shadow-sm transition-transform duration-200 ease-in-out lg:static lg:z-auto lg:h-full lg:translate-x-0 lg:shadow-none",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >

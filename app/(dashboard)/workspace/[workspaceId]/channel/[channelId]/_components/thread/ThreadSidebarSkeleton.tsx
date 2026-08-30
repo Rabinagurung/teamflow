@@ -2,8 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 const ThreadSidebarSkeleton = () => {
   return (
-    <div className="fixed inset-0 z-50 flex h-full w-full flex-col bg-background lg:static lg:z-auto lg:w-[30rem] lg:border-l">
-      <div className="h-14 border-b px-4 flex items-center justify-between">
+    <div className="fixed inset-x-0 top-0 z-50 flex h-dvh min-h-0 w-full flex-col overflow-hidden overscroll-none bg-background lg:static lg:z-auto lg:h-full lg:w-[30rem] lg:border-l">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
         <div className="flex gap-x-2 items-center">
           <Skeleton className="size-4" />
           <Skeleton className="h-4 w-16" />
@@ -14,7 +14,7 @@ const ThreadSidebarSkeleton = () => {
         </div>
       </div>
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {/* Parent message */}
         <div className="p-4 border-b bg-muted/20">
           <div className="flex space-x-3">
@@ -61,7 +61,7 @@ const ThreadSidebarSkeleton = () => {
         </div>
       </div>
 
-      <div className="border-t p-4">
+      <div className="shrink-0 border-t p-4">
         <Skeleton className="h-56 w-full rounded-md" />
       </div>
     </div>

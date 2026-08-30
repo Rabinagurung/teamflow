@@ -156,10 +156,10 @@ const ThreadSidebar = () => {
 
   return (
     <ThreadRealtimeProvider threadId={selectedThreadId!}>
-      <div className="fixed inset-0 z-50 flex h-full w-full flex-col bg-background lg:static lg:z-auto lg:w-[30rem] lg:border-l">
+      <div className="fixed inset-x-0 top-0 z-50 flex h-dvh min-h-0 w-full flex-col overflow-hidden overscroll-none bg-background lg:static lg:z-auto lg:h-full lg:w-[30rem] lg:border-l">
         {/* Header */}
 
-        <div className="h-14 border-b px-4 flex items-center justify-between">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
           <div className="flex gap-2 items-center">
             <MessageSquare className="size-4" />
 
@@ -206,11 +206,11 @@ const ThreadSidebar = () => {
           </div>
         ) : (
           <>
-            <div className="relative flex-1 overflow-y-auto">
+            <div className="relative min-h-0 flex-1 overflow-hidden">
               <div
                 ref={scrollRef}
                 onScroll={handleScroll}
-                className="h-full overflow-y-auto"
+                className="h-full overflow-y-auto overscroll-contain"
               >
                 {data && (
                   <>
@@ -287,7 +287,7 @@ const ThreadSidebar = () => {
             </div>
 
             {selectedThreadId && (
-              <div className="border-t p-4">
+              <div className="shrink-0 border-t p-4">
                 <ThreadReplyForm threadId={selectedThreadId} />
               </div>
             )}

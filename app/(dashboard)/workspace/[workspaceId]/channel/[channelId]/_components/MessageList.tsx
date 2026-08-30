@@ -352,9 +352,9 @@ const MessageList = () => {
     hasInitialScrolled && !isEmpty && canScroll && !isAtBottom
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full min-h-0 overflow-hidden">
       <div
-        className="flex h-full flex-col space-y-1 overflow-y-auto px-4 py-4"
+        className="flex h-full flex-col space-y-1 overflow-y-auto overscroll-contain px-4 py-4"
         ref={scrollRef}
         onScroll={handleScroll}
       >

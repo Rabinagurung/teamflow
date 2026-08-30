@@ -20,7 +20,7 @@ const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <HydrateClient client={queryClient}>
       <MobileSidebarProvider>
-        <div className="flex h-dvh w-full overflow-hidden">
+        <div className="fixed inset-x-0 top-0 flex h-dvh min-h-0 w-full overflow-hidden overscroll-none">
           <aside
             className="flex h-full w-16 shrink-0 flex-col items-center border-r border-workspace-rail-border bg-workspace-rail px-1 py-3"
             role="navigation"

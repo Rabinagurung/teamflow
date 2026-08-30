@@ -41,7 +41,7 @@ const ChannelPageMain = () => {
 
   return (
     <ChannelRealtimeProvider channelId={channelId}>
-      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
+      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden overscroll-none bg-background">
         {/* Main Channel Area */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           {/* Fixed Header */}
@@ -65,7 +65,7 @@ const ChannelPageMain = () => {
             <MessageList />
           </div>
           {/* Fixed Input */}
-          <div className="shrink-0 border-t border-border bg-background p-4">
+          <div className="shrink-0 border-t border-border bg-background px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4">
             <MessageInputForm channelId={channelId} />
           </div>
         </div>
