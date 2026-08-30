@@ -19,13 +19,21 @@ import React, { useState } from "react"
 import { toast } from "sonner"
 import { useChannelRealtime } from "@/providers/ChannelRealtimeProvider"
 import { InfiniteMessages } from "@/lib/types"
+import { cn } from "@/lib/utlis/utils"
 
 interface DeleteMessageProps {
   messageId: string
   channelId: string
+  buttonClassName?: string
+  iconClassName?: string
 }
 
-const DeleteMessage = ({ messageId, channelId }: DeleteMessageProps) => {
+const DeleteMessage = ({
+  messageId,
+  channelId,
+  buttonClassName,
+  iconClassName,
+}: DeleteMessageProps) => {
   const queryClient = useQueryClient()
   const { selectedThreadId, closeThread } = useThread()
   const { send } = useChannelRealtime()
@@ -82,8 +90,13 @@ const DeleteMessage = ({ messageId, channelId }: DeleteMessageProps) => {
       }}
     >
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Trash className="size-4" />
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Delete message"
+          className={buttonClassName}
+        >
+          <Trash className={cn("size-4", iconClassName)} />
         </Button>
       </AlertDialogTrigger>
 

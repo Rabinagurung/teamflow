@@ -41,9 +41,9 @@ const ChannelPageMain = () => {
 
   return (
     <ChannelRealtimeProvider channelId={channelId}>
-      <div className="flex h-screen w-full bg-background">
+      <div className="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
         {/* Main Channel Area */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           {/* Fixed Header */}
           {isLoading ? (
             <div className="flex h-14 items-center justify-between gap-2 border-b bg-channel-header px-2 sm:px-4">
@@ -61,11 +61,11 @@ const ChannelPageMain = () => {
             <ChannelHeader channelName={data?.channelName} />
           )}
           {/* Scrollable Message Area */}
-          <div className="chat-canvas flex-1 overflow-hidden">
+          <div className="chat-canvas min-h-0 flex-1 overflow-hidden">
             <MessageList />
           </div>
           {/* Fixed Input */}
-          <div className="border-t border-border bg-background p-4">
+          <div className="shrink-0 border-t border-border bg-background p-4">
             <MessageInputForm channelId={channelId} />
           </div>
         </div>

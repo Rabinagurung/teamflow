@@ -199,25 +199,25 @@ const AdminWorkspacePage = async ({ params }: AdminWorkspacePageProps) => {
 
                     <ul className="space-y-1 text-sm leading-6 text-foreground">
                       <li className="flex items-center gap-2">
-                        <History className="size-4 shrink-0" />
+                        <History className="size-3 shrink-0" />
                         <span>Unlimited message history</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <BotMessageSquare className="size-4 shrink-0" />
+                        <BotMessageSquare className="size-3 shrink-0" />
                         <span>Echo AI Q&amp;A assistant</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <FileText className="size-4 shrink-0" />
+                        <FileText className="size-3 shrink-0" />
                         <span>AI-powered thread summaries</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <PenLine className="size-4 shrink-0" />
+                        <PenLine className="size-3 shrink-0" />
                         <span>AI-powered message polishing</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <Sparkles className="size-4 shrink-0" />
+                      {/*<li className="flex items-center gap-2">
+                        <Sparkles className="size-3 shrink-0" />
                         <span>AI-powered thread polishing</span>
-                      </li>
+                      </li>*/}
                     </ul>
 
                     <div className="flex flex-wrap gap-3 pt-1">

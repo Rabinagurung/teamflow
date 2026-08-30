@@ -2,7 +2,7 @@ import SafeContent from "@/components/rich-text-editor/SafeContent"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Image from "next/image"
 import { MessageHoverToolbar } from "../toolbar"
-import { useCallback, useState } from "react"
+import { type MouseEvent, useCallback, useState } from "react"
 import EditMessage from "../toolbar/EditMessage"
 import { MessageListItem } from "@/lib/types"
 import { MessagesSquare } from "lucide-react"
@@ -11,13 +11,23 @@ import { orpc } from "@/lib/orpc/orpc"
 import { useQueryClient } from "@tanstack/react-query"
 import ReactionsBar from "../reaction/ReactionsBar"
 import { getAvatar } from "@/lib/utlis/get-avatar"
+import { cn } from "@/lib/utlis/utils"
 
 interface MessageItemProps {
   message: MessageListItem
   currentUserId: string
+  isToolbarOpen: boolean
+  onToggleToolbar: () => void
+  onCloseToolbar: () => void
 }
 
-const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
+const MessageItem = ({
+  message,
+  currentUserId,
+  isToolbarOpen,
+  onToggleToolbar,
+  onCloseToolbar,
+}: MessageItemProps) => {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const { openThread } = useThread()
@@ -39,8 +49,32 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
 
   const authorInitial = message.authorName.trim().charAt(0).toUpperCase() || "?"
 
+  const handleMessageClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (isEditing) return
+    if (window.matchMedia("(min-width: 640px)").matches) return
+
+    const target = event.target
+
+    if (
+      target instanceof HTMLElement &&
+      target.closest(
+        "a, button, input, textarea, select, [contenteditable='true'], [role='button']",
+      )
+    ) {
+      return
+    }
+
+    onToggleToolbar()
+  }
+
   return (
-    <div className="group relative flex gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 transition-colors hover:border-primary/45 hover:bg-card/70">
+    <div
+      className={cn(
+        "group relative flex items-start gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 transition-colors hover:border-primary/45 hover:bg-card/70",
+        isToolbarOpen && "border-primary/45 bg-card/70",
+      )}
+      onClick={handleMessageClick}
+    >
       <Avatar className="size-9 rounded-lg ring-1 ring-border">
         <AvatarImage
           src={getAvatar(message.authorAvatar, message.authorEmail!)}
@@ -51,7 +85,7 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-center gap-x-2">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className="font-semibold leading-none text-foreground">
             {message.authorName}
           </p>
@@ -111,7 +145,11 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
                 className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground 
                 hover:text-foreground focus-visible:outline-none focus-visible:ring-1
                 focus-visible:ring-border cursor-pointer"
-                onClick={() => openThread(message.id)}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  openThread(message.id)
+                  onCloseToolbar()
+                }}
                 onMouseEnter={prefetchThread}
                 onFocus={prefetchThread}
               >
@@ -133,7 +171,12 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
         channelId={message.channelId}
         messageId={message.id}
         canEdit={message.authorId === currentUserId}
-        onEdit={() => setIsEditing(true)}
+        isMobileOpen={isToolbarOpen}
+        onEdit={() => {
+          setIsEditing(true)
+          onCloseToolbar()
+        }}
+        onAction={onCloseToolbar}
       />
     </div>
   )

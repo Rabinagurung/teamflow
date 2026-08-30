@@ -1,4 +1,4 @@
-import Image from "next/image"
+import { TeamFlowWordmark } from "@/components/branding/TeamFlowWordmark"
 import Link from "next/link"
 import React from "react"
 
@@ -10,13 +10,7 @@ export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
           href={"/"}
           className="flex items-center justify-center self-center"
         >
-          <Image
-            src="/logos/teamflow-wordmark.svg"
-            alt="Teamflow"
-            width={180}
-            height={40}
-            priority
-          />
+          <TeamFlowWordmark className="w-[180px]" />
         </Link>
         {children}
       </div>

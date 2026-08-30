@@ -20,17 +20,15 @@ const WorkspaceLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <HydrateClient client={queryClient}>
       <MobileSidebarProvider>
-        <div className="flex h-screen w-full">
+        <div className="flex h-dvh w-full overflow-hidden">
           <aside
-            className="flex h-full w-16 shrink-0 flex-col items-center border-r border-workspace-rail-border bg-workspace-rail px-2 py-3"
+            className="flex h-full w-16 shrink-0 flex-col items-center border-r border-workspace-rail-border bg-workspace-rail px-1 py-3"
             role="navigation"
             aria-label="Workspace navigation"
           >
             <WorkspaceList />
 
-            <div className="mt-4">
-              <CreateWorkspace />
-            </div>
+            <CreateWorkspace />
             <div className="mt-auto flex flex-col items-center">
               <div className="flex flex-col items-center gap-3">
                 <AdminTools />

@@ -6,7 +6,7 @@ export default function NoWorkspaceHero() {
   return (
     <main className="min-h-screen bg-background p-4 text-foreground sm:p-5">
       <div className="grid min-h-[calc(100vh-32px)] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-primary/10 sm:min-h-[calc(100vh-40px)] lg:grid-cols-[300px_1fr]">
-        <aside className="bg-workspace-rail p-6 text-sidebar-foreground lg:p-8">
+        <aside className="hidden md:block bg-workspace-rail p-6 text-sidebar-foreground lg:p-8">
           <Image
             src="/logos/teamflow-wordmark.svg"
             alt="TeamFlow"

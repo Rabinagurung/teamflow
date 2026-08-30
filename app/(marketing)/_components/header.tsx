@@ -5,10 +5,10 @@ import { Menu, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import React from "react"
 import { cn } from "@/lib/utlis/utils"
-import Image from "next/image"
 import { authClient } from "@/lib/auth/auth-client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { GuestSignInButton } from "@/app/(marketing)/(auth)/_componentss/guest-sign-in-button"
+import { TeamFlowWordmark } from "@/components/branding/TeamFlowWordmark"
 
 // const menuItems = [
 //   { name: "Features", href: "#link" },
@@ -50,13 +50,7 @@ export const HeroHeader = () => {
                 aria-label="home"
                 className="flex items-center space-x-2"
               >
-                <Image
-                  src="/logos/teamflow-wordmark.svg"
-                  alt="TeamFlow"
-                  width={165}
-                  height={36}
-                  priority
-                />
+                <TeamFlowWordmark className="w-[165px]" />
               </Link>
               <button
                 onClick={() => setMenuState(!menuState)}
@@ -123,14 +117,6 @@ export const HeroHeader = () => {
                     </>
                   ) : (
                     <>
-                      <GuestSignInButton
-                        variant="ghost"
-                        size="sm"
-                        className={cn("w-full", isScrolled && "lg:hidden")}
-                      >
-                        Continue as guest
-                      </GuestSignInButton>
-
                       <Link
                         href="/login"
                         className={buttonVariants({
@@ -173,6 +159,13 @@ export const HeroHeader = () => {
                           Get started
                         </Link>
                       </div>
+                      <GuestSignInButton
+                        variant="outline"
+                        size="sm"
+                        className={cn(isScrolled && "lg:hidden")}
+                      >
+                        Continue as guest
+                      </GuestSignInButton>
                     </>
                   )}
                 </div>

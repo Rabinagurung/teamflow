@@ -51,6 +51,9 @@ const MessageList = () => {
   // True when new messages arrive while the user is not near the bottom.
   // Controls visibility of the "New Messages" affordance.
   const [newMessages, setNewMessages] = useState(false) //newMessages arrive while scrolling up
+  const [activeToolbarMessageId, setActiveToolbarMessageId] = useState<
+    string | null
+  >(null)
 
   const infinitOptions = orpc.message.list.infiniteOptions({
     input: (pageParam: string | undefined) => ({
@@ -222,6 +225,10 @@ const MessageList = () => {
     const element = scrollRef.current
     if (!element) return
 
+    if (activeToolbarMessageId) {
+      setActiveToolbarMessageId(null)
+    }
+
     if (element.scrollTop <= 80 && hasNextPage && !isFetching) {
       const previousScrollHeight = element.scrollHeight
       const previousScrollTop = element.scrollTop
@@ -367,6 +374,13 @@ const MessageList = () => {
                 key={message.id}
                 message={message}
                 currentUserId={user.id}
+                isToolbarOpen={activeToolbarMessageId === message.id}
+                onToggleToolbar={() => {
+                  setActiveToolbarMessageId((currentId) =>
+                    currentId === message.id ? null : message.id,
+                  )
+                }}
+                onCloseToolbar={() => setActiveToolbarMessageId(null)}
               />
             ))}
           </div>
